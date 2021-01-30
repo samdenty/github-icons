@@ -1,4 +1,5 @@
-use super::{badges::is_badge, primary_heading::PrimaryHeading, Readme};
+use super::{primary_heading::PrimaryHeading, Readme};
+use crate::blacklist::is_badge;
 use scraper::ElementRef;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, collections::HashSet};

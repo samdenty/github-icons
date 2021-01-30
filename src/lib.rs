@@ -23,6 +23,7 @@ extern crate futures;
 
 #[macro_use]
 mod macros;
+mod blacklist;
 mod readme;
 mod repo_icons;
 

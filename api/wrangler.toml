@@ -1,6 +1,6 @@
 name = "repo-icons"
 type = "rust"
-account_id = ""
+account_id = "3abe6f685dab548d1e22cb0f977a9e18"
 workers_dev = true
 route = ""
 zone_id = ""

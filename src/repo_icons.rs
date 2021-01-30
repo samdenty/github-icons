@@ -1,4 +1,5 @@
 use super::Readme;
+use crate::blacklist::is_blacklisted_homepage;
 use site_icons::{IconInfo, IconKind, Icons};
 use std::{
   error::Error,
@@ -54,11 +55,13 @@ pub async fn get_repo_icons(user: &str, repo: &str) -> Result<Vec<RepoIcon>, Box
   });
 
   if let Some(homepage) = &readme.homepage {
-    warn_err!(
-      icons.load_website(homepage.clone()).await,
-      "failed to load website {}",
-      homepage
-    );
+    if !is_blacklisted_homepage(homepage) {
+      warn_err!(
+        icons.load_website(homepage.clone()).await,
+        "failed to load website {}",
+        homepage
+      );
+    }
   }
 
   let entries = icons.entries().await;

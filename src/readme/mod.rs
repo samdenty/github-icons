@@ -1,4 +1,3 @@
-mod badges;
 mod primary_heading;
 pub mod readme_image;
 mod repo_redirect;

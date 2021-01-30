@@ -1,38 +1,41 @@
-use glob::{MatchOptions, Pattern};
 use once_cell::sync::Lazy;
+use regex::Regex;
 use url::Url;
 
 // Domains which serve badges without 'badge' in the URL
-static BADGE_PATTERNS: Lazy<Vec<Pattern>> = Lazy::new(|| {
-  patterns![
-    "img.shields.io/**",
-    "travis-ci.org/**",
-    "api.travis-ci.com/**",
-    "ci.appveyor.com/**",
-    "david-dm.org/**",
-    "api.codeclimate.com/**",
-    "codecov.io/**",
-    "snyk.io/**",
-    "deploy.workers.cloudflare.com/**",
-    "circleci.com/**",
-    "dev.azure.com/**",
-    "deps.rs/**",
-    "docs.rs/**",
+static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
+  regexes![
+    r"badge",
+    r"status",
+    r"coverage",
+    r"^img.shields.io",
+    r"^travis-ci.org",
+    r"^api.travis-ci.com",
+    r"^ci.appveyor.com",
+    r"^david-dm.org",
+    r"^api.codeclimate.com",
+    r"^codecov.io",
+    r"^snyk.io",
+    r"^deploy.workers.cloudflare.com",
+    r"^circleci.com",
+    r"^dev.azure.com",
+    r"^deps.rs",
+    r"^docs.rs",
     // with paths
-    "github.com/*/*/workflows/**",
-    "liberapay.com/assets/widgets/**",
-    "www.herokucdn.com/deploy/button.png",
-    "vercel.com/button",
-    "codesandbox.io/static/img/play-codesandbox.svg",
+    r"^github.com/[^/]+/[^/]+/workflows",
+    r"^liberapay.com/assets/widgets",
+    r"^www.herokucdn.com/deploy/button.png",
+    r"^vercel.com/button",
+    r"^codesandbox.io/static/img/play-codesandbox.svg",
   ]
   .to_vec()
 });
 
-static BLACKLISTED_HOMEPAGES: Lazy<Vec<Pattern>> = Lazy::new(|| {
-  patterns![
-    "codesandbox.io/s/**",
-    "npmjs.com/**",
-    "chrome.google.com/webstore/**"
+static BLACKLISTED_HOMEPAGES: Lazy<Vec<Regex>> = Lazy::new(|| {
+  regexes![
+    r"^codesandbox.io",
+    r"^npmjs.com",
+    r"^chrome.google.com/webstore"
   ]
   .to_vec()
 });
@@ -45,20 +48,9 @@ pub fn is_badge(url: &Url) -> bool {
   };
   let url = format!("{}{}", domain, url.path());
 
-  if url.contains("badge") || url.contains("status") {
-    return true;
-  }
-
-  BADGE_PATTERNS.iter().any(|url_pattern| {
-    url_pattern.matches_with(
-      &url,
-      MatchOptions {
-        case_sensitive: false,
-        require_literal_separator: true,
-        require_literal_leading_dot: false,
-      },
-    )
-  })
+  BADGE_PATTERNS
+    .iter()
+    .any(|url_regex| url_regex.is_match(&url))
 }
 
 pub fn is_blacklisted_homepage(url: &Url) -> bool {
@@ -69,14 +61,7 @@ pub fn is_blacklisted_homepage(url: &Url) -> bool {
   };
   let url = format!("{}{}", domain, url.path());
 
-  BLACKLISTED_HOMEPAGES.iter().any(|url_pattern| {
-    url_pattern.matches_with(
-      &url,
-      MatchOptions {
-        case_sensitive: false,
-        require_literal_separator: true,
-        require_literal_leading_dot: false,
-      },
-    )
-  })
+  BLACKLISTED_HOMEPAGES
+    .iter()
+    .any(|url_regex| url_regex.is_match(&url))
 }

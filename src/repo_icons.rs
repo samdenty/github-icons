@@ -1,5 +1,5 @@
 use super::Readme;
-use crate::blacklist::is_blacklisted_homepage;
+use crate::blacklist::{is_badge, is_blacklisted_homepage};
 use site_icons::{IconInfo, IconKind, Icons};
 use std::{
   error::Error,
@@ -68,6 +68,7 @@ pub async fn get_repo_icons(user: &str, repo: &str) -> Result<Vec<RepoIcon>, Box
 
   let repo_icons: Vec<_> = entries
     .into_iter()
+    .filter(|icon| !is_badge(&icon.url))
     .map(|entry| {
       let is_readme = readme_image
         .as_ref()

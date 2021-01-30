@@ -18,9 +18,9 @@ macro_rules! join {
   };
 }
 
-macro_rules! patterns {
+macro_rules! regexes {
     ($($x:expr),+ $(,)?) => (
-      [$(glob::Pattern::new($x).unwrap()),+]
+      [$(regex::Regex::new($x).unwrap()),+]
     );
   }
 

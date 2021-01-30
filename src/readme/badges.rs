@@ -12,6 +12,7 @@ static BADGE_PATTERNS: Lazy<Vec<Pattern>> = Lazy::new(|| {
     "api.codeclimate.com/**",
     "codecov.io/**",
     "snyk.io/**",
+    "deploy.workers.cloudflare.com/**",
     "circleci.com/**",
     "dev.azure.com/**",
     "deps.rs/**",

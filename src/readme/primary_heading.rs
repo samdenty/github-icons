@@ -1,3 +1,4 @@
+use crate::regex;
 use crate::selector;
 use scraper::{ElementRef, Html};
 
@@ -28,17 +29,26 @@ impl<'a> PrimaryHeading<'a> {
   }
 
   pub fn contains(&mut self, element: &ElementRef) -> bool {
+    // ugly hack to extract id https://github.com/causal-agent/ego-tree/pull/22
+    let get_id = |node: &ElementRef| {
+      let id_str = format!("{:?}", node.id());
+      let res = regex!(r"\((\d+)\)").captures(&id_str).unwrap();
+      res[1].parse::<usize>().unwrap()
+    };
+
     let pos = self
       .primary_heading
+      .as_ref()
       .map(|primary| {
         // if its before the primary heading
-        if primary.id() > element.id() {
+        if get_id(primary) > get_id(element) {
           Some(PrimaryHeadingPos::Preceding)
         } else {
           // or if its between the primary & next heading
           if self
             .next_heading
-            .map(|next| next.id() > element.id())
+            .as_ref()
+            .map(|next| get_id(next) > get_id(element))
             .unwrap_or(true)
           {
             // but theres an image already before us...

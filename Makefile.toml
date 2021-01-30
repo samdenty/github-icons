@@ -1,3 +1,8 @@
+[tasks.run]
+env = { "RUST_LOG" = "info" }
+command = "cargo"
+args = ["run", "--", "${@}"]
+
 [tasks.watch]
 command = "wrangler"
 args = ["preview", "--watch"]
@@ -5,9 +10,3 @@ args = ["preview", "--watch"]
 [tasks.publish]
 command = "wrangler"
 args = ["publish"]
-
-[tasks.icons]
-env = { "RUST_LOG" = "api" }
-command = "cargo"
-args = ["run", "--bin=site_icons", "--", "${@}"]
-# watch = true

@@ -1,4 +1,4 @@
-use crate::{github::client_builder, github_api_get};
+use crate::{client_builder, github_api_get};
 use cached::proc_macro::cached;
 use reqwest::header::LOCATION;
 use serde::Deserialize;

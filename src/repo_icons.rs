@@ -33,7 +33,6 @@ pub struct RepoIcon {
 
 pub async fn get_repo_icons(user: &str, repo: &str) -> Result<Vec<RepoIcon>, Box<dyn Error>> {
   let readme = Readme::load(user, repo).await?;
-
   let mut icons = Icons::new();
 
   let readme_image = readme.images().await.into_iter().find(|image| {

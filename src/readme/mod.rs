@@ -6,9 +6,9 @@ mod repo_redirect;
 pub use readme_image::*;
 
 use self::{primary_heading::PrimaryHeading, repo_redirect::is_same_repo};
-use crate::utils::deserialize_url;
 use crate::{github_api_get, regex, selector};
 use scraper::Html;
+use serde::{de, Deserialize};
 use std::error::Error;
 use url::Url;
 
@@ -189,4 +189,17 @@ impl Readme {
     let repo = repo.to_lowercase();
     is_same_repo((&self.owner, &self.repo), (&user, &repo)).await
   }
+}
+
+fn deserialize_url<'de, D: de::Deserializer<'de>>(d: D) -> Result<Option<Url>, D::Error> {
+  Deserialize::deserialize(d).map(|url: Option<&str>| {
+    url.and_then(|url| {
+      if url.is_empty() {
+        return None;
+      }
+      Url::parse(url.as_ref())
+        .or_else(|_| Url::parse(&format!("http://{}", url)))
+        .ok()
+    })
+  })
 }

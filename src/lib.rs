@@ -1,7 +1,19 @@
+#![feature(async_closure, map_into_keys_values, bool_to_option)]
+extern crate cfg_if;
+extern crate wasm_bindgen;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate serde_with;
+#[macro_use]
+extern crate futures;
+extern crate regex;
+
+mod macros;
 mod readme;
 mod repo_icons;
 
-pub use self::readme::*;
+pub use readme::*;
 pub use repo_icons::*;
 
 use once_cell::sync::Lazy;
@@ -42,6 +54,6 @@ macro_rules! github_api_get {
   };
 
   ($fmt:literal, $($arg:tt)*) => {{
-    $crate::github_api_get!(unsafe { &*$crate::github::CLIENT }, $fmt, $($arg)*)
+    $crate::github_api_get!(unsafe { &*$crate::CLIENT }, $fmt, $($arg)*)
   }}
 }

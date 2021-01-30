@@ -12,13 +12,8 @@ jobs:
     name: Build & Deploy
     steps:
       - uses: actions/checkout@v2
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
       - name: Publish
-        uses: cloudflare/wrangler-action@1.2.0
+        uses: alank976/wrangler-action@support-rust-wasm
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           workingDirectory: api

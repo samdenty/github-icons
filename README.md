@@ -6,8 +6,6 @@
 
 Get the icons for a GitHub repo.
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/samdenty/repo_icons)
-
 Demo
 
 ## Features

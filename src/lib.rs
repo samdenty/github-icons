@@ -1,4 +1,19 @@
 #![feature(async_closure, map_into_keys_values, bool_to_option)]
+
+//! # repo_icons
+//! Get icons for a GitHub repository.
+//!
+//! ## Usage
+//! ```rust
+//! use site_icons::get_repo_icons;
+//!
+//! let icons = get_repo_icons("facebook", "react").await?;
+//!
+//! for icon in icons {
+//!   println("{:?}", icon)
+//! }
+//! ```
+
 #[macro_use]
 extern crate log;
 #[macro_use]

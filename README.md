@@ -4,7 +4,9 @@
 [![Documentation](https://docs.rs/repo_icons/badge.svg)](https://docs.rs/repo_icons/)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/samdenty?style=social)
 
-An API / rust library to get icons for any GitHub repo.
+Get the icons for a GitHub repo.
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/samdenty/repo_icons)
 
 Demo
 
@@ -29,17 +31,11 @@ repo-icons facebook/react
 ### Rust usage
 
 ```rust
-use repo_icons::Icons;
+use repo_icons::get_repo_icons;
 
-let icons = Icons::new();
-// scrape the icons from a url
-icons.load_website("https://github.com").await?;
+let icons = get_repo_icons("facebook", "react").await?;
 
-// fetch all icons, ensuring they exist & determining size
-let entries = icons.entries().await;
-
-// entries are sorted from highest to lowest resolution
-for icon in entries {
+for icon in icons {
   println("{:?}", icon)
 }
 ```

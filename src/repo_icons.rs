@@ -30,6 +30,16 @@ pub struct RepoIcon {
   pub info: IconInfo,
 }
 
+/// Fetch all the icons. Ordered from highest to lowest resolution
+///
+/// ```
+/// # async fn run() {
+/// let icons = get_repo_icons("facebook", "react").await?;
+///
+/// for icon in icons {
+///   println("{:?}", icon)
+/// }
+/// ```
 pub async fn get_repo_icons(user: &str, repo: &str) -> Result<Vec<RepoIcon>, Box<dyn Error>> {
   let readme = Readme::load(user, repo).await?;
   let mut icons = Icons::new();

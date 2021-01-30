@@ -1,8 +1,15 @@
 [package]
-name = "api"
+name = "repo_icons"
 version = "0.1.0"
 authors = ["Sam Denty <sam@samdenty.com>"]
 edition = "2018"
+license = "GPL-3.0"
+homepage = "https://github.com/samdenty/repo_icons"
+repository = "https://github.com/samdenty/repo_icons"
+documentation = "https://docs.rs/repo_icons"
+description = "Get icons for any github repo"
+keywords = ["favicon", "logo", "website", "scraper", "cli"]
+categories = ["command-line-utilities", "multimedia::images", "wasm"]
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-Oz", "--enable-mutable-globals"]
@@ -38,7 +45,6 @@ tokio-futures-byteorder = { version = "0.2.0", features = ["futures"] }
 web-sys = { version = "0.3.46", features = ['console'] }
 byteorder = "1.4.2"
 data-url = "0.1.0"
-mime = { git = "https://github.com/hyperium/mime" }
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
 reqwest = { package = "reqwest-wasm", version = "0.11.0", features = ["json", "cookies", "blocking", "stream"] }

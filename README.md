@@ -4,14 +4,15 @@
 [![Documentation](https://docs.rs/repo_icons/badge.svg)](https://docs.rs/repo_icons/)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/samdenty?style=social)
 
-An efficient website icon scraper for rust or command line usage.
+An API / rust library to get icons for any GitHub repo.
+
+Demo
 
 ## Features
 
 - Super fast!
 - Partially downloads images to find the sizes
-- Can extract a site logo `<img>` using a weighing system
-- Works with inline-data URIs (and automatically converts `<svg>` to them)
+- Extracts images from the repo's homepage using [site_icons](https://github.com/samdenty/site_icons)
 - Supports WASM (and cloudflare workers)
 
 ### Command line usage
@@ -19,7 +20,7 @@ An efficient website icon scraper for rust or command line usage.
 ```bash
 cargo install repo_icons
 
-repo-icons https://google.com
+repo-icons facebook/react
 # https://github.githubassets.com/favicons/favicon.svg site_favicon svg
 # https://github.githubassets.com/app-icon-512.png app_icon png 512x512
 # https://github.githubassets.com/app-icon-192.png app_icon png 192x192
@@ -44,16 +45,10 @@ for icon in entries {
 }
 ```
 
-### Sources
-
-- HTML favicon tag (or looking for default `/favicon.ico`)
-- [Web app manifest](https://developer.mozilla.org/en-US/docs/Web/Manifest) [`icons`](https://developer.mozilla.org/en-US/docs/Web/Manifest/icons) field
-- `<img>` tags on the page, directly inside the header OR with a `src|alt|class` containing the text "logo"
-
 ## Running locally
 
 Install [cargo make](https://github.com/sagiegurari/cargo-make) and then:
 
 ```bash
-cargo make run https://github.com
+cargo make run facebook/react
 ```

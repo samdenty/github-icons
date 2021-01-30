@@ -1,5 +1,3 @@
-use crate::regex;
-use crate::selector;
 use scraper::{ElementRef, Html};
 
 #[derive(Debug, Clone)]

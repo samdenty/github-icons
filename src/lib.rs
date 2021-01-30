@@ -1,14 +1,12 @@
 #![feature(async_closure, map_into_keys_values, bool_to_option)]
-extern crate cfg_if;
-extern crate wasm_bindgen;
 #[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde_with;
 #[macro_use]
 extern crate futures;
-extern crate regex;
 
+#[macro_use]
 mod macros;
 mod readme;
 mod repo_icons;

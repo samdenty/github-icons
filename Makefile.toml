@@ -2,11 +2,3 @@
 env = { "RUST_LOG" = "info" }
 command = "cargo"
 args = ["run", "--", "${@}"]
-
-[tasks.watch]
-command = "wrangler"
-args = ["preview", "--watch"]
-
-[tasks.publish]
-command = "wrangler"
-args = ["publish"]

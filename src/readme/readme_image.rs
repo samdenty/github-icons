@@ -1,5 +1,4 @@
 use super::{badges::is_badge, primary_heading::PrimaryHeading, Readme};
-use crate::regex;
 use scraper::ElementRef;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, collections::HashSet};

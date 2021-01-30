@@ -1,5 +1,4 @@
 use super::Readme;
-use crate::warn_err;
 use site_icons::{IconInfo, IconKind, Icons};
 use std::{
   error::Error,

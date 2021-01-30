@@ -6,7 +6,7 @@ mod repo_redirect;
 pub use readme_image::*;
 
 use self::{primary_heading::PrimaryHeading, repo_redirect::is_same_repo};
-use crate::{github_api_get, regex, selector};
+use crate::github_api_get;
 use scraper::Html;
 use serde::{de, Deserialize};
 use std::error::Error;

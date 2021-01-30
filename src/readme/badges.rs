@@ -2,8 +2,6 @@ use glob::{MatchOptions, Pattern};
 use once_cell::sync::Lazy;
 use url::Url;
 
-use crate::patterns;
-
 // Domains which serve badges without 'badge' in the URL
 static BADGE_PATTERNS: Lazy<Vec<Pattern>> = Lazy::new(|| {
   patterns![

@@ -4,10 +4,9 @@
 [![Documentation](https://docs.rs/repo_icons/badge.svg)](https://docs.rs/repo_icons/)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/samdenty?style=social)
 
-Get the icons for a GitHub repo.
+An API / Rust Library / CLI to get icons for any GitHub repo.
 
 ![API screenshot](assets/api.svg)
-Demo
 
 ## Features
 
@@ -39,10 +38,24 @@ for icon in icons {
 }
 ```
 
+## Deploying to Cloudflare Workers
+
+Clone this repo locally, and then:
+
+```
+cd api
+wrangler publish
+```
+
 ## Running locally
 
 Install [cargo make](https://github.com/sagiegurari/cargo-make) and then:
 
 ```bash
+# to run cli
 cargo make run facebook/react
+
+# or to run the API devserver
+cd api
+cargo make run
 ```

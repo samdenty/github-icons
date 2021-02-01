@@ -4,9 +4,9 @@
 [![Documentation](https://docs.rs/repo_icons/badge.svg)](https://docs.rs/repo_icons/)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/samdenty?style=social)
 
-An API / Rust Library / CLI to get icons for any GitHub repo.
+An API / Rust Library / CLI to get icons for any GitHub repo. [Try the API out](https://repo-icons.samdenty.workers.dev/desktop/desktop/icons)
 
-![API screenshot](assets/api.svg)
+[![API screenshot](assets/api.svg)](https://repo-icons.samdenty.workers.dev/desktop/desktop/icons)
 
 ## Features
 

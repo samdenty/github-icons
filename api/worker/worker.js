@@ -2,7 +2,13 @@ addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
 });
 
-const { set_token, get_icons, get_repo_images, get_repo_icons } = wasm_bindgen;
+const {
+  set_token,
+  get_icons,
+  get_repo_images,
+  get_repo_icons,
+  get_repo_icon_url,
+} = wasm_bindgen;
 
 async function handleRequest(request) {
   await wasm_bindgen(wasm);
@@ -25,10 +31,19 @@ async function handleRequest(request) {
         status: 200,
       });
     }
+
     if (type === "icons") {
       return new Response(await get_repo_icons(user, repo), {
         status: 200,
       });
     }
+
+    const icon_url = await get_repo_icon_url(user, repo);
+    if (!icon_url) {
+      return new Response("No icons available for repo", {
+        status: 404,
+      });
+    }
+    return Response.redirect(icon_url, 301);
   }
 }

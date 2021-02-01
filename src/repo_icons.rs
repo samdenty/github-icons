@@ -2,6 +2,7 @@ use super::Readme;
 use crate::blacklist::{is_badge, is_blacklisted_homepage};
 use site_icons::{IconInfo, IconKind, Icons};
 use std::{
+  cmp::Ordering,
   error::Error,
   fmt::{self, Display},
 };
@@ -66,7 +67,7 @@ pub async fn get_repo_icons(user: &str, repo: &str) -> Result<Vec<RepoIcon>, Box
 
   let entries = icons.entries().await;
 
-  let repo_icons: Vec<_> = entries
+  let mut repo_icons: Vec<_> = entries
     .into_iter()
     .filter(|icon| !is_badge(&icon.url))
     .map(|entry| {
@@ -86,6 +87,16 @@ pub async fn get_repo_icons(user: &str, repo: &str) -> Result<Vec<RepoIcon>, Box
       }
     })
     .collect();
+
+  repo_icons.sort_by(|a, b| {
+    if a.kind == RepoIconKind::ReadmeImage {
+      Ordering::Less
+    } else if b.kind == RepoIconKind::ReadmeImage {
+      Ordering::Greater
+    } else {
+      Ordering::Equal
+    }
+  });
 
   Ok(repo_icons)
 }

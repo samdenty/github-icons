@@ -30,3 +30,10 @@ pub async fn get_repo_icons(owner: String, repo: String) -> String {
 
   serde_json::to_string_pretty(&images).unwrap()
 }
+
+#[wasm_bindgen]
+pub async fn get_repo_icon_url(owner: String, repo: String) -> Option<String> {
+  let images = repo_icons::get_repo_icons(&owner, &repo).await.unwrap();
+
+  images.first().map(|icon| icon.url.to_string())
+}

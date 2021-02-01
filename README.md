@@ -6,7 +6,7 @@
 
 An API / Rust Library / CLI to get icons for any GitHub repo. [Try the API out](https://repo-icons.samdenty.workers.dev/desktop/desktop/icons)
 
-[![API screenshot](assets/api.svg)](https://repo-icons.samdenty.workers.dev/desktop/desktop/icons)
+[![API screenshot](assets/repo_icons.png)](https://repo-icons.samdenty.workers.dev/desktop/desktop/icons)
 
 ## Features
 
@@ -15,7 +15,9 @@ An API / Rust Library / CLI to get icons for any GitHub repo. [Try the API out](
 - Extracts images from the repo's homepage using [site_icons](https://github.com/samdenty/site_icons)
 - Supports WASM (and cloudflare workers)
 
-### Command line usage
+### CLI
+
+You can test it out locally, by downloading & running the CLI:
 
 ```bash
 cargo install repo_icons

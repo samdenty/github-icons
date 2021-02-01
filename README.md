@@ -6,6 +6,7 @@
 
 Get the icons for a GitHub repo.
 
+![API screenshot](assets/api.svg)
 Demo
 
 ## Features

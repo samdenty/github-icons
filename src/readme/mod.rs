@@ -5,7 +5,6 @@ mod repo_redirect;
 pub use readme_image::*;
 
 use self::{primary_heading::PrimaryHeading, repo_redirect::is_same_repo};
-use crate::github_api_get;
 use scraper::Html;
 use serde::{de, Deserialize};
 use std::error::Error;
@@ -37,14 +36,14 @@ impl Readme {
           homepage: Option<Url>,
         }
 
-        github_api_get!("repos/{}/{}", owner, repo)
+        gh_api_get!("repos/{}/{}", owner, repo)
           .send()
           .await?
           .json::<Repo>()
           .await
       },
       async {
-        github_api_get!("repos/{}/{}/readme", owner, repo)
+        gh_api_get!("repos/{}/{}/readme", owner, repo)
           .header("Accept", "application/vnd.github.html")
           .send()
           .await?
@@ -158,29 +157,44 @@ impl Readme {
       return Some(ProjectLink::Website);
     }
 
-    if self.is_link_to_repo(url).await {
+    if self.get_branch_and_path(url).await.is_some() {
       return Some(ProjectLink::Repo);
     };
 
     None
   }
 
-  /// Check if a given url is a repo link.
-  pub async fn is_link_to_repo(&self, url: &Url) -> bool {
+  /// Check if a given url points to a file located inside the repo.
+  pub async fn get_branch_and_path(&self, url: &Url) -> Option<(String, String)> {
     let domain = if let Some(domain) = url.domain() {
       domain.to_lowercase()
     } else {
-      return false;
+      return None;
     };
 
-    if domain == "github.com" || domain == "raw.githubusercontent.com" || domain == "raw.github.com"
-    {
-      if let Some(res) = regex!("^/([^/]+)/([^/]+)").captures(url.path()) {
-        return self.is_same_repo_as(&res[1], &res[2]).await;
+    match &domain[..] {
+      "raw.githubusercontent.com" | "raw.github.com" | "github.com" => {
+        let re = if domain == "github.com" {
+          regex!("^/([^/]+)/([^/]+)/[^/]+/([^/]+)/(.+)")
+        } else {
+          regex!("^/([^/]+)/([^/]+)/([^/]+)/(.+)")
+        };
+
+        if let Some(res) = re.captures(url.path()) {
+          let user = &res[1];
+          let repo = &res[2];
+
+          if self.is_same_repo_as(user, repo).await {
+            let branch = &res[3];
+            let path = &res[4];
+            return Some((branch.into(), path.into()));
+          };
+        }
       }
+      _ => {}
     }
 
-    false
+    None
   }
 
   async fn is_same_repo_as(&self, user: &str, repo: &str) -> bool {

@@ -1,5 +1,5 @@
 use log::Level;
-use repo_icons::Readme;
+use repo_icons::{Readme, RepoIcons};
 use wasm_bindgen::prelude::*;
 
 #[global_allocator]
@@ -26,14 +26,13 @@ pub async fn get_repo_images(owner: String, repo: String) -> String {
 
 #[wasm_bindgen]
 pub async fn get_repo_icons(owner: String, repo: String) -> String {
-  let images = repo_icons::get_repo_icons(&owner, &repo).await.unwrap();
+  let images = RepoIcons::load(&owner, &repo).await.unwrap();
 
   serde_json::to_string_pretty(&images).unwrap()
 }
 
 #[wasm_bindgen]
-pub async fn get_repo_icon_url(owner: String, repo: String) -> Option<String> {
-  let images = repo_icons::get_repo_icons(&owner, &repo).await.unwrap();
-
-  images.first().map(|icon| icon.url.to_string())
+pub async fn get_repo_icon_url(owner: String, repo: String) -> String {
+  let images = RepoIcons::load(&owner, &repo).await.unwrap();
+  images.largest().url.to_string()
 }

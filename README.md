@@ -31,9 +31,9 @@ repo-icons facebook/react
 ### Rust usage
 
 ```rust
-use repo_icons::get_repo_icons;
+use repo_icons::RepoIcons;
 
-let icons = get_repo_icons("facebook", "react").await?;
+let icons = RepoIcons::load("facebook", "react").await?;
 
 for icon in icons {
   println("{:?}", icon)

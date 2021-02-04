@@ -1,5 +1,5 @@
-use crate::{client_builder, github_api_get};
 use cached::proc_macro::cached;
+use gh_api::gh_client;
 use reqwest::header::LOCATION;
 use serde::Deserialize;
 
@@ -58,14 +58,14 @@ pub async fn is_same_repo(repo: (&str, &str), other_repo: (&str, &str)) -> bool 
 #[cached]
 async fn get_repo_redirect(owner: String, repo: String) -> Option<(String, String)> {
   #[cfg(target_arch = "wasm32")]
-  let req = github_api_get!("repos/{}/{}", owner, repo);
+  let req = gh_api_get!("repos/{}/{}", owner, repo);
 
   #[cfg(not(target_arch = "wasm32"))]
   let req = {
     use reqwest::redirect::Policy;
 
-    let client = client_builder().redirect(Policy::none()).build().ok()?;
-    let res = github_api_get!(client, "repos/{}/{}", owner, repo)
+    let client = gh_client(None).redirect(Policy::none()).build().ok()?;
+    let res = gh_api_get!(client, "repos/{}/{}", owner, repo)
       .send()
       .await
       .ok()?;

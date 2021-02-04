@@ -1,7 +1,7 @@
 use clap::Clap;
 use env_logger::Builder;
 use log::LevelFilter;
-use repo_icons::{get_repo_icons, set_token};
+use repo_icons::{set_token, RepoIcons};
 use std::error::Error;
 
 #[derive(Clap)]
@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
   if opts.debug {
     let mut builder = Builder::new();
-    builder.filter_module("info", LevelFilter::Info);
+    builder.filter_level(LevelFilter::Info);
     builder.init();
   }
 
@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
   let user = &slug[1];
   let repo = &slug[2];
 
-  let icons = get_repo_icons(user, repo).await?;
+  let icons = RepoIcons::load(user, repo).await?;
 
   if opts.json {
     println!("{}", serde_json::to_string_pretty(&icons)?)

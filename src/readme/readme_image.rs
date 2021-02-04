@@ -1,5 +1,5 @@
 use super::{primary_heading::PrimaryHeading, Readme};
-use crate::blacklist::is_badge;
+use crate::{blacklist::is_badge, get_token};
 use scraper::ElementRef;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, collections::HashSet};
@@ -91,14 +91,13 @@ impl ReadmeImage {
       }
     }
 
-    let sourced_from_repo = readme.is_link_to_repo(&src).await;
+    let branch_and_path = readme.get_branch_and_path(&src).await;
     let keyword_mentions = {
       let mut mentions = HashSet::new();
-      let mut path = src.path().to_lowercase();
 
-      if sourced_from_repo {
-        // remove username + repo name from path
-        path = regex!("^/[^/]+/[^/]+").replace(&path, "").to_string()
+      let mut path = &src.path().to_lowercase();
+      if let Some((_, file_path)) = &branch_and_path {
+        path = file_path;
       }
 
       let alt = elem
@@ -120,12 +119,24 @@ impl ReadmeImage {
       mentions
     };
 
+    let src = cdn_src.unwrap_or({
+      if let Some((branch, path)) = &branch_and_path {
+        Url::parse(&format!(
+          "https://raw.githubusercontent.com/{}/{}/{}/{}",
+          readme.owner, readme.repo, branch, path
+        ))
+        .unwrap()
+      } else {
+        src
+      }
+    });
+
     Some(ReadmeImage {
-      src: cdn_src.unwrap_or(src),
+      src,
       in_primary_heading: primary_heading.contains(elem_ref),
       edge_of_primary_heading: false,
       keyword_mentions,
-      sourced_from_repo,
+      sourced_from_repo: branch_and_path.is_some(),
       links_to,
       is_align_center,
       has_size_attrs: elem.attr("width").or(elem.attr("height")).is_some(),

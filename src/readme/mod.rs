@@ -197,6 +197,15 @@ impl Readme {
     None
   }
 
+  pub fn qualify_url(&self, path: &str) -> Result<Url, Box<dyn Error>> {
+    let mut path = path.to_string();
+    if path.starts_with("/") {
+      path = format!(".{}", path);
+    }
+
+    Ok(self.link_base.join(&path)?)
+  }
+
   async fn is_same_repo_as(&self, user: &str, repo: &str) -> bool {
     let user = user.to_lowercase();
     let repo = repo.to_lowercase();

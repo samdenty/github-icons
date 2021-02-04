@@ -49,7 +49,7 @@ impl ReadmeImage {
     let src = elem
       .attr("data-canonical-src")
       .or(elem.attr("src"))
-      .and_then(|src| readme.link_base.join(src).ok())
+      .and_then(|src| readme.qualify_url(src).ok())
       .unwrap();
 
     if is_badge(&src) {
@@ -59,7 +59,7 @@ impl ReadmeImage {
     let cdn_src = elem
       .attr("data-canonical-src")
       .and(elem.attr("src"))
-      .and_then(|src| readme.link_base.join(src).ok());
+      .and_then(|src| readme.qualify_url(src).ok());
 
     let mut is_align_center = false;
     let mut links_to = None;
@@ -73,7 +73,7 @@ impl ReadmeImage {
       if element.name() == "a" && links_to.is_none() {
         links_to = match element
           .attr("href")
-          .and_then(|href| readme.link_base.join(href).ok())
+          .and_then(|href| readme.qualify_url(href).ok())
         {
           Some(href) => {
             // if the img points to the same url as the link

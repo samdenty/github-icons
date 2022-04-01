@@ -3,7 +3,10 @@ use crate::{
   blacklist::{is_badge, is_blacklisted_homepage},
   get_token, RepoIcon, RepoIconKind,
 };
-use reqwest::IntoUrl;
+use reqwest::{
+  header::{HeaderMap, HeaderValue, AUTHORIZATION},
+  Client, IntoUrl,
+};
 use site_icons::{IconKind, Icons};
 use std::{
   cmp::{max, min, Ordering},
@@ -103,15 +106,22 @@ impl RepoIcons {
     user: &str,
     repo: &str,
   ) -> Result<Self, Box<dyn Error>> {
-    let mut endpoint = endpoint
+    let endpoint = endpoint
       .into_url()?
       .join(&format!("{}/{}/icons", user, repo))?;
 
+    let mut headers = HeaderMap::new();
     if let Some(token) = get_token() {
-      endpoint.set_query(Some(&format!("token={}", token)));
+      headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Authorization: token {}", token))?,
+      );
     }
 
-    let repo_icons = reqwest::get(endpoint)
+    let repo_icons = Client::new()
+      .get(endpoint)
+      .headers(headers)
+      .send()
       .await?
       .error_for_status()?
       .json()

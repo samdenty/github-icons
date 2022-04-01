@@ -1,10 +1,10 @@
-use clap::Clap;
+use clap::Parser;
 use env_logger::Builder;
 use log::LevelFilter;
 use repo_icons::{set_token, RepoIcons};
 use std::error::Error;
 
-#[derive(Clap)]
+#[derive(Parser)]
 struct Opts {
   slug: String,
   #[clap(long)]

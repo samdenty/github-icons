@@ -114,7 +114,7 @@ impl RepoIcons {
     if let Some(token) = get_token() {
       headers.insert(
         AUTHORIZATION,
-        HeaderValue::from_str(&format!("Authorization: token {}", token))?,
+        HeaderValue::from_str(&format!("token {}", token))?,
       );
     }
 

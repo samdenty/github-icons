@@ -4,11 +4,8 @@ use data_url::DataUrl;
 use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
 use site_icons::{IconInfo, IconKind};
 use std::{
-  cell::RefCell,
   error::Error,
   fmt::{self, Display},
-  io::Cursor,
-  rc::Rc,
   str::FromStr,
 };
 use url::Url;

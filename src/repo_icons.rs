@@ -10,7 +10,7 @@ use reqwest::{
 use site_icons::{IconKind, Icons};
 use std::{
   cmp::{max, min, Ordering},
-  collections::{HashMap, HashSet},
+  collections::HashMap,
   convert::TryInto,
   error::Error,
 };
@@ -76,7 +76,7 @@ impl RepoIcons {
       })
       .collect::<Vec<_>>()
       .try_into()
-      .map_err(|e| "no icons found for repo")?;
+      .map_err(|_| "no icons found for repo")?;
 
     repo_icons.sort_by(|a, b| {
       if a.kind == RepoIconKind::ReadmeImage {

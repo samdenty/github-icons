@@ -505,19 +505,6 @@ dependencies = [
 
 [[package]]
 name = "env_logger"
-version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a19187fea3ac7e84da7dacf48de0c45d63c6a76f9490dae389aead16c243fce3"
-dependencies = [
- "atty",
- "humantime",
- "log",
- "regex",
- "termcolor",
-]
-
-[[package]]
-name = "env_logger"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b2cf0344971ee6c64c31be0d530793fba457d322dfec2810c453d0ef228f9c3"
@@ -1757,7 +1744,7 @@ dependencies = [
 
 [[package]]
 name = "repo_icons"
-version = "0.1.4"
+version = "0.1.6"
 dependencies = [
  "byteorder",
  "bytes 1.1.0",
@@ -1765,7 +1752,7 @@ dependencies = [
  "clap",
  "data-url",
  "derivative",
- "env_logger 0.9.0",
+ "env_logger",
  "futures",
  "gh_api",
  "html5ever 0.26.0",
@@ -2068,14 +2055,14 @@ checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
 name = "site_icons"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "937def992c4d7c149e68477713f3a1f8151e4429d10ad8adb16209362501192f"
+checksum = "c03efd67ef024be08ea57d3741b86c4ac94ae4fa6b4c187295bb3ba63ef8e32d"
 dependencies = [
  "byteorder",
  "clap",
  "data-url",
- "env_logger 0.8.4",
+ "env_logger",
  "futures",
  "html5ever 0.25.2",
  "itertools",

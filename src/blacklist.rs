@@ -10,6 +10,7 @@ static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
     r"coverage",
     r"^img.shields.io",
     r"^travis-ci.org",
+    r"^travis-ci.com",
     r"^api.travis-ci.com",
     r"^ci.appveyor.com",
     r"^david-dm.org",

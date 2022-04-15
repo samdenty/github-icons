@@ -20,26 +20,38 @@ pub struct Readme {
 
 impl Readme {
   pub async fn load(owner: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
-    let (repo, readme_body) = try_join!(
+    #[derive(Deserialize)]
+    struct RepoOwner {
+      login: String,
+    }
+
+    #[derive(Deserialize)]
+    struct Repo {
+      owner: RepoOwner,
+      name: String,
+      default_branch: String,
+      #[serde(deserialize_with = "deserialize_url")]
+      homepage: Option<Url>,
+    }
+
+    #[derive(Deserialize)]
+    struct Message {
+      message: String,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum Response {
+      Repo(Repo),
+      Message(Message),
+    }
+
+    let (response, readme_body) = try_join!(
       async {
-        #[derive(Deserialize)]
-        struct RepoOwner {
-          login: String,
-        }
-
-        #[derive(Deserialize)]
-        struct Repo {
-          owner: RepoOwner,
-          name: String,
-          default_branch: String,
-          #[serde(deserialize_with = "deserialize_url")]
-          homepage: Option<Url>,
-        }
-
         gh_api_get!("repos/{}/{}", owner, repo)
           .send()
           .await?
-          .json::<Repo>()
+          .json::<Response>()
           .await
       },
       async {
@@ -53,13 +65,16 @@ impl Readme {
       }
     )?;
 
-    Ok(Readme::new(
-      &repo.owner.login,
-      &repo.name,
-      &readme_body,
-      &repo.default_branch,
-      repo.homepage,
-    ))
+    match response {
+      Response::Repo(repo) => Ok(Readme::new(
+        &repo.owner.login,
+        &repo.name,
+        &readme_body,
+        &repo.default_branch,
+        repo.homepage,
+      )),
+      Response::Message(message) => Err(message.message.into()),
+    }
   }
 
   pub fn new(

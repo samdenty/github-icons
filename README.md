@@ -1,7 +1,6 @@
-<p align="center">
+<h1 align="center">
   <img src="./logo.png" width="150">
-</p>
-<hr/>
+</h1>
 
 This repository contains the source code for the git-icons CLI. [The app can be found over here](https://samddenty.gumroad.com/l/git-icons)
 

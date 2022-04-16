@@ -6,6 +6,7 @@ extern crate diesel_migrations;
 
 mod database;
 mod models;
+mod modify_gitignore;
 
 use crate::models::{Icon, Repo};
 use database::db;
@@ -124,6 +125,8 @@ impl GitIcons {
   }
 
   pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
+    modify_gitignore::modify()?;
+
     let (user, repo_name, repo_path) = get_slug(slug_or_path)?;
     let icons = RepoIcons::load(&user, &repo_name).await;
 

@@ -1,5 +1,6 @@
-mod schema;
+pub mod schema;
 pub use diesel::prelude::*;
+use home::home_dir;
 pub use schema::*;
 
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
@@ -9,6 +10,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use std::{
   error::Error,
+  fmt::format,
   sync::{Arc, Mutex},
 };
 use thread_local::ThreadLocal;
@@ -31,9 +33,17 @@ pub mod functions {
 }
 
 fn establish_connection() -> Result<Pool<ConnectionManager<SqliteConnection>>, Box<dyn Error>> {
-  let database_url = "file:test.db";
+  let database_folder = home_dir()
+    .unwrap()
+    .join("Library/Application Support/com.samdenty.git-icons");
+
+  if !database_folder.exists() {
+    std::fs::create_dir_all(&database_folder)?;
+  }
+
+  let database_url = format!("file:{}/database.db", database_folder.to_string_lossy());
   let manager = ConnectionManager::<SqliteConnection>::new(database_url);
-  let pool = Pool::builder().build(manager)?;
+  let pool = Pool::builder().max_size(30).build(manager)?;
   let conn = pool.get()?;
 
   embedded_migrations::run(&conn)?;

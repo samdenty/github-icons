@@ -8,10 +8,10 @@ use std::path::Path;
 
 #[derive(Parser)]
 struct Opts {
-  #[clap(long)]
+  #[clap(global = true, long)]
   /// Print out errors that occurred for skipped items
   debug: bool,
-  #[clap(long)]
+  #[clap(global = true, long)]
   /// Use a github token to get icons for private repos
   token: Option<String>,
 
@@ -23,10 +23,26 @@ struct Opts {
 enum Action {
   /// Sync icons for all repos or a singular repo
   Sync { repo: Option<String> },
+
   /// Set the repo icon to the given path
   Set { repo: String, icon_path: String },
   /// Set the repo icon back to the default
   SetDefault { repo: String },
+
+  /// List all repo directories
+  ListRepos {
+    #[clap(long)]
+    json: bool,
+  },
+  /// List all icons for a repo
+  ListIcons {
+    #[clap(long)]
+    json: bool,
+    repo: String,
+  },
+
+  /// Clear the cache
+  ClearCache,
 }
 
 macro_rules! regex {
@@ -40,7 +56,6 @@ macro_rules! regex {
 async fn main() -> Result<(), Box<dyn Error>> {
   let opts: Opts = Opts::parse();
 
-  print!("{:?}", opts.action);
   if opts.debug {
     let mut builder = Builder::new();
     builder.filter_level(LevelFilter::Info);
@@ -52,11 +67,37 @@ async fn main() -> Result<(), Box<dyn Error>> {
   }
 
   match opts.action {
-    Action::Sync { repo } => {
-      GitIcons::sync(repo.as_deref()).await?;
+    Action::ClearCache => {
+      GitIcons::clear_cache().await?;
     }
+    Action::ListIcons { repo, json } => {
+      let icons = GitIcons::list_icons(&repo).await?;
+
+      if json {
+        println!("{}", serde_json::to_string_pretty(&icons)?)
+      } else {
+        for icon in icons {
+          println!("{icon}");
+        }
+      }
+    }
+    Action::ListRepos { json } => {
+      let repos = GitIcons::list_repos().await?;
+
+      if json {
+        println!("{}", serde_json::to_string_pretty(&repos)?)
+      } else {
+        for repo in repos {
+          println!("{}/{} {}", repo.owner, repo.repo, repo.path);
+        }
+      }
+    }
+    Action::Sync { repo } => match repo {
+      Some(repo) => GitIcons::sync(&repo).await?,
+      None => GitIcons::sync_all().await?,
+    },
     Action::Set { repo, icon_path } => {
-      GitIcons::set(&repo, &icon_path).await?;
+      GitIcons::set(&repo, &icon_path, true).await?;
     }
     Action::SetDefault { repo } => {
       GitIcons::set_default(&repo).await?;

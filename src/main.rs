@@ -1,10 +1,9 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use env_logger::Builder;
 use git_icons::GitIcons;
 use log::LevelFilter;
-use repo_icons::{set_token, RepoIcons};
+use repo_icons::set_token;
 use std::error::Error;
-use std::path::Path;
 
 #[derive(Parser)]
 struct Opts {
@@ -43,13 +42,6 @@ enum Action {
 
   /// Clear the cache
   ClearCache,
-}
-
-macro_rules! regex {
-  ($re:literal $(,)?) => {{
-    static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
-    RE.get_or_init(|| regex::Regex::new($re).unwrap())
-  }};
 }
 
 #[tokio::main]

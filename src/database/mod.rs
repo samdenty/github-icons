@@ -10,7 +10,6 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use std::{
   error::Error,
-  fmt::format,
   sync::{Arc, Mutex},
 };
 use thread_local::ThreadLocal;

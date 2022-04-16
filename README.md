@@ -13,5 +13,5 @@ This repository contains the source code for the git-icons CLI. [The app can be 
 ```bash
 brew install mysql-client
 cargo install diesel_cli --no-default-features --features mysql
-cargo run -- sync --token INSERT_TOKEN
+cargo build --release
 ```

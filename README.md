@@ -8,7 +8,7 @@ This repository contains the source code for the git-icons CLI. [The app can be 
 
 [![Banner](./readme-banner.png)](https://samddenty.gumroad.com/l/git-icons)
 
-## Building locally
+## Running locally
 
 <!-- brew install mysql-client
 cargo install diesel_cli --no-default-features --features mysql -->

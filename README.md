@@ -10,8 +10,11 @@ This repository contains the source code for the git-icons CLI. [The app can be 
 
 ## Building locally
 
+<!-- brew install mysql-client
+cargo install diesel_cli --no-default-features --features mysql -->
+
 ```bash
-brew install mysql-client
-cargo install diesel_cli --no-default-features --features mysql
-cargo build --release
+cargo run -- sync
+# or with token
+cargo run -- sync --token INSERT_TOKEN
 ```

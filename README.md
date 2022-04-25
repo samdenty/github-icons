@@ -2,7 +2,7 @@
   <img src="./logo.png" width="150">
 </h1>
 
-Automatically adds project logos to your locally cloned GitHub repos.
+Automatically adds project logos to your locally cloned GitHub repos. [Youtube Video](https://www.youtube.com/watch?v=jrO3qSEpAFU)
 
 This repository contains the source code for the git-icons CLI. [The app can be found over here](https://samddenty.gumroad.com/l/git-icons) and you can also [sponsor this project](https://github.com/sponsors/samdenty)
 
@@ -20,4 +20,4 @@ cargo run -- sync
 cargo run -- sync --token INSERT_TOKEN
 ```
 
-[![Banner](./readme-banner.png)](https://samddenty.gumroad.com/l/git-icons)
+[![Banner](./banner.gif)](https://samddenty.gumroad.com/l/git-icons)

@@ -1,10 +1,21 @@
-use std::{process::{Command, Stdio}, error::Error, io::{BufReader, Cursor, BufRead}, collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
+use crate::{
+  database::{self, db},
+  get_slug,
+  models::{Icon, Repo},
+  modify_gitignore, GitIcons, CACHE_DIR,
+};
+use diesel::RunQueryDsl;
+use futures::future;
 use repo_icons::RepoIcons;
 use site_icons::IconInfo;
-use tokio::{task::JoinHandle, fs::File, io::copy};
-use futures::future;
-use diesel::RunQueryDsl;
-use crate::{database::{self, db},modify_gitignore, get_slug, CACHE_DIR, GitIcons, models::{Icon, Repo}};
+use std::{
+  collections::hash_map::DefaultHasher,
+  error::Error,
+  hash::{Hash, Hasher},
+  io::{BufRead, BufReader, Cursor},
+  process::{Command, Stdio},
+};
+use tokio::{fs::File, io::copy, task::JoinHandle};
 
 pub async fn sync_all() -> Result<(), Box<dyn Error>> {
   let home_dir = home::home_dir().unwrap();

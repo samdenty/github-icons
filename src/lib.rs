@@ -9,6 +9,8 @@ pub mod database;
 mod models;
 mod modify_gitignore;
 
+pub use commands::*;
+
 use crate::models::{Icon, Repo};
 use database::db;
 use diesel::prelude::*;
@@ -34,76 +36,47 @@ static CACHE_DIR: Lazy<PathBuf> = Lazy::new(|| {
   path
 });
 
-pub struct GitIcons {}
+pub async fn clear_cache() -> Result<(), Box<dyn Error>> {
+  if CACHE_DIR.exists() {
+    fs::remove_dir_all(&*CACHE_DIR).await?;
+  }
 
-impl GitIcons {
-  pub async fn clear_cache() -> Result<(), Box<dyn Error>> {
-    if CACHE_DIR.exists() {
-      fs::remove_dir_all(&*CACHE_DIR).await?;
+  Ok(())
+}
+
+pub async fn list_icons(slug_or_path: &str) -> Result<Vec<String>, Box<dyn Error>> {
+  let (user, repo_name, _) = get_slug(slug_or_path)?;
+
+  let icons = {
+    use database::schema::icons::dsl::*;
+
+    icons
+      .filter(owner.eq(&user).and(repo.eq(&repo_name)))
+      .load::<Icon>(db())?
+  };
+
+  Ok(
+    icons
+      .into_iter()
+      .map(|icon| CACHE_DIR.join(icon.path).to_string_lossy().to_string())
+      .collect(),
+  )
+}
+
+pub async fn list_repos() -> Result<Vec<Repo>, Box<dyn Error>> {
+  let mut repo_results = {
+    use database::schema::repos::dsl::*;
+    repos.load::<Repo>(db())?
+  };
+
+  for repo_result in &mut repo_results {
+    repo_result.icon_path = match &repo_result.icon_path {
+      Some(icon_path) => Some(CACHE_DIR.join(icon_path).to_string_lossy().to_string()),
+      None => None,
     }
-
-    Ok(())
   }
 
-  pub async fn sync_all() -> Result<(), Box<dyn Error>> {
-    commands::sync_all().await
-  }
-
-  pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
-    commands::sync(slug_or_path).await
-  }
-
-  pub async fn set(
-    slug_or_path: &str,
-    icon_path: &str,
-    overwrite: bool,
-  ) -> Result<(), Box<dyn Error>> {
-    commands::set(slug_or_path, icon_path, overwrite).await
-  }
-
-  pub async fn set_default(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
-    commands::set_default(slug_or_path).await
-  }
-
-  /// Write the icon for a repo to the filesystem
-  pub async fn write(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
-    commands::write(slug_or_path).await
-  }
-
-  pub async fn list_icons(slug_or_path: &str) -> Result<Vec<String>, Box<dyn Error>> {
-    let (user, repo_name, _) = get_slug(slug_or_path)?;
-
-    let icons = {
-      use database::schema::icons::dsl::*;
-
-      icons
-        .filter(owner.eq(&user).and(repo.eq(&repo_name)))
-        .load::<Icon>(db())?
-    };
-
-    Ok(
-      icons
-        .into_iter()
-        .map(|icon| CACHE_DIR.join(icon.path).to_string_lossy().to_string())
-        .collect(),
-    )
-  }
-
-  pub async fn list_repos() -> Result<Vec<Repo>, Box<dyn Error>> {
-    let mut repo_results = {
-      use database::schema::repos::dsl::*;
-      repos.load::<Repo>(db())?
-    };
-
-    for repo_result in &mut repo_results {
-      repo_result.icon_path = match &repo_result.icon_path {
-        Some(icon_path) => Some(CACHE_DIR.join(icon_path).to_string_lossy().to_string()),
-        None => None,
-      }
-    }
-
-    Ok(repo_results)
-  }
+  Ok(repo_results)
 }
 
 fn get_slug(repo: &str) -> Result<(String, String, Option<String>), Box<dyn Error>> {

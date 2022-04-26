@@ -1,6 +1,5 @@
 use clap::Parser;
 use env_logger::Builder;
-use git_icons::GitIcons;
 use log::LevelFilter;
 use repo_icons::set_token;
 use std::error::Error;
@@ -60,10 +59,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
   match opts.action {
     Action::ClearCache => {
-      GitIcons::clear_cache().await?;
+      git_icons::clear_cache().await?;
     }
     Action::ListIcons { repo, json } => {
-      let icons = GitIcons::list_icons(&repo).await?;
+      let icons = git_icons::list_icons(&repo).await?;
 
       if json {
         println!("{}", serde_json::to_string_pretty(&icons)?)
@@ -74,7 +73,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
       }
     }
     Action::ListRepos { json } => {
-      let repos = GitIcons::list_repos().await?;
+      let repos = git_icons::list_repos().await?;
 
       if json {
         println!("{}", serde_json::to_string_pretty(&repos)?)
@@ -85,14 +84,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
       }
     }
     Action::Sync { repo } => match repo {
-      Some(repo) => GitIcons::sync(&repo).await?,
-      None => GitIcons::sync_all().await?,
+      Some(repo) => git_icons::sync(&repo).await?,
+      None => git_icons::sync_all().await?,
     },
     Action::Set { repo, icon_path } => {
-      GitIcons::set(&repo, &icon_path, true).await?;
+      git_icons::set(&repo, &icon_path, true).await?;
     }
     Action::SetDefault { repo } => {
-      GitIcons::set_default(&repo).await?;
+      git_icons::set_default(&repo).await?;
     }
   }
 

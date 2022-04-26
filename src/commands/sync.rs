@@ -2,7 +2,7 @@ use crate::{
   database::{self, db},
   get_slug,
   models::{Icon, Repo},
-  modify_gitignore, GitIcons, CACHE_DIR,
+  modify_gitignore, set, write, CACHE_DIR,
 };
 use diesel::RunQueryDsl;
 use futures::future;
@@ -156,7 +156,7 @@ pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
 
           // If it's the first icon, then write it as the default to
           if i == 0 {
-            GitIcons::set(&slug_or_path, &icon_name, false).await.ok()?;
+            set(&slug_or_path, &icon_name, false).await.ok()?;
           }
 
           let icon = Icon {
@@ -211,7 +211,7 @@ pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
     }
   }
 
-  GitIcons::write(&slug_or_path).await?;
+  write(&slug_or_path).await?;
 
   Ok(())
 }

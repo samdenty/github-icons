@@ -2,7 +2,9 @@ use crate::{
   database::{self, db},
   get_slug,
   models::{Icon, Repo},
-  GitIcons, CACHE_DIR,
+  write,
+  sync,
+  CACHE_DIR,
 };
 use diesel::prelude::*;
 use rand::Rng;
@@ -94,7 +96,7 @@ async fn set_with_repo_path(
     }
   }
 
-  GitIcons::write(&repo_path).await?;
+  write(&repo_path).await?;
 
   Ok(())
 }
@@ -145,7 +147,7 @@ pub async fn set_default(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
     };
   }
 
-  GitIcons::sync(slug_or_path).await?;
+  sync(slug_or_path).await?;
 
   Ok(())
 }

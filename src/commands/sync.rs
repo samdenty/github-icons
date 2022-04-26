@@ -195,9 +195,9 @@ pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
     // add the repo with an empty icon
     if let Some(repo_path) = repo_path {
       let new_repo = Repo {
-        owner: user.clone(),
-        repo: repo_name.clone(),
-        path: repo_path.clone(),
+        owner: user,
+        repo: repo_name,
+        path: repo_path,
         icon_path: None,
       };
 

@@ -4,35 +4,26 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
-mod database;
+mod commands;
+pub mod database;
 mod models;
 mod modify_gitignore;
 
 use crate::models::{Icon, Repo};
 use database::db;
 use diesel::prelude::*;
-use futures::future;
+
 use image::{imageops::FilterType, io::Reader as ImageReader, ImageBuffer, ImageFormat};
 use once_cell::sync::Lazy;
-use rand::Rng;
-use repo_icons::RepoIcons;
-use site_icons::IconInfo;
 use std::{
-  collections::hash_map::DefaultHasher,
   env,
   error::Error,
   fs::create_dir,
-  hash::{Hash, Hasher},
-  io::{BufRead, BufReader},
   io::{Cursor, ErrorKind},
   path::{Path, PathBuf},
   process::{Command, Stdio},
 };
-use tokio::{
-  fs::{self, File},
-  io::copy,
-  task::JoinHandle,
-};
+use tokio::fs;
 use url::Url;
 
 static CACHE_DIR: Lazy<PathBuf> = Lazy::new(|| {
@@ -57,292 +48,11 @@ impl GitIcons {
   }
 
   pub async fn sync_all() -> Result<(), Box<dyn Error>> {
-    let home_dir = home::home_dir().unwrap();
-    let home_dir = home_dir.to_str().unwrap();
-
-    let mut cmd = Command::new("find")
-      .args([
-        home_dir,
-        "-path",
-        &format!("{}/.Trash", home_dir),
-        "-prune",
-        "-o",
-        "-path",
-        &format!("{}/Library", home_dir),
-        "-prune",
-        "-o",
-        "-type",
-        "d",
-        "-name",
-        ".git",
-        "-exec",
-        "echo",
-        "{}",
-        ";",
-      ])
-      .stderr(Stdio::inherit())
-      .stdout(Stdio::piped())
-      .spawn()?;
-
-    let stdout = cmd.stdout.as_mut().unwrap();
-    let stdout_reader = BufReader::new(stdout);
-    let stdout_lines = stdout_reader.lines();
-
-    for repo_path in stdout_lines {
-      let repo_path = repo_path?;
-      let repo_path = match repo_path.strip_suffix("/.git") {
-        Some(repo_path) => repo_path,
-        None => &repo_path,
-      };
-
-      // ignore paths contained within hidden folders
-      if repo_path
-        .split("/")
-        .find(|path| path.starts_with("."))
-        .is_some()
-      {
-        continue;
-      }
-
-      println!("{}", &repo_path);
-
-      match GitIcons::sync(&repo_path).await {
-        Err(error) => eprintln!("{}", error),
-        _ => {}
-      };
-    }
-    // let tasks: Vec<_> = stdout_lines
-    //   .map(|repo_path| {
-    //     tokio::spawn(async move {
-    //       GitIcons::sync(&repo_path.unwrap()).await.unwrap();
-    //     })
-    //   })
-    //   .collect();
-
-    // future::join_all(tasks).await;
-
-    Ok(())
+    commands::sync_all().await
   }
 
   pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
-    modify_gitignore::modify()?;
-
-    let (user, repo_name, repo_path) = get_slug(slug_or_path)?;
-    let icons = RepoIcons::load(&user, &repo_name).await;
-
-    if let Ok(icons) = icons {
-      let mut tasks: Vec<_> = icons
-        .into_iter()
-        .enumerate()
-        .map(|(i, icon)| -> JoinHandle<Option<()>> {
-          let slug_or_path = slug_or_path.to_string();
-          let (user, repo_name) = (user.clone(), repo_name.clone());
-
-          tokio::spawn(async move {
-            let cache_name = format!("{}{}", icon.url.host_str().unwrap_or(""), icon.url.path())
-              .replace("/", "-")
-              .replace(":", "-");
-
-            let mut hasher = DefaultHasher::new();
-            cache_name.hash(&mut hasher);
-
-            let icon_name = format!(
-              "{}.{}",
-              hasher.finish().to_string(),
-              match icon.info {
-                IconInfo::PNG { .. } => "png",
-                IconInfo::JPEG { .. } => "jpg",
-                IconInfo::ICO { .. } => "ico",
-                IconInfo::SVG => "svg",
-              }
-            );
-            let icon_path = CACHE_DIR.join(icon_name.clone());
-
-            if !icon_path.exists() {
-              let mut icon_file = File::create(&icon_path).await.ok()?;
-
-              match icon.url.scheme() {
-                "data" => {
-                  let data_uri_path = icon.url.path();
-                  let data_index = data_uri_path.find(",").unwrap_or(0);
-                  let type_index = data_uri_path[..data_index].find(";");
-
-                  let data = data_uri_path[(data_index + 1)..].to_string();
-                  let mut written = false;
-
-                  if let Some(type_index) = type_index {
-                    let data_type = data_uri_path[(type_index + 1)..data_index].to_string();
-                    if data_type == "base64" {
-                      let mut content = Cursor::new(base64::decode(&data).unwrap_or(Vec::new()));
-                      copy(&mut content, &mut icon_file).await.ok()?;
-                      written = true;
-                    }
-                  }
-
-                  if !written {
-                    let mut content = Cursor::new(urlencoding::decode_binary(&data.as_bytes()));
-                    copy(&mut content, &mut icon_file).await.ok()?;
-                  }
-                }
-                _ => {
-                  let response = reqwest::get(icon.url).await.ok()?;
-                  let mut content = Cursor::new(response.bytes().await.ok()?);
-
-                  copy(&mut content, &mut icon_file).await.ok()?;
-                }
-              }
-            }
-
-            // If it's the first icon, then write it as the default to
-            if i == 0 {
-              GitIcons::set(&slug_or_path, &icon_name, false).await.ok()?;
-            }
-
-            let icon = Icon {
-              owner: user,
-              repo: repo_name,
-              path: icon_name,
-            };
-
-            {
-              use database::schema::icons::dsl::*;
-              diesel::insert_or_ignore_into(icons)
-                .values(&icon)
-                .execute(db())
-                .ok()?;
-            }
-
-            Some(())
-          })
-        })
-        .collect();
-
-      while !tasks.is_empty() {
-        match future::select_all(tasks).await {
-          (Ok(_), _index, remaining) => {
-            tasks = remaining;
-          }
-          (Err(error), _index, remaining) => {
-            eprintln!("{:?}", error);
-            tasks = remaining;
-          }
-        }
-      }
-    } else {
-      eprintln!("{:?}", icons);
-
-      // add the repo with an empty icon
-      if let Some(repo_path) = repo_path {
-        let new_repo = Repo {
-          owner: user.clone(),
-          repo: repo_name.clone(),
-          path: repo_path.clone(),
-          icon_path: None,
-        };
-
-        {
-          use database::schema::repos::dsl::*;
-
-          diesel::insert_or_ignore_into(repos)
-            .values(&new_repo)
-            .execute(db())?;
-        }
-      }
-    }
-
-    GitIcons::write(&slug_or_path).await?;
-
-    Ok(())
-  }
-
-  async fn set_with_repo_path(
-    repo_path: &str,
-    icon_path: &str,
-    overwrite: bool,
-  ) -> Result<(), Box<dyn Error>> {
-    let (user, repo_name, repo_path) = get_slug(repo_path)?;
-    let repo_path = repo_path.unwrap();
-    let icon_path = CACHE_DIR.join(icon_path);
-
-    let icon_name = if icon_path.exists() {
-      if icon_path.starts_with(&*CACHE_DIR) {
-        icon_path
-          .file_name()
-          .unwrap()
-          .to_string_lossy()
-          .into_owned()
-      } else {
-        let icon_name = format!(
-          "{}.{}",
-          rand::thread_rng().gen_range(100000000..999999999),
-          icon_path.extension().unwrap().to_string_lossy()
-        );
-
-        fs::copy(icon_path, CACHE_DIR.join(&icon_name)).await?;
-
-        icon_name
-      }
-    } else {
-      if !icon_path.exists() {
-        return Err(Box::new(std::io::Error::new(
-          std::io::ErrorKind::NotFound,
-          "Icon not found",
-        )));
-      };
-
-      icon_path.to_string_lossy().into_owned()
-    };
-
-    let icon = Icon {
-      owner: user.clone(),
-      repo: repo_name.clone(),
-      path: icon_name.clone(),
-    };
-
-    {
-      use database::schema::icons::dsl::*;
-      diesel::insert_or_ignore_into(icons)
-        .values(&icon)
-        .execute(db())?;
-    }
-
-    let new_repo = Repo {
-      owner: user.clone(),
-      repo: repo_name.clone(),
-      path: repo_path.clone(),
-      icon_path: Some(icon_name.clone()),
-    };
-
-    {
-      use database::schema::repos::dsl::*;
-
-      diesel::insert_or_ignore_into(repos)
-        .values(&new_repo)
-        .execute(db())?;
-
-      if overwrite
-        || repos
-          .filter(owner.eq(&user).and(repo.eq(&repo_name)))
-          .first::<Repo>(db())?
-          .icon_path
-          .is_none()
-      {
-        diesel::update(
-          repos.filter(
-            owner
-              .eq(&user)
-              .and(repo.eq(&repo_name))
-              .and(path.eq(&repo_path)),
-          ),
-        )
-        .set(icon_path.eq(&icon_name))
-        .execute(db())?;
-      }
-    }
-
-    GitIcons::write(&repo_path).await?;
-
-    Ok(())
+    commands::sync(slug_or_path).await
   }
 
   pub async fn set(
@@ -350,50 +60,11 @@ impl GitIcons {
     icon_path: &str,
     overwrite: bool,
   ) -> Result<(), Box<dyn Error>> {
-    let (user, repo_name, repo_path) = get_slug(slug_or_path)?;
-
-    if repo_path.is_some() {
-      GitIcons::set_with_repo_path(slug_or_path, icon_path, overwrite).await?;
-    } else {
-      let repos = {
-        use database::schema::repos::dsl::*;
-
-        repos
-          .filter(owner.eq(&user).and(repo.eq(&repo_name)))
-          .load::<Repo>(db())?
-      };
-
-      for repo in repos {
-        GitIcons::set_with_repo_path(&repo.path, icon_path, overwrite).await?;
-      }
-    };
-
-    Ok(())
+    commands::set(slug_or_path, icon_path, overwrite).await
   }
 
   pub async fn set_default(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
-    let (user, repo_name, repo_path) = get_slug(slug_or_path)?;
-
-    {
-      use database::schema::repos::dsl::*;
-      if let Some(repo_path) = repo_path {
-        diesel::delete(
-          repos.filter(
-            owner
-              .eq(&user)
-              .and(repo.eq(&repo_name))
-              .and(path.eq(&repo_path)),
-          ),
-        )
-        .execute(db())?;
-      } else {
-        diesel::delete(repos.filter(owner.eq(&user).and(repo.eq(&repo_name)))).execute(db())?;
-      };
-    }
-
-    GitIcons::sync(slug_or_path).await?;
-
-    Ok(())
+    commands::set_default(slug_or_path).await
   }
 
   /// Write the icon for a repo to the filesystem

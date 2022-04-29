@@ -2,11 +2,11 @@
   <img src="./logo.png" width="150">
 </h1>
 
-## [Download the Mac App](https://samddenty.gumroad.com/l/git-icons) and **Star** the repo
+## Make sure to **Star** the repo
 
 Automatically adds project logos to your locally cloned GitHub repos. [Youtube Video](https://www.youtube.com/watch?v=jrO3qSEpAFU)
 
-This repository contains the source code for the git-icons CLI. You can [sponsor this project](https://github.com/sponsors/samdenty)
+This repository contains the source code for the git-icons CLI. [The app can be found over here](https://samddenty.gumroad.com/l/git-icons) and you can also [sponsor this project](https://github.com/sponsors/samdenty)
 
 ## Running the CLI
 

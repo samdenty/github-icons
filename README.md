@@ -2,7 +2,7 @@
   <img src="./logo.png" width="150">
 </h1>
 
-## [Get the Mac App](https://samddenty.gumroad.com/l/git-icons)
+## [Download the Mac App](https://samddenty.gumroad.com/l/git-icons)
 
 Automatically adds project logos to your locally cloned GitHub repos. [Youtube Video](https://www.youtube.com/watch?v=jrO3qSEpAFU)
 

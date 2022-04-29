@@ -67,20 +67,19 @@ pub async fn sync_all(limit: bool) -> Result<(), Box<dyn Error>> {
       continue;
     }
 
-    amount += 1;
-
-
     println!("{}", &repo_path);
 
     match sync(&repo_path).await {
       Err(error) => eprintln!("{}", error),
-      _ => {}
-    };
+      _ => {
+        amount += 1;
 
-    if limit && amount == 5 {
-      println!("Limit of {amount} reached! Get the app https://samddenty.gumroad.com/l/git-icons for unlimited sync and custom icon picker!");
-      break;
-    }
+        if limit && amount == 5 {
+          println!("Limit of {amount} reached! Get the app https://samddenty.gumroad.com/l/git-icons for unlimited sync and custom icon picker!");
+          break;
+        }
+      }
+    };
   }
   // let tasks: Vec<_> = stdout_lines
   //   .map(|repo_path| {

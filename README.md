@@ -10,7 +10,7 @@ This repository contains the source code for the git-icons CLI. [The app can be 
 
 ## Running the CLI
 
-You can run the CLI using the below commands, but you should [get the application for more features](https://samddenty.gumroad.com/l/git-icons)
+You can run the CLI using the below commands, but you should [buy the application for more features](https://samddenty.gumroad.com/l/git-icons)
 
 <!-- brew install mysql-client
 cargo install diesel_cli --no-default-features --features mysql -->

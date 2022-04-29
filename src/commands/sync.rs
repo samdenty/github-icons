@@ -74,7 +74,7 @@ pub async fn sync_all(limit: bool) -> Result<(), Box<dyn Error>> {
       _ => {
         amount += 1;
 
-        if limit && amount == 7 {
+        if limit && amount == 5 {
           println!("Limit of {amount} reached! Get the app https://samddenty.gumroad.com/l/git-icons for unlimited sync and custom icon picker!");
           break;
         }

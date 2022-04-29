@@ -20,7 +20,11 @@ struct Opts {
 #[derive(clap::Subcommand, Debug)]
 enum Action {
   /// Sync icons for all repos or a singular repo
-  Sync { repo: Option<String> },
+  Sync {
+    repo: Option<String>,
+    #[clap(long)]
+    unlimited: bool,
+  },
 
   /// Set the repo icon to the given path
   Set { repo: String, icon_path: String },
@@ -83,9 +87,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
       }
     }
-    Action::Sync { repo } => match repo {
+    Action::Sync { repo, unlimited } => match repo {
       Some(repo) => git_icons::sync(&repo).await?,
-      None => git_icons::sync_all().await?,
+      None => git_icons::sync_all(!unlimited).await?,
     },
     Action::Set { repo, icon_path } => {
       git_icons::set(&repo, &icon_path, true).await?;

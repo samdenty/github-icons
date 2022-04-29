@@ -17,7 +17,7 @@ use std::{
 };
 use tokio::{fs::File, io::copy, task::JoinHandle};
 
-pub async fn sync_all() -> Result<(), Box<dyn Error>> {
+pub async fn sync_all(limit: bool) -> Result<(), Box<dyn Error>> {
   let home_dir = home::home_dir().unwrap();
   let home_dir = home_dir.to_str().unwrap();
 
@@ -49,6 +49,8 @@ pub async fn sync_all() -> Result<(), Box<dyn Error>> {
   let stdout_reader = BufReader::new(stdout);
   let stdout_lines = stdout_reader.lines();
 
+  let mut amount = 0;
+
   for repo_path in stdout_lines {
     let repo_path = repo_path?;
     let repo_path = match repo_path.strip_suffix("/.git") {
@@ -65,12 +67,20 @@ pub async fn sync_all() -> Result<(), Box<dyn Error>> {
       continue;
     }
 
+    amount += 1;
+
+
     println!("{}", &repo_path);
 
     match sync(&repo_path).await {
       Err(error) => eprintln!("{}", error),
       _ => {}
     };
+
+    if limit && amount == 5 {
+      println!("Limit of {amount} reached! Get the app https://samddenty.gumroad.com/l/git-icons for unlimited sync and custom icon picker!");
+      break;
+    }
   }
   // let tasks: Vec<_> = stdout_lines
   //   .map(|repo_path| {

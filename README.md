@@ -19,8 +19,12 @@ cargo install diesel_cli --no-default-features --features mysql -->
 # To install rust
 curl https://sh.rustup.rs -sSf | sh
 
+# Clone the repository
+git clone https://github.com/samdenty/git-icons
+cd git-icons
+
 cargo run -- sync
-# or with token
+# or with github token (for private repos)
 cargo run -- sync --token INSERT_TOKEN
 ```
 

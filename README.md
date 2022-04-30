@@ -2,7 +2,7 @@
   <img src="./logo.png" width="150">
 </h1>
 
-### Make sure to **Star** the repo
+### [Download the app](https://github.com/samdenty/git-icons/releases/latest)
 
 Automatically adds project logos to your locally cloned GitHub repos. [Youtube Video](https://www.youtube.com/watch?v=jrO3qSEpAFU)
 
@@ -10,7 +10,7 @@ This repository contains the source code for the git-icons CLI. You can also [sp
 
 ## Running the CLI
 
-You can run the CLI using the below commands, and you can also optionally [buy the paid app for easy of use & extra features](https://samddenty.gumroad.com/l/git-icons)
+You can run the CLI using the below commands.
 
 <!-- brew install mysql-client
 cargo install diesel_cli --no-default-features --features mysql -->

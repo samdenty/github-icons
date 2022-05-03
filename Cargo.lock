@@ -1744,7 +1744,7 @@ dependencies = [
 
 [[package]]
 name = "repo_icons"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "byteorder",
  "bytes 1.1.0",
@@ -2055,9 +2055,9 @@ checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
 name = "site_icons"
-version = "0.1.8"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c03efd67ef024be08ea57d3741b86c4ac94ae4fa6b4c187295bb3ba63ef8e32d"
+checksum = "f1cb0e7043ec3654ce9d2aa4b826a8cef2961e793ff074fbe566cc66c4e48e9f"
 dependencies = [
  "byteorder",
  "clap",

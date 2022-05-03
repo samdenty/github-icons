@@ -25,7 +25,7 @@ macro_rules! regex {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
   let opts: Opts = Opts::parse();
 
   if opts.debug {

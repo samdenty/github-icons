@@ -30,7 +30,7 @@ impl RepoIcons {
   ///   println("{:?}", icon)
   /// }
   /// ```
-  pub async fn load(user: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
+  pub async fn load(user: &str, repo: &str) -> Result<Self, Box<dyn Error + Send + Sync>> {
     let readme = Readme::load(user, repo).await?;
     let mut icons = Icons::new();
 

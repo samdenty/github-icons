@@ -67,7 +67,7 @@ impl RepoIcon {
     if self.url.scheme() == "data" {
       let url = self.url.to_string();
       let data = DataUrl::process(&url).map_err(|_| "failed to parse data uri")?;
-      let (body, fragment) = data
+      let (body, _fragment) = data
         .decode_to_vec()
         .map_err(|_| "invalid base64 in data uri")?;
 

@@ -3,7 +3,7 @@ members = ["api"]
 
 [package]
 name = "repo_icons"
-version = "0.1.10"
+version = "0.1.11"
 authors = ["Sam Denty <sam@samdenty.com>"]
 edition = "2018"
 license = "GPL-3.0"

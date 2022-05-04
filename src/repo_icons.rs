@@ -31,27 +31,30 @@ impl RepoIcons {
   /// }
   /// ```
   pub async fn load(user: &str, repo: &str) -> Result<Self, Box<dyn Error + Send + Sync>> {
-    let readme = Readme::load(user, repo).await?;
     let mut icons = Icons::new();
 
-    let readme_image = readme.images().await.into_iter().find(|image| {
-      if image.in_primary_heading {
-        icons.add_icon(image.src.clone(), IconKind::SiteLogo, None);
-        true
-      } else {
-        false
-      }
-    });
+    let readme_image = {
+      let readme = Readme::load(user, repo).await?;
 
-    if let Some(homepage) = &readme.homepage {
-      if !is_blacklisted_homepage(homepage) {
-        warn_err!(
-          icons.load_website(homepage.clone()).await,
-          "failed to load website {}",
-          homepage
-        );
+      if let Some(homepage) = &readme.homepage {
+        if !is_blacklisted_homepage(homepage) {
+          warn_err!(
+            icons.load_website(homepage.clone()).await,
+            "failed to load website {}",
+            homepage
+          );
+        }
       }
-    }
+
+      readme.images().await.into_iter().find(|image| {
+        if image.in_primary_heading {
+          icons.add_icon(image.src.clone(), IconKind::SiteLogo, None);
+          true
+        } else {
+          false
+        }
+      })
+    };
 
     let entries = icons.entries().await;
 

@@ -6,8 +6,10 @@ use crate::{
 };
 use diesel::RunQueryDsl;
 use futures::future;
+use parking_lot::RwLock;
 use repo_icons::RepoIcons;
 use site_icons::IconInfo;
+use std::sync::Arc;
 use std::{
   collections::hash_map::DefaultHasher,
   error::Error,
@@ -17,7 +19,9 @@ use std::{
 };
 use tokio::{fs::File, io::copy, task::JoinHandle};
 
-pub async fn sync_all(limit: bool) -> Result<(), Box<dyn Error>> {
+const LIMIT: i32 = 5;
+
+pub async fn sync_all(token: Option<&str>, debug: bool, limit: bool) -> Result<(), Box<dyn Error>> {
   let home_dir = home::home_dir().unwrap();
   let home_dir = home_dir.to_str().unwrap();
 
@@ -49,13 +53,11 @@ pub async fn sync_all(limit: bool) -> Result<(), Box<dyn Error>> {
   let stdout_reader = BufReader::new(stdout);
   let stdout_lines = stdout_reader.lines();
 
-  let mut amount = 0;
-
-  for repo_path in stdout_lines {
-    let repo_path = repo_path?;
+  let repo_paths = stdout_lines.filter_map(|repo_path| {
+    let repo_path = repo_path.unwrap();
     let repo_path = match repo_path.strip_suffix("/.git") {
-      Some(repo_path) => repo_path,
-      None => &repo_path,
+      Some(repo_path) => repo_path.to_string(),
+      None => repo_path,
     };
 
     // ignore paths contained within hidden folders
@@ -64,37 +66,66 @@ pub async fn sync_all(limit: bool) -> Result<(), Box<dyn Error>> {
       .find(|path| path.starts_with("."))
       .is_some()
     {
-      continue;
+      None
+    } else {
+      Some(repo_path)
     }
+  });
 
-    println!("{}", &repo_path);
+  let tasks: Arc<RwLock<Vec<JoinHandle<()>>>> = Arc::new(RwLock::new(Vec::new()));
+  let amount = Arc::new(RwLock::new(0));
 
-    match sync(&repo_path).await {
-      Err(error) => eprintln!("{}", error),
-      _ => {
-        amount += 1;
+  for repo_path in repo_paths {
+    let token = token.map(|token| token.to_string());
+    let amount = amount.clone();
+    let tasks2 = tasks.clone();
 
-        if limit && amount == 5 {
-          println!("Limit of {amount} reached! Get the app https://samddenty.gumroad.com/l/git-icons for unlimited sync and custom icon picker!");
-          break;
-        }
+    let task = tokio::spawn(async move {
+      if limit && amount.read().clone() == LIMIT {
+        return;
       }
-    };
-  }
-  // let tasks: Vec<_> = stdout_lines
-  //   .map(|repo_path| {
-  //     tokio::spawn(async move {
-  //       GitIcons::sync(&repo_path.unwrap()).await.unwrap();
-  //     })
-  //   })
-  //   .collect();
 
-  // future::join_all(tasks).await;
+      let mut cmd = tokio::process::Command::new(std::env::current_exe().unwrap());
+
+      cmd.args(["sync", &repo_path]);
+      if debug {
+        cmd.arg("--debug");
+      }
+      if let Some(token) = token {
+        cmd.args(["--token", &token]);
+      }
+
+      let output = cmd.output().await.unwrap();
+      let error = String::from_utf8(output.stderr).unwrap();
+
+      println!("{}", &repo_path);
+
+      match &error[..] {
+        "" => {
+          *amount.write() += 1;
+          let amount = amount.read().clone();
+
+          if limit && amount == LIMIT {
+            println!("Limit of {amount} reached! Get the app https://samddenty.gumroad.com/l/git-icons for unlimited sync and custom icon picker!");
+
+            for task in tasks2.read().iter() {
+              task.abort();
+            }
+          }
+        }
+        error => eprint!("{}", error),
+      }
+    });
+
+    tasks.write().push(task);
+  }
+
+  future::join_all(tasks.write().iter_mut()).await;
 
   Ok(())
 }
 
-pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
+pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
   modify_gitignore::modify()?;
 
   let (user, repo_name, repo_path) = get_slug(slug_or_path)?;

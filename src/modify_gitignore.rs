@@ -1,10 +1,11 @@
 use std::{
   fs::OpenOptions,
   io::{BufRead, BufReader, Write},
+  error::Error,
   process::Command,
 };
 
-pub fn modify() -> Result<(), Box<dyn std::error::Error>> {
+pub fn modify() -> Result<(), Box<dyn Error + Send + Sync>> {
   let output = Command::new("git")
     .args(["config", "--global", "core.excludesFile"])
     .output()?;

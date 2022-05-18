@@ -15,7 +15,7 @@ use std::{
 };
 use tokio::fs;
 
-pub async fn write(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
+pub async fn write(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
   let (user, repo_name, _) = get_slug(slug_or_path)?;
 
   let repo_results = {

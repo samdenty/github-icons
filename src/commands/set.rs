@@ -15,7 +15,7 @@ async fn set_with_repo_path(
   repo_path: &str,
   icon_path: &str,
   overwrite: bool,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), Box<dyn Error + Send + Sync>> {
   let (user, repo_name, repo_path) = get_slug(repo_path)?;
   let repo_path = repo_path.unwrap();
   let icon_path = CACHE_DIR.join(icon_path);
@@ -105,7 +105,7 @@ pub async fn set(
   slug_or_path: &str,
   icon_path: &str,
   overwrite: bool,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), Box<dyn Error + Send + Sync>> {
   let (user, repo_name, repo_path) = get_slug(slug_or_path)?;
 
   if repo_path.is_some() {
@@ -127,7 +127,7 @@ pub async fn set(
   Ok(())
 }
 
-pub async fn set_default(slug_or_path: &str) -> Result<(), Box<dyn Error>> {
+pub async fn set_default(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
   let (user, repo_name, repo_path) = get_slug(slug_or_path)?;
 
   {

@@ -44,7 +44,7 @@ pub async fn clear_cache() -> Result<(), Box<dyn Error>> {
   Ok(())
 }
 
-pub async fn list_icons(slug_or_path: &str) -> Result<Vec<String>, Box<dyn Error>> {
+pub async fn list_icons(slug_or_path: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
   let (user, repo_name, _) = get_slug(slug_or_path)?;
 
   let icons = {
@@ -79,7 +79,7 @@ pub async fn list_repos() -> Result<Vec<Repo>, Box<dyn Error>> {
   Ok(repo_results)
 }
 
-fn get_slug(repo: &str) -> Result<(String, String, Option<String>), Box<dyn Error>> {
+fn get_slug(repo: &str) -> Result<(String, String, Option<String>), Box<dyn Error + Send + Sync>> {
   if repo.split("/").count() == 2 && !Path::new(&repo).exists() {
     let mut slug = repo.split("/");
 

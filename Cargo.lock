@@ -869,6 +869,7 @@ dependencies = [
  "log",
  "lru",
  "once_cell",
+ "parking_lot 0.12.0",
  "rand 0.8.5",
  "regex",
  "repo_icons",
@@ -901,7 +902,7 @@ dependencies = [
  "indexmap",
  "slab",
  "tokio 1.17.0",
- "tokio-util 0.7.1",
+ "tokio-util 0.7.2",
  "tracing",
 ]
 
@@ -2007,9 +2008,9 @@ dependencies = [
 
 [[package]]
 name = "repo_icons"
-version = "0.1.7"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e56b19649376e21e2c062b05006601e969e1afbada7abbe52065399d104d007"
+checksum = "103241b2084527d5bd98e63c78f34f0973a17891b4d6b75e834155d95c2a9777"
 dependencies = [
  "byteorder",
  "bytes 1.1.0",
@@ -2447,9 +2448,9 @@ checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
 name = "site_icons"
-version = "0.1.8"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c03efd67ef024be08ea57d3741b86c4ac94ae4fa6b4c187295bb3ba63ef8e32d"
+checksum = "7b7d6f421841a298e58bc9956850d8700496da937ab9da591f6bed568261e852"
 dependencies = [
  "byteorder",
  "clap",
@@ -2872,9 +2873,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.1"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0edfdeb067411dba2044da6d1cb2df793dd35add7888d73c16e3381ded401764"
+checksum = "f988a1a1adc2fb21f9c12aa96441da33a1728193ae0b95d2be22dbd17fcb4e5c"
 dependencies = [
  "bytes 1.1.0",
  "futures-core",

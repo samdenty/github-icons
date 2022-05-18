@@ -57,7 +57,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     builder.init();
   }
 
-  if let Some(token) = opts.token {
+  if let Some(token) = &opts.token {
     set_token(token);
   }
 
@@ -66,7 +66,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
       git_icons::clear_cache().await?;
     }
     Action::ListIcons { repo, json } => {
-      let icons = git_icons::list_icons(&repo).await?;
+      let icons = git_icons::list_icons(&repo)
+        .await
+        .map_err(|err| err.to_string())?;
 
       if json {
         println!("{}", serde_json::to_string_pretty(&icons)?)
@@ -88,14 +90,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
       }
     }
     Action::Sync { repo, unlimited } => match repo {
-      Some(repo) => git_icons::sync(&repo).await?,
-      None => git_icons::sync_all(!unlimited).await?,
+      Some(repo) => git_icons::sync(&repo)
+        .await
+        .map_err(|err| err.to_string())?,
+      None => git_icons::sync_all(opts.token.as_deref(), opts.debug, !unlimited).await?,
     },
     Action::Set { repo, icon_path } => {
-      git_icons::set(&repo, &icon_path, true).await?;
+      git_icons::set(&repo, &icon_path, true)
+        .await
+        .map_err(|err| err.to_string())?;
     }
     Action::SetDefault { repo } => {
-      git_icons::set_default(&repo).await?;
+      git_icons::set_default(&repo)
+        .await
+        .map_err(|err| err.to_string())?;
     }
   }
 

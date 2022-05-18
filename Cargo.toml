@@ -1,6 +1,6 @@
 [package]
 name = "git-icons"
-version = "1.0.3"
+version = "1.0.4"
 edition = "2021"
 license = "GPL-3.0"
 description = "Mac CLI that adds folder icons to your local repos"

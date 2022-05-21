@@ -9,7 +9,7 @@ use std::error::Error;
 #[serde(untagged)]
 enum ApiResponse {
   Failure { message: String },
-  Success { current_user_url: String },
+  Success {},
 }
 
 #[derive(Parser)]

@@ -856,7 +856,7 @@ dependencies = [
 
 [[package]]
 name = "git-icons"
-version = "1.0.4"
+version = "1.0.6"
 dependencies = [
  "base64",
  "clap",
@@ -864,6 +864,7 @@ dependencies = [
  "diesel_migrations",
  "env_logger",
  "futures",
+ "gh_api",
  "home",
  "image",
  "log",

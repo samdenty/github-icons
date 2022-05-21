@@ -9,14 +9,14 @@ use futures::future;
 use parking_lot::RwLock;
 use repo_icons::RepoIcons;
 use site_icons::IconInfo;
-use std::sync::Arc;
 use std::{
   collections::hash_map::DefaultHasher,
   error::Error,
   hash::{Hash, Hasher},
   io::{BufRead, BufReader, Cursor},
-  process::{Command, Stdio},
+  process::{Command, ExitStatus, Stdio},
 };
+use std::{process::exit, sync::Arc};
 use tokio::{fs::File, io::copy, task::JoinHandle};
 
 const LIMIT: i32 = 5;
@@ -114,6 +114,10 @@ pub async fn sync_all(token: Option<&str>, debug: bool, limit: bool) -> Result<(
           }
         }
         error => eprint!("{}", error),
+      }
+
+      if !output.status.success() {
+        exit(1);
       }
     });
 
@@ -230,7 +234,14 @@ pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync>
       }
     }
   } else {
-    eprintln!("{:?}", icons);
+    let error = format!("{:?}", icons);
+
+    if error.contains("403") {
+      eprintln!("Error: Rate limited");
+      exit(1);
+    } else {
+      eprintln!("{}", error);
+    }
 
     // add the repo with an empty icon
     if let Some(repo_path) = repo_path {

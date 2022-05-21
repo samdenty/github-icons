@@ -1,8 +1,16 @@
 use clap::Parser;
 use env_logger::Builder;
+use gh_api::{gh_get, set_token};
 use log::LevelFilter;
-use repo_icons::set_token;
+use serde::Deserialize;
 use std::error::Error;
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+enum ApiResponse {
+  Failure { message: String },
+  Success { current_user_url: String },
+}
 
 #[derive(Parser)]
 struct Opts {
@@ -59,6 +67,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
   if let Some(token) = &opts.token {
     set_token(token);
+
+    let response = gh_get!("https://api.github.com")
+      .send()
+      .await?
+      .json::<ApiResponse>()
+      .await?;
+
+    if let ApiResponse::Failure { message } = response {
+      return Err(format!("Invalid token ({})", message).into());
+    }
   }
 
   match opts.action {

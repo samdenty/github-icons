@@ -237,7 +237,7 @@ pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync>
     let error = format!("{:?}", icons);
 
     if error.contains("403") {
-      eprintln!("Error: Rate limited");
+      eprintln!("Error: Rate limited, please provide a token");
       exit(1);
     } else {
       eprintln!("{}", error);

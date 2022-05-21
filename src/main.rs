@@ -108,9 +108,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
       }
     }
     Action::Sync { repo, unlimited } => match repo {
-      Some(repo) => git_icons::sync(&repo)
-        .await
-        .map_err(|err| err.to_string())?,
+      Some(repo) => match git_icons::sync(&repo).await.map_err(|err| err.to_string()) {
+        Err(e) => eprintln!("Error: {}", e),
+        Ok(()) => (),
+      },
       None => git_icons::sync_all(opts.token.as_deref(), opts.debug, !unlimited).await?,
     },
     Action::Set { repo, icon_path } => {

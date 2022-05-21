@@ -14,7 +14,7 @@ use std::{
   error::Error,
   hash::{Hash, Hasher},
   io::{BufRead, BufReader, Cursor},
-  process::{Command, ExitStatus, Stdio},
+  process::{Command, Stdio},
 };
 use std::{process::exit, sync::Arc};
 use tokio::{fs::File, io::copy, task::JoinHandle};

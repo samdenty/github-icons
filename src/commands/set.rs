@@ -2,9 +2,7 @@ use crate::{
   database::{self, db},
   get_slug,
   models::{Icon, Repo},
-  write,
-  sync,
-  CACHE_DIR,
+  sync, write, CACHE_DIR,
 };
 use diesel::prelude::*;
 use rand::Rng;
@@ -78,7 +76,7 @@ async fn set_with_repo_path(
 
     if overwrite
       || repos
-        .filter(owner.eq(&user).and(repo.eq(&repo_name)))
+        .filter(owner.like(&user).and(repo.like(&repo_name)))
         .first::<Repo>(db())?
         .icon_path
         .is_none()
@@ -86,8 +84,8 @@ async fn set_with_repo_path(
       diesel::update(
         repos.filter(
           owner
-            .eq(&user)
-            .and(repo.eq(&repo_name))
+            .like(&user)
+            .and(repo.like(&repo_name))
             .and(path.eq(&repo_path)),
         ),
       )
@@ -115,7 +113,7 @@ pub async fn set(
       use database::schema::repos::dsl::*;
 
       repos
-        .filter(owner.eq(&user).and(repo.eq(&repo_name)))
+        .filter(owner.like(&user).and(repo.like(&repo_name)))
         .load::<Repo>(db())?
     };
 
@@ -136,14 +134,14 @@ pub async fn set_default(slug_or_path: &str) -> Result<(), Box<dyn Error + Send 
       diesel::delete(
         repos.filter(
           owner
-            .eq(&user)
-            .and(repo.eq(&repo_name))
+            .like(&user)
+            .and(repo.like(&repo_name))
             .and(path.eq(&repo_path)),
         ),
       )
       .execute(db())?;
     } else {
-      diesel::delete(repos.filter(owner.eq(&user).and(repo.eq(&repo_name)))).execute(db())?;
+      diesel::delete(repos.filter(owner.like(&user).and(repo.like(&repo_name)))).execute(db())?;
     };
   }
 

@@ -51,7 +51,7 @@ pub async fn list_icons(slug_or_path: &str) -> Result<Vec<String>, Box<dyn Error
     use database::schema::icons::dsl::*;
 
     icons
-      .filter(owner.eq(&user).and(repo.eq(&repo_name)))
+      .filter(owner.like(&user).and(repo.like(&repo_name)))
       .load::<Icon>(db())?
   };
 

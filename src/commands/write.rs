@@ -21,7 +21,7 @@ pub async fn write(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync
   let repo_results = {
     use database::schema::repos::dsl::*;
     repos
-      .filter(owner.eq(user).and(repo.eq(&repo_name)))
+      .filter(owner.like(user).and(repo.like(&repo_name)))
       .load::<Repo>(db())?
   };
 

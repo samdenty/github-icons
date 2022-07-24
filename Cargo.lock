@@ -155,9 +155,9 @@ checksum = "c4872d67bab6358e59559027aa3b9157c53d9358c51423c17554809a8858e0f8"
 
 [[package]]
 name = "cached"
-version = "0.34.0"
+version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aadf76ddea74bab35ebeb8f1eb115b9bc04eaee42d8acc0d5f477dee6b176c9a"
+checksum = "1fb357e6e99f5d293f67f492dd3eb7f8c4d5ed7c48d22129f3464e57c9dd5394"
 dependencies = [
  "async-trait",
  "async_once",
@@ -165,6 +165,7 @@ dependencies = [
  "cached_proc_macro_types",
  "futures",
  "hashbrown 0.12.0",
+ "instant",
  "lazy_static",
  "once_cell",
  "thiserror",
@@ -173,9 +174,9 @@ dependencies = [
 
 [[package]]
 name = "cached_proc_macro"
-version = "0.12.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bce0f37f9b77c6b93cdf3f060c89adca303d2ab052cacb3c3d1ab543e8cecd2f"
+checksum = "b01c8c46a3494c931456ad652aaab219cccd2785bdf3efbc00f733849d00df03"
 dependencies = [
  "cached_proc_macro_types",
  "darling",
@@ -2009,9 +2010,9 @@ dependencies = [
 
 [[package]]
 name = "repo_icons"
-version = "0.1.11"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "103241b2084527d5bd98e63c78f34f0973a17891b4d6b75e834155d95c2a9777"
+checksum = "7c1da39309dab10cbfe510be352043418023d564ed6cf34ffd3c062c54af6e89"
 dependencies = [
  "byteorder",
  "bytes 1.1.0",
@@ -2028,7 +2029,7 @@ dependencies = [
  "pin-utils",
  "regex",
  "reqwest-wasm",
- "scraper",
+ "scraper 0.13.0",
  "serde",
  "serde_json",
  "serde_with",
@@ -2260,6 +2261,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "scraper"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5684396b456f3eb69ceeb34d1b5cb1a2f6acf7ca4452131efa3ba0ee2c2d0a70"
+dependencies = [
+ "cssparser",
+ "ego-tree",
+ "getopts",
+ "html5ever 0.26.0",
+ "matches",
+ "selectors",
+ "smallvec",
+ "tendril",
+]
+
+[[package]]
 name = "security-framework"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2449,9 +2466,9 @@ checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
 name = "site_icons"
-version = "0.1.10"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b7d6f421841a298e58bc9956850d8700496da937ab9da591f6bed568261e852"
+checksum = "322cc5d05ca9aeddd7046a2f44968dda095b46e6effa4f494edcaf1a5d854485"
 dependencies = [
  "byteorder",
  "clap",
@@ -2466,7 +2483,7 @@ dependencies = [
  "percent-encoding",
  "regex",
  "reqwest-wasm",
- "scraper",
+ "scraper 0.12.0",
  "serde",
  "serde_json",
  "serde_with",

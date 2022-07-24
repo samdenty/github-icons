@@ -19,7 +19,7 @@ pub struct Readme {
 }
 
 impl Readme {
-  pub async fn load(owner: &str, repo: &str) -> Result<Self, Box<dyn Error + Send + Sync>> {
+  pub async fn load(owner: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
     #[derive(Deserialize)]
     struct RepoOwner {
       login: String,

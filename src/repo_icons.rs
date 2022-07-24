@@ -1,8 +1,11 @@
 use super::Readme;
 use crate::{
   blacklist::{is_badge, is_blacklisted_homepage},
-  get_token, RepoIcon, RepoIconKind,
+  get_token,
+  user_repos::get_user_repos,
+  RepoIcon, RepoIconKind,
 };
+use async_recursion::async_recursion;
 use reqwest::{
   header::{HeaderMap, HeaderValue, AUTHORIZATION},
   Client, IntoUrl, Url,
@@ -30,7 +33,8 @@ impl RepoIcons {
   ///   println("{:?}", icon)
   /// }
   /// ```
-  pub async fn load(user: &str, repo: &str) -> Result<Self, Box<dyn Error + Send + Sync>> {
+  #[async_recursion(?Send)]
+  pub async fn load(user: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
     let mut icons = Icons::new();
 
     let readme_image = {
@@ -86,6 +90,22 @@ impl RepoIcons {
         RepoIconKind::UserAvatar,
         IconInfo::load(icon_url, None).await?,
       ));
+    }
+
+    // Try and find a prefixed repo, and load the icons for it on GitHub
+    if repo_icons.len() == 0 {
+      let repos = get_user_repos(user.to_lowercase()).await;
+      if let Some(repos) = repos {
+        let repo = repo.to_lowercase();
+
+        for prefixed_repo in repos {
+          if prefixed_repo != repo && prefixed_repo.contains(&repo) {
+            if let Ok(prefixed_repo_icons) = RepoIcons::load(user, &prefixed_repo).await {
+              repo_icons.extend(prefixed_repo_icons);
+            }
+          }
+        }
+      }
     }
 
     let mut repo_icons: Vec1<RepoIcon> = repo_icons

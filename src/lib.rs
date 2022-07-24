@@ -30,6 +30,7 @@ mod macros;
 mod blacklist;
 mod readme;
 mod repo_icon;
+mod user_repos;
 mod repo_icons;
 
 pub use gh_api::*;

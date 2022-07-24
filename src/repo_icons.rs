@@ -37,9 +37,11 @@ impl RepoIcons {
   pub async fn load(user: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
     let mut icons = Icons::new();
 
-    let readme_image = {
-      let readme = Readme::load(user, repo).await?;
+    let (repos, readme) = try_join!(async { get_user_repos(user).await }, async {
+      Readme::load(user, repo).await
+    })?;
 
+    let readme_image = {
       if let Some(homepage) = &readme.homepage {
         if !is_blacklisted_homepage(homepage) {
           warn_err!(
@@ -93,16 +95,13 @@ impl RepoIcons {
     }
 
     // Try and find a prefixed repo, and load the icons for it on GitHub
-    if repo_icons.len() == 0 {
-      let repos = get_user_repos(user.to_lowercase()).await;
-      if let Some(repos) = repos {
-        let repo = repo.to_lowercase();
+    {
+      let repo = repo.to_lowercase();
 
-        for prefixed_repo in repos {
-          if prefixed_repo != repo && prefixed_repo.contains(&repo) {
-            if let Ok(prefixed_repo_icons) = RepoIcons::load(user, &prefixed_repo).await {
-              repo_icons.extend(prefixed_repo_icons);
-            }
+      for prefixed_repo in repos {
+        if prefixed_repo != repo && repo.contains(&prefixed_repo) {
+          if let Ok(prefixed_repo_icons) = RepoIcons::load(user, &prefixed_repo).await {
+            repo_icons.extend(prefixed_repo_icons);
           }
         }
       }

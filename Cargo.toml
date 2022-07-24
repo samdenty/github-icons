@@ -3,7 +3,7 @@ members = ["api"]
 
 [package]
 name = "repo_icons"
-version = "0.1.11"
+version = "0.1.12"
 authors = ["Sam Denty <sam@samdenty.com>"]
 edition = "2018"
 license = "GPL-3.0"
@@ -39,11 +39,11 @@ vec1 = { version = "1.6.0", features = ["serde"] }
 html5ever = "0.26.0"
 url = { version = "2.2.0", features = ["serde"] }
 regex = "1"
-cached = "0.34.0"
+cached = "0.37.0"
 log = "0.4.14"
 once_cell = "1.5.2"
-site_icons = "0.1.10"
-scraper = "0.12.0"
+site_icons = "0.1.12"
+scraper = "0.13.0"
 tokio-futures-byteorder = { version = "0.2.0", features = ["futures"] }
 byteorder = "1.4.2"
 serde = { version = "1.0", features = ["derive", "rc"] }

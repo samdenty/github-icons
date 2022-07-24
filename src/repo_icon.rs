@@ -12,6 +12,7 @@ use url::Url;
 
 #[derive(Debug, PartialOrd, PartialEq, Ord, Eq)]
 pub enum RepoIconKind {
+  UserAvatar,
   ReadmeImage,
   Site(IconKind),
 }
@@ -20,6 +21,7 @@ impl Display for RepoIconKind {
   fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
     match self {
       RepoIconKind::ReadmeImage => write!(f, "readme_image"),
+      RepoIconKind::UserAvatar => write!(f, "user_avatar"),
       RepoIconKind::Site(kind) => write!(f, "{}", kind),
     }
   }
@@ -31,6 +33,7 @@ impl FromStr for RepoIconKind {
   fn from_str(kind: &str) -> Result<Self, Self::Err> {
     match kind {
       "readme_image" => Ok(RepoIconKind::ReadmeImage),
+      "user_avatar" => Ok(RepoIconKind::UserAvatar),
       kind => Ok(RepoIconKind::Site(IconKind::from_str(kind)?)),
     }
   }

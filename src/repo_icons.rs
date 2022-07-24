@@ -5,11 +5,11 @@ use crate::{
 };
 use reqwest::{
   header::{HeaderMap, HeaderValue, AUTHORIZATION},
-  Client, IntoUrl,
+  Client, IntoUrl, Url,
 };
-use site_icons::{IconKind, Icons};
+use site_icons::{IconInfo, IconKind, Icons};
 use std::{
-  cmp::{max, min, Ordering},
+  cmp::{max, min},
   collections::HashMap,
   convert::TryInto,
   error::Error,
@@ -58,7 +58,7 @@ impl RepoIcons {
 
     let entries = icons.entries().await;
 
-    let mut repo_icons: Vec1<RepoIcon> = entries
+    let mut repo_icons = entries
       .into_iter()
       .filter(|icon| !is_badge(&icon.url))
       .map(|entry| {
@@ -77,19 +77,22 @@ impl RepoIcons {
           entry.info,
         )
       })
-      .collect::<Vec<_>>()
+      .collect::<Vec<_>>();
+
+    if repo.to_lowercase().contains(&user.to_lowercase()) {
+      let icon_url: Url = format!("https://github.com/{}.png", user).parse().unwrap();
+      repo_icons.push(RepoIcon::new(
+        icon_url.clone(),
+        RepoIconKind::UserAvatar,
+        IconInfo::load(icon_url, None).await?,
+      ));
+    }
+
+    let mut repo_icons: Vec1<RepoIcon> = repo_icons
       .try_into()
       .map_err(|_| "no icons found for repo")?;
 
-    repo_icons.sort_by(|a, b| {
-      if a.kind == RepoIconKind::ReadmeImage {
-        Ordering::Less
-      } else if b.kind == RepoIconKind::ReadmeImage {
-        Ordering::Greater
-      } else {
-        Ordering::Equal
-      }
-    });
+    repo_icons.sort_by(|a, b| a.kind.cmp(&b.kind));
 
     Ok(RepoIcons(repo_icons))
   }

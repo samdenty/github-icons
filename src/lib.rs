@@ -1,4 +1,4 @@
-#![feature(async_closure, bool_to_option)]
+#![feature(async_closure)]
 
 //! # repo_icons
 //! Get icons for a GitHub repository.

@@ -66,6 +66,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-recursion"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2cda8f4bcc10624c4e85bc66b3f452cca98cfa5ca002dc83a16aad2367641bea"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.53"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -955,27 +966,13 @@ dependencies = [
 
 [[package]]
 name = "html5ever"
-version = "0.25.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5c13fb08e5d4dfc151ee5e88bae63f7773d61852f3bdc73c9f4b9e1bde03148"
-dependencies = [
- "log",
- "mac",
- "markup5ever 0.10.1",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "html5ever"
 version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bea68cab48b8459f17cf1c944c67ddc572d272d9f2b274140f223ecb1da4a3b7"
 dependencies = [
  "log",
  "mac",
- "markup5ever 0.11.0",
+ "markup5ever",
  "proc-macro2",
  "quote",
  "syn",
@@ -1238,20 +1235,6 @@ name = "mac"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
-
-[[package]]
-name = "markup5ever"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a24f40fb03852d1cdd84330cddcaf98e9ec08a7b7768e952fad3b4cf048ec8fd"
-dependencies = [
- "log",
- "phf 0.8.0",
- "phf_codegen 0.8.0",
- "string_cache",
- "string_cache_codegen",
- "tendril",
-]
 
 [[package]]
 name = "markup5ever"
@@ -2010,10 +1993,11 @@ dependencies = [
 
 [[package]]
 name = "repo_icons"
-version = "0.1.12"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c1da39309dab10cbfe510be352043418023d564ed6cf34ffd3c062c54af6e89"
+checksum = "68a3802fb4d2959802c13622ad8323327d75a946c32302576bcb7066e7b9ded0"
 dependencies = [
+ "async-recursion",
  "byteorder",
  "bytes 1.1.0",
  "cached",
@@ -2023,13 +2007,13 @@ dependencies = [
  "env_logger",
  "futures",
  "gh_api",
- "html5ever 0.26.0",
+ "html5ever",
  "log",
  "once_cell",
  "pin-utils",
  "regex",
  "reqwest-wasm",
- "scraper 0.13.0",
+ "scraper",
  "serde",
  "serde_json",
  "serde_with",
@@ -2246,22 +2230,6 @@ checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
 
 [[package]]
 name = "scraper"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48e02aa790c80c2e494130dec6a522033b6a23603ffc06360e9fe6c611ea2c12"
-dependencies = [
- "cssparser",
- "ego-tree",
- "getopts",
- "html5ever 0.25.2",
- "matches",
- "selectors",
- "smallvec",
- "tendril",
-]
-
-[[package]]
-name = "scraper"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5684396b456f3eb69ceeb34d1b5cb1a2f6acf7ca4452131efa3ba0ee2c2d0a70"
@@ -2269,7 +2237,7 @@ dependencies = [
  "cssparser",
  "ego-tree",
  "getopts",
- "html5ever 0.26.0",
+ "html5ever",
  "matches",
  "selectors",
  "smallvec",
@@ -2466,16 +2434,16 @@ checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
 name = "site_icons"
-version = "0.1.12"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "322cc5d05ca9aeddd7046a2f44968dda095b46e6effa4f494edcaf1a5d854485"
+checksum = "8dd58c7d3bcb1927ccda132f028ea7489a023aaba31290c5879ff764977fb14d"
 dependencies = [
  "byteorder",
  "clap",
  "data-url",
  "env_logger",
  "futures",
- "html5ever 0.25.2",
+ "html5ever",
  "itertools",
  "log",
  "mime_4",
@@ -2483,7 +2451,7 @@ dependencies = [
  "percent-encoding",
  "regex",
  "reqwest-wasm",
- "scraper 0.12.0",
+ "scraper",
  "serde",
  "serde_json",
  "serde_with",

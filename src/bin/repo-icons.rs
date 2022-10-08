@@ -19,8 +19,8 @@ struct Opts {
 
 macro_rules! regex {
   ($re:literal $(,)?) => {{
-    static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
-    RE.get_or_init(|| regex::Regex::new($re).unwrap())
+    static RE: once_cell::sync::OnceCell<fancy_regex::Regex> = once_cell::sync::OnceCell::new();
+    RE.get_or_init(|| fancy_regex::Regex::new($re).unwrap())
   }};
 }
 
@@ -38,7 +38,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     set_token(token);
   }
 
-  let slug = regex!("([^/]+)/(.+)").captures(&opts.slug).unwrap();
+  let slug = regex!("([^/]+)/(.+)")
+    .captures(&opts.slug)
+    .unwrap()
+    .unwrap();
   let user = &slug[1];
   let repo = &slug[2];
 

@@ -30,7 +30,7 @@ impl<'a> PrimaryHeading<'a> {
     // ugly hack to extract id https://github.com/causal-agent/ego-tree/pull/22
     let get_id = |node: &ElementRef| {
       let id_str = format!("{:?}", node.id());
-      let res = regex!(r"\((\d+)\)").captures(&id_str).unwrap();
+      let res = regex!(r"\((\d+)\)").captures(&id_str).unwrap().unwrap();
       res[1].parse::<usize>().unwrap()
     };
 

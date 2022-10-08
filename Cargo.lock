@@ -108,6 +108,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
+name = "bit-set"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0700ddab506f33b20a03b13996eccd309a48e5ff77d0d95926aa0210fb4e95f1"
+dependencies = [
+ "bit-vec",
+]
+
+[[package]]
+name = "bit-vec"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
+
+[[package]]
 name = "bit_field"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -542,6 +557,16 @@ dependencies = [
  "lebe",
  "smallvec",
  "threadpool",
+]
+
+[[package]]
+name = "fancy-regex"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0678ab2d46fa5195aaf59ad034c083d351377d4af57f3e073c074d0da3e3c766"
+dependencies = [
+ "bit-set",
+ "regex",
 ]
 
 [[package]]
@@ -1728,7 +1753,7 @@ dependencies = [
 
 [[package]]
 name = "repo_icons"
-version = "0.1.13"
+version = "0.2.0"
 dependencies = [
  "async-recursion",
  "byteorder",
@@ -1738,6 +1763,7 @@ dependencies = [
  "data-url",
  "derivative",
  "env_logger",
+ "fancy-regex",
  "futures",
  "gh_api",
  "html5ever",
@@ -1745,7 +1771,6 @@ dependencies = [
  "log",
  "once_cell",
  "pin-utils",
- "regex",
  "reqwest-wasm",
  "scraper",
  "serde",
@@ -2040,9 +2065,9 @@ checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
 name = "site_icons"
-version = "0.1.13"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8dd58c7d3bcb1927ccda132f028ea7489a023aaba31290c5879ff764977fb14d"
+checksum = "d2a8eee041bbe79b9e73137dab8b5f2633754a9bf427de725b99faf3005f501f"
 dependencies = [
  "byteorder",
  "clap",

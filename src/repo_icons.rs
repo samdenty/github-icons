@@ -1,11 +1,9 @@
-use super::Readme;
 use crate::{
   blacklist::{is_badge, is_blacklisted_homepage},
-  get_token,
-  user_repos::get_user_repos,
-  RepoIcon, RepoIconKind,
+  get_token, github_api, RepoIcon, RepoIconKind,
 };
 use async_recursion::async_recursion;
+use futures::future::join_all;
 use reqwest::{
   header::{HeaderMap, HeaderValue, AUTHORIZATION},
   Client, IntoUrl, Url,
@@ -34,33 +32,73 @@ impl RepoIcons {
   /// }
   /// ```
   #[async_recursion(?Send)]
-  pub async fn load(user: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
+  pub async fn load(owner: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
     let mut icons = Icons::new();
 
-    let (repos, readme) = try_join!(async { get_user_repos(user).await }, async {
-      Readme::load(user, repo).await
-    })?;
+    let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
 
-    let readme_image = {
-      if let Some(homepage) = &readme.homepage {
-        if !is_blacklisted_homepage(homepage) {
-          warn_err!(
-            icons.load_website(homepage.clone()).await,
-            "failed to load website {}",
-            homepage
-          );
+    // Check if the repo contains the owner's username, and load the user's avatar
+    if repo.to_lowercase().contains(&owner.to_lowercase()) {
+      icons.add_icon(user_avatar_url.clone(), IconKind::SiteLogo, None);
+    }
+
+    let (prefixed_repo_icons, blob, (readme_image, repo_is_private)) = try_join!(
+      // Try and find prefixed repos, and load icons for them on GitHub
+      async {
+        let repos = github_api::get_user_repos(owner).await?;
+
+        Ok(
+          join_all(
+            repos
+              .into_iter()
+              .filter(|possibly_prefixed_repo| {
+                possibly_prefixed_repo != &repo.to_lowercase()
+                  && repo.to_lowercase().contains(possibly_prefixed_repo)
+              })
+              .map(async move |repo| {
+                RepoIcons::load(owner, &repo)
+                  .await
+                  .map(|icons| icons.0.into_vec())
+                  .unwrap_or(Vec::new())
+              }),
+          )
+          .await
+          .into_iter()
+          .flatten(),
+        )
+      },
+      async { github_api::get_blob(owner, repo).await },
+      // Try and extract images from the readme website, or directly in it
+      async {
+        let readme = github_api::Readme::load(owner, repo).await?;
+
+        if let Some(homepage) = &readme.homepage {
+          if !is_blacklisted_homepage(homepage) {
+            warn_err!(
+              icons.load_website(homepage.clone()).await,
+              "failed to load website {}",
+              homepage
+            );
+          }
         }
+
+        let image = readme.images().await.into_iter().find(|image| {
+          if image.in_primary_heading {
+            icons.add_icon_with_headers(
+              image.src.clone(),
+              image.headers.clone(),
+              IconKind::SiteLogo,
+              None,
+            );
+            true
+          } else {
+            false
+          }
+        });
+
+        Ok((image, readme.private))
       }
-
-      readme.images().await.into_iter().find(|image| {
-        if image.in_primary_heading {
-          icons.add_icon(image.src.clone(), IconKind::SiteLogo, None);
-          true
-        } else {
-          false
-        }
-      })
-    };
+    )?;
 
     let entries = icons.entries().await;
 
@@ -68,14 +106,18 @@ impl RepoIcons {
       .into_iter()
       .filter(|icon| !is_badge(&icon.url))
       .map(|entry| {
+        let is_user_avatar = entry.url == user_avatar_url;
         let is_readme = readme_image
           .as_ref()
           .map(|image| image.src == entry.url)
           .unwrap_or(false);
 
-        RepoIcon::new(
+        RepoIcon::new_with_headers(
           entry.url,
-          if is_readme {
+          entry.headers,
+          if is_user_avatar {
+            RepoIconKind::UserAvatar
+          } else if is_readme {
             RepoIconKind::ReadmeImage
           } else {
             RepoIconKind::Site(entry.kind)
@@ -85,27 +127,11 @@ impl RepoIcons {
       })
       .collect::<Vec<_>>();
 
-    if repo.to_lowercase().contains(&user.to_lowercase()) {
-      let icon_url: Url = format!("https://github.com/{}.png", user).parse().unwrap();
-      repo_icons.push(RepoIcon::new(
-        icon_url.clone(),
-        RepoIconKind::UserAvatar,
-        IconInfo::load(icon_url, None).await?,
-      ));
+    if let Some(blob) = blob {
+      repo_icons.push(RepoIcon::load_blob(blob, repo_is_private).await?);
     }
 
-    // Try and find a prefixed repo, and load the icons for it on GitHub
-    {
-      let repo = repo.to_lowercase();
-
-      for prefixed_repo in repos {
-        if prefixed_repo != repo && repo.contains(&prefixed_repo) {
-          if let Ok(prefixed_repo_icons) = RepoIcons::load(user, &prefixed_repo).await {
-            repo_icons.extend(prefixed_repo_icons);
-          }
-        }
-      }
-    }
+    repo_icons.extend(prefixed_repo_icons);
 
     let mut repo_icons: Vec1<RepoIcon> = repo_icons
       .try_into()
@@ -128,12 +154,12 @@ impl RepoIcons {
   /// ```
   pub async fn fetch<U: IntoUrl>(
     endpoint: U,
-    user: &str,
+    owner: &str,
     repo: &str,
   ) -> Result<Self, Box<dyn Error>> {
     let endpoint = endpoint
       .into_url()?
-      .join(&format!("{}/{}/icons", user, repo))?;
+      .join(&format!("{}/{}/icons", owner, repo))?;
 
     let mut headers = HeaderMap::new();
     if let Some(token) = get_token() {
@@ -224,7 +250,6 @@ impl RepoIcons {
     for resolution in resolutions {
       if let Some(thumbnail) = thumbnails.get(&resolution) {
         if seen_thumbnails.contains(&thumbnail) {
-          // info!("seen {:#?} {:#?}", seen_thumbnails, thumbnail);
           continue;
         }
 
@@ -256,13 +281,6 @@ impl RepoIcons {
     self.0.last()
   }
 }
-
-// impl Deref for RepoIcons {
-//   type Target = Vec1<RepoIcon>;
-//   fn deref(&self) -> &Vec1<RepoIcon> {
-//     &self.0
-//   }
-// }
 
 impl IntoIterator for RepoIcons {
   type Item = RepoIcon;

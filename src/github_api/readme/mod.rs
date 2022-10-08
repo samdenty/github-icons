@@ -14,6 +14,7 @@ pub struct Readme {
   pub owner: String,
   pub repo: String,
   pub homepage: Option<Url>,
+  pub private: bool,
   link_base: Url,
   document: Html,
 }
@@ -30,6 +31,7 @@ impl Readme {
       owner: RepoOwner,
       name: String,
       default_branch: String,
+      private: bool,
       #[serde(deserialize_with = "deserialize_url")]
       homepage: Option<Url>,
     }
@@ -70,6 +72,7 @@ impl Readme {
         &repo.owner.login,
         &repo.name,
         &readme_body,
+        repo.private,
         &repo.default_branch,
         repo.homepage,
       )),
@@ -81,6 +84,7 @@ impl Readme {
     owner: &str,
     repo: &str,
     body: &str,
+    private: bool,
     default_branch: &str,
     homepage: Option<Url>,
   ) -> Self {
@@ -95,6 +99,7 @@ impl Readme {
     Self {
       owner: owner.to_lowercase(),
       repo: repo.to_lowercase(),
+      private,
       homepage,
       document,
       link_base,
@@ -143,18 +148,18 @@ impl Readme {
 
     // check for github pages
     let re = regex!(r"^([^.])+\.github\.(com|io)$");
-    if let Some(res) = re.captures(&domain) {
+    if let Some(res) = re.captures(&domain).unwrap() {
       let user = &res[1];
 
       // USERNAME.github.io
-      if let Some(repo_res) = re.captures(&domain) {
+      if let Some(repo_res) = re.captures(&domain).unwrap() {
         if &repo_res[1] == user {
           return Some(ProjectLink::Website);
         }
       }
 
       // USERNAME.github.io/REPO
-      if let Some(res) = regex!("^/([^/]+)").captures(url.path()) {
+      if let Some(res) = regex!("^/([^/]+)").captures(url.path()).unwrap() {
         let repo = &res[1];
         if self.is_same_repo_as(user, repo).await {
           return Some(ProjectLink::Website);
@@ -195,7 +200,7 @@ impl Readme {
           regex!("^/([^/]+)/([^/]+)/([^/]+)/(.+)")
         };
 
-        if let Some(res) = re.captures(url.path()) {
+        if let Some(res) = re.captures(url.path()).unwrap() {
           let user = &res[1];
           let repo = &res[2];
 
@@ -221,8 +226,8 @@ impl Readme {
     Ok(self.link_base.join(&path)?)
   }
 
-  async fn is_same_repo_as(&self, user: &str, repo: &str) -> bool {
-    let user = user.to_lowercase();
+  async fn is_same_repo_as(&self, owner: &str, repo: &str) -> bool {
+    let user = owner.to_lowercase();
     let repo = repo.to_lowercase();
     is_same_repo((&self.owner, &self.repo), (&user, &repo)).await
   }

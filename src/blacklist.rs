@@ -1,5 +1,5 @@
+use fancy_regex::Regex;
 use once_cell::sync::Lazy;
-use regex::Regex;
 use url::Url;
 
 // Domains which serve badges without 'badge' in the URL
@@ -53,7 +53,7 @@ pub fn is_badge(url: &Url) -> bool {
 
   BADGE_PATTERNS
     .iter()
-    .any(|url_regex| url_regex.is_match(&url))
+    .any(|url_regex| url_regex.is_match(&url).unwrap())
 }
 
 pub fn is_blacklisted_homepage(url: &Url) -> bool {
@@ -66,5 +66,5 @@ pub fn is_blacklisted_homepage(url: &Url) -> bool {
 
   BLACKLISTED_HOMEPAGES
     .iter()
-    .any(|url_regex| url_regex.is_match(&url))
+    .any(|url_regex| url_regex.is_match(&url).unwrap())
 }

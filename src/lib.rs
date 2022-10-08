@@ -28,12 +28,11 @@ extern crate futures;
 #[macro_use]
 mod macros;
 mod blacklist;
-mod readme;
+mod github_api;
 mod repo_icon;
-mod user_repos;
 mod repo_icons;
 
 pub use gh_api::*;
-pub use readme::*;
+pub use github_api::readme::*;
 pub use repo_icon::*;
 pub use repo_icons::*;

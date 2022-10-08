@@ -1,8 +1,12 @@
 use super::{primary_heading::PrimaryHeading, Readme};
 use crate::blacklist::is_badge;
+use gh_api::get_token;
 use scraper::ElementRef;
 use serde::{Deserialize, Serialize};
-use std::{cmp::Ordering, collections::HashSet};
+use std::{
+  cmp::Ordering,
+  collections::{HashMap, HashSet},
+};
 use url::Url;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -22,6 +26,7 @@ pub enum KeywordMention {
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ReadmeImage {
   pub src: Url,
+  pub headers: HashMap<String, String>,
   /// whether the image was in the primary markdown heading
   pub in_primary_heading: bool,
   /// whether the image was the first/last one in the heading
@@ -119,8 +124,17 @@ impl ReadmeImage {
       mentions
     };
 
+    let mut headers = HashMap::new();
+
     let src = cdn_src.unwrap_or({
       if let Some((branch, path)) = &branch_and_path {
+        if let Some(token) = get_token() {
+          headers.insert(
+            "Authorization".to_string(),
+            format!("Bearer {}", token).to_string(),
+          );
+        }
+
         Url::parse(&format!(
           "https://raw.githubusercontent.com/{}/{}/{}/{}",
           readme.owner, readme.repo, branch, path
@@ -133,6 +147,7 @@ impl ReadmeImage {
 
     Some(ReadmeImage {
       src,
+      headers,
       in_primary_heading: primary_heading.contains(elem_ref),
       edge_of_primary_heading: false,
       keyword_mentions,

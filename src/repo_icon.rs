@@ -1,19 +1,40 @@
 use bytes::Bytes;
 use data_url::DataUrl;
+use fancy_regex::Regex;
+use gh_api::get_token;
 #[cfg(feature = "image")]
 use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
 use site_icons::{IconInfo, IconKind};
 use std::{
+  collections::HashMap,
+  convert::TryInto,
   error::Error,
   fmt::{self, Display},
   str::FromStr,
 };
 use url::Url;
 
+#[derive(Debug, PartialOrd, Ord, Eq)]
+pub struct RepoBlob {
+  pub owner: String,
+  pub repo: String,
+  pub commit_sha: String,
+
+  pub sha: String,
+  pub path: String,
+}
+
+impl PartialEq for RepoBlob {
+  fn eq(&self, other: &Self) -> bool {
+    self.owner == other.owner && self.repo == other.repo && self.sha == other.sha
+  }
+}
+
 #[derive(Debug, PartialOrd, PartialEq, Ord, Eq)]
 pub enum RepoIconKind {
   UserAvatar,
   ReadmeImage,
+  Blob(Option<RepoBlob>),
   Site(IconKind),
 }
 
@@ -22,6 +43,7 @@ impl Display for RepoIconKind {
     match self {
       RepoIconKind::ReadmeImage => write!(f, "readme_image"),
       RepoIconKind::UserAvatar => write!(f, "user_avatar"),
+      RepoIconKind::Blob(_) => write!(f, "blob"),
       RepoIconKind::Site(kind) => write!(f, "{}", kind),
     }
   }
@@ -31,11 +53,12 @@ impl FromStr for RepoIconKind {
   type Err = String;
 
   fn from_str(kind: &str) -> Result<Self, Self::Err> {
-    match kind {
-      "readme_image" => Ok(RepoIconKind::ReadmeImage),
-      "user_avatar" => Ok(RepoIconKind::UserAvatar),
-      kind => Ok(RepoIconKind::Site(IconKind::from_str(kind)?)),
-    }
+    Ok(match kind {
+      "readme_image" => RepoIconKind::ReadmeImage,
+      "user_avatar" => RepoIconKind::UserAvatar,
+      "blob" => RepoIconKind::Blob(None),
+      kind => RepoIconKind::Site(IconKind::from_str(kind)?),
+    })
   }
 }
 
@@ -43,6 +66,8 @@ impl FromStr for RepoIconKind {
 #[derivative(Debug, PartialEq, Eq)]
 pub struct RepoIcon {
   pub url: Url,
+  pub headers: HashMap<String, String>,
+
   #[serde(with = "serde_with::rust::display_fromstr")]
   pub kind: RepoIconKind,
   #[serde(flatten)]
@@ -56,9 +81,55 @@ pub struct RepoIcon {
 }
 
 impl RepoIcon {
+  pub async fn load_blob(blob: RepoBlob, repo_is_private: bool) -> Result<Self, Box<dyn Error>> {
+    let mut headers = HashMap::new();
+
+    let url = Url::parse(&if repo_is_private {
+      headers.insert(
+        "Authorization".to_string(),
+        format!("Bearer {}", get_token().unwrap()),
+      );
+
+      headers.insert(
+        "Accept".to_string(),
+        "application/vnd.github.raw".to_string(),
+      );
+
+      format!(
+        "https://api.github.com/repos/{}/{}/git/blobs/{}",
+        blob.owner, blob.repo, blob.sha
+      )
+    } else {
+      format!(
+        "https://raw.githubusercontent.com/{}/{}/{}/{}",
+        blob.owner, blob.repo, blob.commit_sha, blob.path
+      )
+    })
+    .unwrap();
+
+    let info = IconInfo::load(url.clone(), (&headers).try_into()?, None).await?;
+
+    Ok(Self::new_with_headers(
+      url,
+      headers,
+      RepoIconKind::Blob(Some(blob)),
+      info,
+    ))
+  }
+
   pub fn new(url: Url, kind: RepoIconKind, info: IconInfo) -> Self {
+    Self::new_with_headers(url, HashMap::new(), kind, info)
+  }
+
+  pub fn new_with_headers(
+    url: Url,
+    headers: HashMap<String, String>,
+    kind: RepoIconKind,
+    info: IconInfo,
+  ) -> Self {
     Self {
       url,
+      headers,
       kind,
       info,
       #[cfg(feature = "image")]
@@ -77,11 +148,11 @@ impl RepoIcon {
       return Ok(body.into());
     }
 
-    let res = match self.url.domain().unwrap() {
-      // fetch the response, with authorization headers included
-      "raw.githubusercontent.com" => gh_get!("{}", self.url).send().await?,
-      _ => reqwest::get(self.url.clone()).await?,
-    };
+    let res = reqwest::Client::new()
+      .get(self.url.clone())
+      .headers((&self.headers).try_into()?)
+      .send()
+      .await?;
 
     Ok(res.bytes().await?)
   }

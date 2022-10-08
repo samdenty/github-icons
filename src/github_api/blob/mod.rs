@@ -7,9 +7,13 @@ use repo_files::{get_repo_files, File, FileType};
 use std::error::Error;
 use std::path::Path;
 
-#[derive(Deserialize)]
-struct PackageJSON {
-  icon: String,
+fn is_valid_blob(file: &File) -> bool {
+  matches!(file.r#type, FileType::Blob)
+    && (file.path.ends_with(".png")
+      || file.path.ends_with(".jpg")
+      || file.path.ends_with(".jpeg")
+      || file.path.ends_with(".ico")
+      || file.path.ends_with(".svg"))
 }
 
 fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
@@ -91,6 +95,11 @@ async fn get_package_json_icon(
           })
       })
       .map(async move |file| {
+        #[derive(Deserialize)]
+        struct PackageJSON {
+          icon: String,
+        }
+
         let package_json = gh_get!(
           "https://raw.githubusercontent.com/{}/{}/{}/{}",
           owner,
@@ -190,15 +199,6 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)
       },
     )
   }))
-}
-
-fn is_valid_blob(file: &File) -> bool {
-  matches!(file.r#type, FileType::Blob)
-    && (file.path.ends_with(".png")
-      || file.path.ends_with(".jpg")
-      || file.path.ends_with(".jpeg")
-      || file.path.ends_with(".ico")
-      || file.path.ends_with(".svg"))
 }
 
 fn get_path_and_filename(fullpath: &str) -> (&str, &str) {

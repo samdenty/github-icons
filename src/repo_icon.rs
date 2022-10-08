@@ -6,6 +6,7 @@ use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
 use maplit::hashmap;
 use site_icons::{IconInfo, IconKind};
 use std::{
+  cmp::Ordering,
   collections::HashMap,
   convert::TryInto,
   error::Error,
@@ -14,7 +15,7 @@ use std::{
 };
 use url::Url;
 
-#[derive(Debug, PartialOrd, Ord, Eq)]
+#[derive(Debug, Eq)]
 pub struct RepoBlob {
   pub owner: String,
   pub repo: String,
@@ -22,6 +23,18 @@ pub struct RepoBlob {
 
   pub sha: String,
   pub path: String,
+}
+
+impl PartialOrd for RepoBlob {
+  fn partial_cmp(&self, other: &RepoBlob) -> Option<Ordering> {
+    None
+  }
+}
+
+impl Ord for RepoBlob {
+  fn cmp(&self, other: &RepoBlob) -> Ordering {
+    Ordering::Equal
+  }
 }
 
 impl PartialEq for RepoBlob {

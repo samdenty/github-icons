@@ -7,6 +7,7 @@ use std::error::Error;
 
 fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
   let owner = owner.to_lowercase();
+  let owner = owner.rsplit_once('-').unwrap_or((&owner, "")).0;
   let repo = repo.to_lowercase();
 
   let fullpath = file.path.to_lowercase();
@@ -15,7 +16,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
   let mut weight = 0;
   let mut matches_icon = false;
 
-  if filename.contains(&owner) {
+  if filename.contains(owner) {
     weight += 1;
     matches_icon = true;
   }
@@ -83,6 +84,8 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<RepoBlob>, Box<d
     })
     .filter(|(_, weight)| *weight > 0)
     .collect::<Vec<_>>();
+
+  println!("{:?}", results);
 
   results.sort_by(|(_, a_weight), (_, b_weight)| b_weight.cmp(&a_weight));
 

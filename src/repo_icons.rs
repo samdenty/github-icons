@@ -4,11 +4,12 @@ use crate::{
 };
 use async_recursion::async_recursion;
 use futures::future::join_all;
+use itertools::Itertools;
 use reqwest::{
   header::{HeaderMap, HeaderValue, AUTHORIZATION},
   Client, IntoUrl, Url,
 };
-use site_icons::{IconInfo, IconKind, Icons};
+use site_icons::{IconKind, Icons};
 use std::{
   cmp::{max, min},
   collections::HashMap,
@@ -42,7 +43,7 @@ impl RepoIcons {
       icons.add_icon(user_avatar_url.clone(), IconKind::SiteLogo, None);
     }
 
-    let (prefixed_repo_icons, blob, (readme_image, repo_is_private)) = try_join!(
+    let (prefixed_repo_icons, blob_icon, (readme_image, repo_is_private)) = try_join!(
       // Try and find prefixed repos, and load icons for them on GitHub
       async {
         let repos = github_api::get_user_repos(owner).await?;
@@ -67,7 +68,13 @@ impl RepoIcons {
           .flatten(),
         )
       },
-      async { github_api::get_blob(owner, repo).await },
+      async {
+        if let Some(blob) = github_api::get_blob(owner, repo).await? {
+          RepoIcon::load_blob(blob).await.map(Some)
+        } else {
+          Ok(None)
+        }
+      },
       // Try and extract images from the readme website, or directly in it
       async {
         let readme = github_api::Readme::load(owner, repo).await?;
@@ -127,17 +134,23 @@ impl RepoIcons {
       })
       .collect::<Vec<_>>();
 
-    if let Some(blob) = blob {
-      repo_icons.push(RepoIcon::load_blob(blob, repo_is_private).await?);
+    if let Some(mut blob_icon) = blob_icon {
+      blob_icon.blob_set_private(repo_is_private);
+      repo_icons.push(blob_icon);
     }
 
     repo_icons.extend(prefixed_repo_icons);
 
-    let mut repo_icons: Vec1<RepoIcon> = repo_icons
+    repo_icons.sort_by(|a, b| a.kind.cmp(&b.kind));
+
+    let repo_icons = repo_icons
+      .into_iter()
+      .unique_by(|icon| icon.url.clone())
+      .collect::<Vec<_>>();
+
+    let repo_icons: Vec1<RepoIcon> = repo_icons
       .try_into()
       .map_err(|_| "no icons found for repo")?;
-
-    repo_icons.sort_by(|a, b| a.kind.cmp(&b.kind));
 
     Ok(RepoIcons(repo_icons))
   }

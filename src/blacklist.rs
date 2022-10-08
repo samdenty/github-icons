@@ -34,11 +34,15 @@ static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
 
 static BLACKLISTED_HOMEPAGES: Lazy<Vec<Regex>> = Lazy::new(|| {
   regexes![
+    r"^stackblitz.com/edit",
+    r"^pr.new",
     r"^codesandbox.io/s/",
     r"^[^/]*npm[^/*]*",
     r"^crates.io",
     r"^docs.rs",
-    r"^chrome.google.com/webstore"
+    r"^github.com",
+    r"^chrome.google.com/webstore",
+    r"^marketplace.visualstudio.com"
   ]
   .to_vec()
 });

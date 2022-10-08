@@ -81,7 +81,7 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<RepoBlob>, Box<d
       let weight = get_weight(owner, repo, &file);
       (file, weight)
     })
-    .filter(|(file, weight)| *weight > 0)
+    .filter(|(_, weight)| *weight > 0)
     .collect::<Vec<_>>();
 
   results.sort_by(|(_, a_weight), (_, b_weight)| b_weight.cmp(&a_weight));

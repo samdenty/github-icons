@@ -3,7 +3,7 @@ members = ["api"]
 
 [package]
 name = "repo_icons"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Sam Denty <sam@samdenty.com>"]
 edition = "2018"
 license = "GPL-3.0"
@@ -57,3 +57,5 @@ reqwest = { package = "reqwest-wasm", version = "0.11.0", features = [
 futures = "0.3.12"
 image = { version = "0.24.1", optional = true }
 fancy-regex = "0.10.0"
+itertools = "0.10.5"
+maplit = "1.0.2"

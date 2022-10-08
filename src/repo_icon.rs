@@ -1,9 +1,9 @@
 use bytes::Bytes;
 use data_url::DataUrl;
-use fancy_regex::Regex;
 use gh_api::get_token;
 #[cfg(feature = "image")]
 use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
+use maplit::hashmap;
 use site_icons::{IconInfo, IconKind};
 use std::{
   collections::HashMap,
@@ -81,31 +81,30 @@ pub struct RepoIcon {
 }
 
 impl RepoIcon {
-  pub async fn load_blob(blob: RepoBlob, repo_is_private: bool) -> Result<Self, Box<dyn Error>> {
-    let mut headers = HashMap::new();
+  pub fn blob_set_private(&mut self, is_private: bool) {
+    if let RepoIconKind::Blob(Some(blob)) = &mut self.kind {
+      if !is_private {
+        self.headers.clear();
+        self.url = Url::parse(&format!(
+          "https://raw.githubusercontent.com/{}/{}/{}/{}",
+          blob.owner, blob.repo, blob.commit_sha, blob.path
+        ))
+        .unwrap();
+      }
+    }
+  }
 
-    let url = Url::parse(&if repo_is_private {
-      headers.insert(
-        "Authorization".to_string(),
-        format!("Bearer {}", get_token().unwrap()),
-      );
-
-      headers.insert(
-        "Accept".to_string(),
-        "application/vnd.github.raw".to_string(),
-      );
-
-      format!(
-        "https://api.github.com/repos/{}/{}/git/blobs/{}",
-        blob.owner, blob.repo, blob.sha
-      )
-    } else {
-      format!(
-        "https://raw.githubusercontent.com/{}/{}/{}/{}",
-        blob.owner, blob.repo, blob.commit_sha, blob.path
-      )
-    })
+  pub async fn load_blob(blob: RepoBlob) -> Result<Self, Box<dyn Error>> {
+    let url = Url::parse(&format!(
+      "https://api.github.com/repos/{}/{}/git/blobs/{}",
+      blob.owner, blob.repo, blob.sha
+    ))
     .unwrap();
+
+    let headers = hashmap! {
+      "Authorization".to_string() => format!("Bearer {}", get_token().unwrap()),
+      "Accept".to_string() => "application/vnd.github.raw".to_string(),
+    };
 
     let info = IconInfo::load(url.clone(), (&headers).try_into()?, None).await?;
 

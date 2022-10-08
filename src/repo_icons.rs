@@ -141,13 +141,13 @@ impl RepoIcons {
 
     repo_icons.extend(prefixed_repo_icons);
 
+    repo_icons.sort_by(|a, b| a.info.cmp(&b.info));
+    repo_icons.sort_by(|a, b| a.kind.cmp(&b.kind));
+
     let mut repo_icons = repo_icons
       .into_iter()
       .unique_by(|icon| icon.url.clone())
       .collect::<Vec<_>>();
-
-    repo_icons.sort_by(|a, b| a.info.cmp(&b.info));
-    repo_icons.sort_by(|a, b| a.kind.cmp(&b.kind));
 
     let repo_icons: Vec1<RepoIcon> = repo_icons
       .try_into()

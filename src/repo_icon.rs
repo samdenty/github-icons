@@ -26,13 +26,13 @@ pub struct RepoBlob {
 }
 
 impl PartialOrd for RepoBlob {
-  fn partial_cmp(&self, other: &RepoBlob) -> Option<Ordering> {
+  fn partial_cmp(&self, _other: &RepoBlob) -> Option<Ordering> {
     None
   }
 }
 
 impl Ord for RepoBlob {
-  fn cmp(&self, other: &RepoBlob) -> Ordering {
+  fn cmp(&self, _other: &RepoBlob) -> Ordering {
     Ordering::Equal
   }
 }

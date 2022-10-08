@@ -11,7 +11,7 @@ use reqwest::{
 };
 use site_icons::{IconKind, Icons};
 use std::{
-  cmp::{max, min, Ordering},
+  cmp::{max, min},
   collections::HashMap,
   convert::TryInto,
   error::Error,

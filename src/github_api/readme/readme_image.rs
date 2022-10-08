@@ -128,10 +128,10 @@ impl ReadmeImage {
 
     let src = cdn_src.unwrap_or({
       if let Some((branch, path)) = &branch_and_path {
-        if let Some(token) = get_token() {
+        if readme.private {
           headers.insert(
             "Authorization".to_string(),
-            format!("Bearer {}", token).to_string(),
+            format!("Bearer {}", get_token().unwrap()).to_string(),
           );
         }
 

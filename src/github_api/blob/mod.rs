@@ -85,8 +85,6 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<RepoBlob>, Box<d
     .filter(|(_, weight)| *weight > 0)
     .collect::<Vec<_>>();
 
-  println!("{:?}", results);
-
   results.sort_by(|(_, a_weight), (_, b_weight)| b_weight.cmp(&a_weight));
 
   let result = results.get(0).cloned().map(|(file, weight)| {

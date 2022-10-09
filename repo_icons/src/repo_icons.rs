@@ -174,7 +174,7 @@ impl RepoIcons {
   ) -> Result<Self, Box<dyn Error>> {
     let endpoint = endpoint
       .into_url()?
-      .join(&format!("{}/{}/icons", owner, repo))?;
+      .join(&format!("{}/{}/all", owner, repo))?;
 
     let mut headers = HeaderMap::new();
     if let Some(token) = get_token() {

@@ -56,7 +56,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
 
       Ok(response)
     })
-    .get_async("/:owner/:repo/icons", async move |_, ctx| {
+    .get_async("/:owner/:repo/all", async move |_, ctx| {
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 

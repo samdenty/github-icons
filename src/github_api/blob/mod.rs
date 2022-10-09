@@ -44,7 +44,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
   }
 
   let fixtures = regex!("(e2e|fixtures|third[-_]party|test(s)?)/");
-  if !fixtures.is_match(&file.path).unwrap() {
+  if !fixtures.is_match(&fullpath).unwrap() {
     if filename.contains("favicon") {
       weight += 2;
       matches_icon = true;

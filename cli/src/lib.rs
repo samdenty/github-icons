@@ -27,7 +27,7 @@ use tokio::fs;
 use url::Url;
 
 static CACHE_DIR: Lazy<PathBuf> = Lazy::new(|| {
-  let path = Path::new(&home::home_dir().unwrap()).join("Library/Caches/com.samdenty.git-icons");
+  let path = Path::new(&home::home_dir().unwrap()).join("Library/Caches/com.samdenty.github-icons");
 
   if !path.exists() {
     create_dir(&path).unwrap()

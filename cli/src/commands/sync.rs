@@ -106,7 +106,7 @@ pub async fn sync_all(token: Option<&str>, debug: bool, limit: bool) -> Result<(
           let amount = amount.read().clone();
 
           if limit && amount == LIMIT {
-            println!("Limit of {amount} reached! Get the app https://samddenty.gumroad.com/l/git-icons for unlimited sync and custom icon picker!");
+            println!("Limit of {amount} reached! Get the app https://samddenty.gumroad.com/l/github-icons for unlimited sync and custom icon picker!");
 
             for task in tasks2.read().iter() {
               task.abort();

@@ -34,7 +34,7 @@ pub mod functions {
 fn establish_connection() -> Result<Pool<ConnectionManager<SqliteConnection>>, Box<dyn Error>> {
   let database_folder = home_dir()
     .unwrap()
-    .join("Library/Application Support/com.samdenty.git-icons");
+    .join("Library/Application Support/com.samdenty.github-icons");
 
   if !database_folder.exists() {
     std::fs::create_dir_all(&database_folder)?;

@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="./logo.png" width="150">
+  <img src="../logo.png" width="150">
 </h1>
 
 ## [Download the app](https://github.com/samdenty/github-icons/releases/latest)

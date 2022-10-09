@@ -28,4 +28,4 @@ cargo run -- sync
 cargo run -- sync --token INSERT_TOKEN
 ```
 
-[![Banner](./banner.gif)](https://samddenty.gumroad.com/l/github-icons)
+[![Banner](./banner.gif)](https://samddenty.gumroad.com/l/git-icons)

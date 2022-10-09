@@ -27,7 +27,8 @@ static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
     r"^liberapay.com/assets/widgets",
     r"^www.herokucdn.com/deploy/button.png",
     r"^vercel.com/button",
-    r"^codesandbox.io/static/img/play-codesandbox.svg",
+    r"^codesandbox.io/static/img",
+    r"^developer.stackblitz.com/img",
     r"^asciinema.org"
   ]
   .to_vec()

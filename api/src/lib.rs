@@ -21,9 +21,10 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
-      let repo_icons = RepoIcons::load(owner, repo)
-        .await
-        .map_err(|error| Error::Json((format!("{}", error).into(), 500)))?;
+      let repo_icons = match RepoIcons::load(owner, repo).await {
+        Ok(repo_icons) => repo_icons,
+        Err(err) => return Response::error(err.to_string(), 500),
+      };
 
       let repo_icon = repo_icons.closest_match();
 
@@ -38,7 +39,11 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         RequestInit::new().with_headers(headers),
       )?;
 
-      let mut response = Fetch::Request(request).send().await?;
+      let mut response = match Fetch::Request(request).send().await {
+        Ok(mut response) => response.cloned()?,
+        Err(err) => return Response::error(err.to_string(), 404),
+      };
+
       response.headers_mut().set(
         "Content-Type",
         match repo_icon.info {
@@ -55,9 +60,10 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
-      let repo_icons = RepoIcons::load(owner, repo)
-        .await
-        .map_err(|error| Error::Json((format!("{}", error).into(), 500)))?;
+      let repo_icons = match RepoIcons::load(owner, repo).await {
+        Ok(repo_icons) => repo_icons,
+        Err(err) => return Response::error(err.to_string(), 404),
+      };
 
       from_json_pretty(&repo_icons)
     })
@@ -65,10 +71,10 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
-      let readme = Readme::load(owner, repo)
-        .await
-        .map_err(|error| Error::Json((format!("{}", error).into(), 500)))?;
-      let images = readme.images().await;
+      let images = match Readme::load(owner, repo).await {
+        Ok(readme) => readme.images().await,
+        Err(err) => return Response::error(err.to_string(), 404),
+      };
 
       from_json_pretty(&images)
     })

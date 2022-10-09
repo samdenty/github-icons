@@ -47,8 +47,8 @@ impl PartialEq for RepoBlob {
 pub enum RepoIconKind {
   IconField(Option<RepoBlob>),
   UserAvatar,
-  ReadmeImage,
   Blob(Option<RepoBlob>),
+  ReadmeImage,
   Site(IconKind),
 }
 

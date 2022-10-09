@@ -69,8 +69,8 @@ impl RepoIcons {
         )
       },
       async {
-        if let Some((is_package_json, blob)) = github_api::get_blob(owner, repo).await? {
-          RepoIcon::load_blob(blob, is_package_json).await.map(Some)
+        if let Some((is_icon_field, blob)) = github_api::get_blob(owner, repo).await? {
+          RepoIcon::load_blob(blob, is_icon_field).await.map(Some)
         } else {
           Ok(None)
         }

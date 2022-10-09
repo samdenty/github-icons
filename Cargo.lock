@@ -1759,7 +1759,7 @@ dependencies = [
 
 [[package]]
 name = "repo_icons"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "async-recursion",
  "byteorder",

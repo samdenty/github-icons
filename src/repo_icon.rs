@@ -45,7 +45,7 @@ impl PartialEq for RepoBlob {
 
 #[derive(Debug, PartialOrd, PartialEq, Ord, Eq)]
 pub enum RepoIconKind {
-  PackageJSONIcon(Option<RepoBlob>),
+  IconField(Option<RepoBlob>),
   UserAvatar,
   ReadmeImage,
   Blob(Option<RepoBlob>),
@@ -55,7 +55,7 @@ pub enum RepoIconKind {
 impl Display for RepoIconKind {
   fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
     match self {
-      RepoIconKind::PackageJSONIcon(_) => write!(f, "package_json_icon"),
+      RepoIconKind::IconField(_) => write!(f, "icon_field"),
       RepoIconKind::ReadmeImage => write!(f, "readme_image"),
       RepoIconKind::UserAvatar => write!(f, "user_avatar"),
       RepoIconKind::Blob(_) => write!(f, "blob"),
@@ -69,7 +69,7 @@ impl FromStr for RepoIconKind {
 
   fn from_str(kind: &str) -> Result<Self, Self::Err> {
     Ok(match kind {
-      "package_json_icon" => RepoIconKind::PackageJSONIcon(None),
+      "icon_field" => RepoIconKind::IconField(None),
       "readme_image" => RepoIconKind::ReadmeImage,
       "user_avatar" => RepoIconKind::UserAvatar,
       "blob" => RepoIconKind::Blob(None),
@@ -100,7 +100,7 @@ impl RepoIcon {
   pub fn blob_set_private(&mut self, is_private: bool) {
     use RepoIconKind::*;
 
-    if let Blob(Some(blob)) | PackageJSONIcon(Some(blob)) = &mut self.kind {
+    if let Blob(Some(blob)) | IconField(Some(blob)) = &mut self.kind {
       if !is_private {
         self.headers.clear();
         self.url = Url::parse(&format!(
@@ -112,7 +112,7 @@ impl RepoIcon {
     }
   }
 
-  pub async fn load_blob(blob: RepoBlob, is_package_json: bool) -> Result<Self, Box<dyn Error>> {
+  pub async fn load_blob(blob: RepoBlob, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
     let url = Url::parse(&format!(
       "https://api.github.com/repos/{}/{}/git/blobs/{}",
       blob.owner, blob.repo, blob.sha
@@ -129,8 +129,8 @@ impl RepoIcon {
     Ok(Self::new_with_headers(
       url,
       headers,
-      if is_package_json {
-        RepoIconKind::PackageJSONIcon(Some(blob))
+      if is_icon_field {
+        RepoIconKind::IconField(Some(blob))
       } else {
         RepoIconKind::Blob(Some(blob))
       },

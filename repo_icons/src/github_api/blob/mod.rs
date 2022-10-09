@@ -7,6 +7,13 @@ use repo_files::{get_repo_files, File, FileType};
 use std::error::Error;
 use std::path::Path;
 
+pub(crate) fn owner_name_lowercase(owner: &str) -> String {
+  let owner = owner.to_lowercase();
+  let owner = owner.rsplit_once('-').unwrap_or((&owner, "")).0;
+  let owner = owner.strip_suffix("js").unwrap_or(owner);
+  owner.to_string()
+}
+
 fn is_valid_blob(file: &File) -> bool {
   matches!(file.r#type, FileType::Blob)
     && (file.path.ends_with(".png")
@@ -17,8 +24,7 @@ fn is_valid_blob(file: &File) -> bool {
 }
 
 fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
-  let owner = owner.to_lowercase();
-  let owner = owner.rsplit_once('-').unwrap_or((&owner, "")).0;
+  let owner = owner_name_lowercase(owner);
   let repo = repo.to_lowercase();
 
   let fullpath = file.path.to_lowercase();
@@ -40,7 +46,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
 
   let fixtures = regex!("(e2e|fixtures|third[-_]party|test(s)?)/");
   if !fixtures.is_match(&fullpath).unwrap() {
-    if filename.contains(owner) {
+    if filename.contains(&owner) {
       matches_icon = true;
       weight += 1;
     }

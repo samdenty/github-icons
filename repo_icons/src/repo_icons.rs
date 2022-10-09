@@ -1,6 +1,8 @@
 use crate::{
   blacklist::{is_badge, is_blacklisted_homepage},
-  get_token, github_api, RepoIcon, RepoIconKind,
+  get_token,
+  github_api::{self, owner_name_lowercase},
+  RepoIcon, RepoIconKind,
 };
 use async_recursion::async_recursion;
 use futures::future::join_all;
@@ -39,7 +41,7 @@ impl RepoIcons {
     let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
 
     // Check if the repo contains the owner's username, and load the user's avatar
-    if repo.to_lowercase().contains(&owner.to_lowercase()) {
+    if repo.to_lowercase().contains(&owner_name_lowercase(owner)) {
       icons.add_icon(user_avatar_url.clone(), IconKind::SiteLogo, None);
     }
 

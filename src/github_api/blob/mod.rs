@@ -62,7 +62,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
     }
 
     if matches_icon {
-      let public = regex!("(public|static|resources|assets|www)/");
+      let public = regex!("(public|static|resources|assets|media|www)/");
       if public.is_match(&fullpath).unwrap() {
         weight += 1;
       }

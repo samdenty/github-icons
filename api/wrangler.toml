@@ -1,6 +1,20 @@
 name = "repo-icons"
-type = "rust"
-account_id = "3abe6f685dab548d1e22cb0f977a9e18"
+type = "javascript"
 workers_dev = true
-route = ""
-zone_id = ""
+compatibility_date = "2022-10-09"
+account_id = "3abe6f685dab548d1e22cb0f977a9e18"
+
+[vars]
+WORKERS_RS_VERSION = "0.0.9"
+
+[build]
+command = "cargo install -q worker-build && worker-build --release" # required
+
+[build.upload]
+dir = "build/worker"
+format = "modules"
+main = "./shim.mjs"
+
+[[build.upload.rules]]
+globs = ["**/*.wasm"]
+type = "CompiledWasm"

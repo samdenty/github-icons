@@ -43,7 +43,7 @@ impl RepoIcons {
       icons.add_icon(user_avatar_url.clone(), IconKind::SiteLogo, None);
     }
 
-    let (prefixed_repo_icons, blob_icon, (readme_image, repo_is_private)) = try_join!(
+    let (prefixed_repo_icons, blob_icon, (entries, readme_image, repo_is_private)) = try_join!(
       // Try and find prefixed repos, and load icons for them on GitHub
       async {
         let repos = github_api::get_user_repos(owner).await?;
@@ -89,25 +89,26 @@ impl RepoIcons {
           }
         }
 
-        let image = readme.images().await.into_iter().find(|image| {
-          if image.in_primary_heading {
-            icons.add_icon_with_headers(
-              image.src.clone(),
-              image.headers.clone(),
-              IconKind::SiteLogo,
-              None,
-            );
-            true
-          } else {
-            false
-          }
-        });
+        let image = readme
+          .images()
+          .await
+          .into_iter()
+          .find(|image| image.in_primary_heading);
 
-        Ok((image, readme.private))
+        if let Some(image) = &image {
+          icons.add_icon_with_headers(
+            image.src.clone(),
+            image.headers.clone(),
+            IconKind::SiteLogo,
+            None,
+          );
+        }
+
+        let entries = icons.entries().await;
+
+        Ok((entries, image, readme.private))
       }
     )?;
-
-    let entries = icons.entries().await;
 
     let mut repo_icons = entries
       .into_iter()
@@ -284,15 +285,11 @@ impl RepoIcons {
       }
     }
 
-    self.largest()
+    self.closest_match()
   }
 
-  pub fn largest(&self) -> &RepoIcon {
+  pub fn closest_match(&self) -> &RepoIcon {
     self.0.first()
-  }
-
-  pub fn smallest(&self) -> &RepoIcon {
-    self.0.last()
   }
 }
 

@@ -1,6 +1,4 @@
 use cached::proc_macro::cached;
-use gh_api::gh_client;
-use reqwest::header::LOCATION;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -62,7 +60,8 @@ async fn get_repo_redirect(owner: String, repo: String) -> Option<(String, Strin
 
   #[cfg(not(target_arch = "wasm32"))]
   let req = {
-    use reqwest::redirect::Policy;
+    use gh_api::gh_client;
+    use reqwest::{header::LOCATION, redirect::Policy};
 
     let client = gh_client(None).redirect(Policy::none()).build().ok()?;
     let res = gh_api_get!(client, "repos/{}/{}", owner, repo)

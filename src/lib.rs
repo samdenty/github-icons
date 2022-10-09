@@ -36,3 +36,4 @@ pub use gh_api::*;
 pub use github_api::readme::*;
 pub use repo_icon::*;
 pub use repo_icons::*;
+pub use site_icons::*;

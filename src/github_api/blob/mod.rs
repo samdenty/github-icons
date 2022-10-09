@@ -28,8 +28,8 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
   let mut matches_icon = false;
 
   if filename.contains(&repo) {
-    weight += 2;
     matches_icon = true;
+    weight += 2;
   }
 
   let exactly_repo_name =
@@ -41,19 +41,19 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
   let fixtures = regex!("(e2e|fixtures|third[-_]party|test(s)?)/");
   if !fixtures.is_match(&fullpath).unwrap() {
     if filename.contains(owner) {
-      weight += 1;
       matches_icon = true;
+      weight += 1;
     }
 
     if filename.contains("favicon") {
-      weight += 2;
       matches_icon = true;
+      weight += 2;
     }
 
     let logo = regex!("logo(?!ut|n|s)");
     if logo.is_match(&fullpath).unwrap() {
-      weight += 1;
       matches_icon = true;
+      weight += 1;
 
       let exactly_logo = regex!("^logo\\.[^.]+$");
       if exactly_logo.is_match(&filename).unwrap() {

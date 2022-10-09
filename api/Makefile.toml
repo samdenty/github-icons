@@ -1,0 +1,7 @@
+[tasks.watch]
+command = "wrangler"
+args = ["preview", "--watch"]
+
+[tasks.publish]
+command = "wrangler"
+args = ["publish"]

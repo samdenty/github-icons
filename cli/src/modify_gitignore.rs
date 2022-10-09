@@ -40,6 +40,7 @@ pub fn modify() -> Result<(), Box<dyn Error + Send + Sync>> {
   }
 
   writeln!(gitignore_file, "Icon?")?;
+  writeln!(gitignore_file, "![iI]con[_a-zA-Z0-9]")?;
 
   Ok(())
 }

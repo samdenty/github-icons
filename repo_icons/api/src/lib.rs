@@ -67,7 +67,13 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      from_json_pretty(&repo_icons)
+      let mut response = from_json_pretty(&repo_icons)?;
+
+      response
+        .headers_mut()
+        .set("Cache-Control", "public, max-age=43200, immutable")?;
+
+      Ok(response)
     })
     .get_async("/:owner/:repo/images", async move |_, ctx| {
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
@@ -78,7 +84,13 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      from_json_pretty(&images)
+      let mut response = from_json_pretty(&images)?;
+
+      response
+        .headers_mut()
+        .set("Cache-Control", "public, max-age=43200, immutable")?;
+
+      Ok(response)
     })
     .run(req, env)
     .await

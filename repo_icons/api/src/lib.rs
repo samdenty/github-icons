@@ -5,7 +5,7 @@ use serde::Serialize;
 use worker::*;
 
 #[event(fetch)]
-pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Response> {
+pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
   set_once();
 
   for (key, token) in req.url()?.query_pairs() {
@@ -14,9 +14,21 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
     }
   }
 
+  let cache = Cache::default();
+
+  let mut url = req.url()?;
+  if !url.path().ends_with("/all") {
+    url.set_query(None);
+  }
+  let url = url.to_string();
+
+  if let Some(res) = cache.get(&url, false).await? {
+    return Ok(res);
+  };
+
   let router = Router::new();
 
-  router
+  let mut res = router
     .get_async("/:owner/:repo", async move |_, ctx| {
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
@@ -39,14 +51,12 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         RequestInit::new().with_headers(headers),
       )?;
 
-      let mut response = match Fetch::Request(request).send().await {
+      let mut res = match Fetch::Request(request).send().await {
         Ok(mut response) => response.cloned()?,
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      let headers = response.headers_mut();
-      headers.set("Cache-Control", "public, max-age=43200")?;
-      headers.set(
+      res.headers_mut().set(
         "Content-Type",
         match repo_icon.info {
           IconInfo::PNG { .. } => "image/png",
@@ -56,7 +66,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         },
       )?;
 
-      Ok(response)
+      Ok(res)
     })
     .get_async("/:owner/:repo/all", async move |_, ctx| {
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
@@ -67,13 +77,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      let mut response = from_json_pretty(&repo_icons)?;
-
-      response
-        .headers_mut()
-        .set("Cache-Control", "public, max-age=43200")?;
-
-      Ok(response)
+      from_json_pretty(&repo_icons)
     })
     .get_async("/:owner/:repo/images", async move |_, ctx| {
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
@@ -84,16 +88,26 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      let mut response = from_json_pretty(&images)?;
-
-      response
-        .headers_mut()
-        .set("Cache-Control", "public, max-age=43200")?;
-
-      Ok(response)
+      from_json_pretty(&images)
     })
-    .run(req, env)
-    .await
+    .run(req.clone()?, env)
+    .await;
+
+  match &mut res {
+    Ok(res) => {
+      let res = res.cloned()?;
+      ctx.wait_until(async move {
+        let _ = cache.put(&url, res).await;
+      });
+    }
+    Err(_) => {
+      ctx.wait_until(async move {
+        let _ = cache.delete(&url, false).await;
+      });
+    }
+  }
+
+  res
 }
 
 fn from_json_pretty<B: Serialize>(value: &B) -> Result<Response> {

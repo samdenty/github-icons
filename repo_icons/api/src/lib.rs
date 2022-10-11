@@ -8,13 +8,13 @@ use worker::*;
 pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Response> {
   set_once();
 
-  let router = Router::new();
-
   for (key, token) in req.url()?.query_pairs() {
     if key == "token" {
       repo_icons::set_token(token)
     }
   }
+
+  let router = Router::new();
 
   router
     .get_async("/:owner/:repo", async move |_, ctx| {
@@ -44,7 +44,9 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      response.headers_mut().set(
+      let headers = response.headers_mut();
+      headers.set("Cache-Control", "public, max-age=43200, immutable")?;
+      headers.set(
         "Content-Type",
         match repo_icon.info {
           IconInfo::PNG { .. } => "image/png",

@@ -45,7 +45,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
       };
 
       let headers = response.headers_mut();
-      headers.set("Cache-Control", "public, max-age=43200, immutable")?;
+      headers.set("Cache-Control", "public, max-age=43200")?;
       headers.set(
         "Content-Type",
         match repo_icon.info {
@@ -71,7 +71,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
 
       response
         .headers_mut()
-        .set("Cache-Control", "public, max-age=43200, immutable")?;
+        .set("Cache-Control", "public, max-age=43200")?;
 
       Ok(response)
     })
@@ -88,7 +88,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
 
       response
         .headers_mut()
-        .set("Cache-Control", "public, max-age=43200, immutable")?;
+        .set("Cache-Control", "public, max-age=43200")?;
 
       Ok(response)
     })

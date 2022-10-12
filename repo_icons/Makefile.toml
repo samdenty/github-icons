@@ -1,4 +1,0 @@
-[tasks.run]
-env = { "RUST_LOG" = "info" }
-command = "cargo"
-args = ["run", "--", "${@}"]

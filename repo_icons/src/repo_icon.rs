@@ -97,7 +97,7 @@ pub struct RepoIcon {
 }
 
 impl RepoIcon {
-  pub fn blob_set_private(&mut self, is_private: bool) {
+  pub fn set_repo_private(&mut self, is_private: bool) {
     use RepoIconKind::*;
 
     if let Blob(Some(blob)) | IconField(Some(blob)) = &mut self.kind {

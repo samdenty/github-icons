@@ -138,7 +138,7 @@ impl RepoIcons {
       .collect::<Vec<_>>();
 
     if let Some(mut blob_icon) = blob_icon {
-      blob_icon.blob_set_private(repo_is_private);
+      blob_icon.set_repo_private(repo_is_private);
       repo_icons.push(blob_icon);
     }
 

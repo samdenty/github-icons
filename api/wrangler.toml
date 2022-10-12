@@ -1,8 +1,9 @@
-name = "repo-icons"
+name = "github-icons"
 type = "javascript"
 workers_dev = true
 compatibility_date = "2022-10-09"
 account_id = "3abe6f685dab548d1e22cb0f977a9e18"
+usage_model = "unbound"
 
 [vars]
 WORKERS_RS_VERSION = "0.0.9"

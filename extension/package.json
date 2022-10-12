@@ -1,0 +1,27 @@
+{
+  "name": "github-icons-extension",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "rm -rf dist; ts-node -T node_modules/.bin/webpack --config webpack.config.ts",
+    "watch": "yarn build --watch --mode development"
+  },
+  "devDependencies": {
+    "@types/node": "^18.8.4",
+    "@types/webpack": "^5.28.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "ts-loader": "^9.4.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "dependencies": {
+    "@types/chrome": "^0.0.197",
+    "@types/react": "^18.0.21",
+    "@types/react-dom": "^18.0.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

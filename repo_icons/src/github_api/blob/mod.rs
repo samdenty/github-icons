@@ -95,6 +95,7 @@ async fn get_package_json_icon(
         let (path, filename) = get_path_and_filename(&file.path);
 
         matches!(file.r#type, FileType::Blob)
+          && path == ""
           && filename == "package.json"
           && files.iter().any(|file| {
             (path == "" || file.path.starts_with(&format!("{}/", path))) && is_valid_blob(file)

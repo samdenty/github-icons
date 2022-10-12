@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "github-icons",
+  "description": "Chrome extension that adds icons to your GitHub repos",
+  "version": "1.0",
+  "options_ui": {
+    "page": "options.html"
+  },
+  "icons": {
+    "256": "logo.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://github.com/*"],
+      "js": ["vendor.js", "content_script.js"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["*://github.com/*"]
+}

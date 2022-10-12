@@ -28,14 +28,14 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
 
   let router = Router::new();
 
-  let mut res = router
+  let mut response = router
     .get_async("/:owner/:repo", async move |_, ctx| {
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
       let repo_icons = match RepoIcons::load(owner, repo).await {
         Ok(repo_icons) => repo_icons,
-        Err(err) => return Response::error(err.to_string(), 500),
+        Err(err) => return Response::error(err.to_string(), 404),
       };
 
       let repo_icon = repo_icons.closest_match();
@@ -56,7 +56,9 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      res.headers_mut().set(
+      let headers = res.headers_mut();
+      headers.set("Cache-Control", "public, max-age=259200")?;
+      headers.set(
         "Content-Type",
         match repo_icon.info {
           IconInfo::PNG { .. } => "image/png",
@@ -77,7 +79,13 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      from_json_pretty(&repo_icons)
+      let mut response = from_json_pretty(&repo_icons)?;
+
+      response
+        .headers_mut()
+        .set("Cache-Control", "public, max-age=259200")?;
+
+      Ok(response)
     })
     .get_async("/:owner/:repo/images", async move |_, ctx| {
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
@@ -88,26 +96,29 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      from_json_pretty(&images)
+      let mut response = from_json_pretty(&images)?;
+
+      response
+        .headers_mut()
+        .set("Cache-Control", "public, max-age=259200")?;
+
+      Ok(response)
     })
     .run(req.clone()?, env)
-    .await;
+    .await?;
 
-  match &mut res {
-    Ok(res) => {
-      let res = res.cloned()?;
-      ctx.wait_until(async move {
-        let _ = cache.put(&url, res).await;
-      });
-    }
-    Err(_) => {
-      ctx.wait_until(async move {
+  {
+    let response = response.cloned()?;
+    ctx.wait_until(async move {
+      if response.status_code() == 404 {
         let _ = cache.delete(&url, false).await;
-      });
-    }
+      } else {
+        let _ = cache.put(&url, response).await;
+      }
+    });
   }
 
-  res
+  Ok(response)
 }
 
 fn from_json_pretty<B: Serialize>(value: &B) -> Result<Response> {
@@ -117,6 +128,6 @@ fn from_json_pretty<B: Serialize>(value: &B) -> Result<Response> {
 
     Response::from_body(ResponseBody::Body(data.into_bytes())).map(|res| res.with_headers(headers))
   } else {
-    Err(Error::Json(("Failed to encode data to json".into(), 500)))
+    Err(Error::Json(("Failed to encode data to json".into(), 404)))
   }
 }

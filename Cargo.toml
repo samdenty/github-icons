@@ -1,0 +1,2 @@
+[workspace]
+members = ["repo_icons", "api"]

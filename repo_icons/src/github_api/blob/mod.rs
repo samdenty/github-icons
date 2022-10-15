@@ -22,11 +22,7 @@ pub(crate) fn owner_name_lowercase(owner: &str) -> String {
 
 fn is_valid_blob(file: &File) -> bool {
   matches!(file.r#type, FileType::Blob)
-    && (file.path.ends_with(".png")
-      || file.path.ends_with(".jpg")
-      || file.path.ends_with(".jpeg")
-      || file.path.ends_with(".ico")
-      || file.path.ends_with(".svg"))
+    && (file.path.ends_with(".png") || file.path.ends_with(".ico") || file.path.ends_with(".svg"))
 }
 
 fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {

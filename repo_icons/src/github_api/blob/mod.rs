@@ -44,7 +44,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
     weight += 1;
   }
 
-  let fixtures = regex!("(e2e|fixtures|third[-_]party|test(s)?)/");
+  let fixtures = regex!("(e2e|fixtures|third[-_]party|extensions|themes|test(s)?)/");
   if !fixtures.is_match(&fullpath).unwrap() {
     if filename.contains(&owner) {
       matches_icon = true;
@@ -171,6 +171,8 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)
       .collect::<Vec<_>>();
 
     results.sort_by(|(_, a_weight), (_, b_weight)| b_weight.cmp(&a_weight));
+
+    println!("{:#?}", results);
 
     results.get(0).cloned().map(|(file, weight)| {
       let final_results = results

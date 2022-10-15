@@ -1,1 +1,3 @@
-import './recent_repositories';
+import './homepage';
+import './search';
+import './notifications';

@@ -59,7 +59,10 @@ impl RepoIcons {
     let mut futures: Vec<Pin<Box<dyn Future<Output = Result<LoadedKind, Box<dyn Error>>>>>> = vec![
       async {
         // Check if the repo contains the owner's username, and load the user's avatar
-        let icon = if repo.to_lowercase().contains(&owner_name_lowercase(owner)) {
+        let docs = regex!("^(docs|documentation)$");
+        let icon = if repo.to_lowercase().contains(&owner_name_lowercase(owner))
+          || docs.is_match(&repo.to_lowercase()).unwrap()
+        {
           RepoIcon::load_avatar(owner).await
         } else {
           None

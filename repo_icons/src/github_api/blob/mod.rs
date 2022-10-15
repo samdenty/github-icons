@@ -61,7 +61,8 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
       weight += 1;
     }
 
-    if filename.contains("favicon") {
+    let is_favicon = filename.contains("favicon");
+    if is_favicon {
       matches_icon = true;
       weight += 2;
     }
@@ -81,6 +82,14 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
       let public = regex!("(public|static|resources|assets|media|www)/");
       if public.is_match(&fullpath).unwrap() {
         weight += 1;
+      }
+
+      let directly_in_images = regex!("(images|img|public|static|resources|assets|media|www)$");
+      if directly_in_images.is_match(&path).unwrap() {
+        weight += 2;
+        if is_favicon {
+          weight += 1;
+        }
       }
 
       if path.contains("server") || fullpath.contains("website") {

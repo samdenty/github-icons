@@ -203,7 +203,9 @@ impl RepoIcons {
           repo_icons.extend(icons.clone());
         }
 
-        LoadedKind::Homepage(_site_icons) => {}
+        LoadedKind::Homepage(site_icons) => {
+          repo_icons.extend(site_icons.clone());
+        }
       }
 
       previous_loads.push(loaded);

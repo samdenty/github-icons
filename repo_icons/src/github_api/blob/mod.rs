@@ -7,11 +7,16 @@ use repo_files::{get_repo_files, File, FileType};
 use std::error::Error;
 use std::path::Path;
 
+const OWNER_SUFFIXES: [&str; 3] = ["js", "io", "land"];
+
 pub(crate) fn owner_name_lowercase(owner: &str) -> String {
   let owner = owner.to_lowercase();
-  let owner = owner.rsplit_once('-').unwrap_or((&owner, "")).0;
-  let owner = owner.strip_suffix("js").unwrap_or(owner);
-  let owner = owner.strip_suffix("io").unwrap_or(owner);
+  let mut owner = owner.rsplit_once('-').unwrap_or((&owner, "")).0;
+
+  for suffix in OWNER_SUFFIXES {
+    owner = owner.strip_suffix(suffix).unwrap_or(owner);
+  }
+
   owner.to_string()
 }
 

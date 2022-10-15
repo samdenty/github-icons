@@ -34,9 +34,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     builder.init();
   }
 
-  if let Some(token) = opts.token {
-    set_token(token);
-  }
+  set_token(opts.token);
 
   let slug = regex!("([^/]+)/(.+)")
     .captures(&opts.slug)
@@ -45,7 +43,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
   let user = &slug[1];
   let repo = &slug[2];
 
-  let icons = RepoIcons::load(user, repo).await?;
+  let icons = RepoIcons::load(user, repo, false).await?;
 
   if opts.json {
     println!("{}", serde_json::to_string_pretty(&icons)?)

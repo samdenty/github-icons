@@ -779,9 +779,9 @@ dependencies = [
 
 [[package]]
 name = "gh_api"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f84a77444e0b65aa5cc4e9fa2be1c14f3d3458c40e05e4bd139ccdc07bf678d4"
+checksum = "5bd251bea7484f161fb4d25e94582469eae86b868b6eca75f9b5b049b2f9d4c5"
 dependencies = [
  "reqwest",
 ]
@@ -1797,7 +1797,7 @@ dependencies = [
 
 [[package]]
 name = "repo_icons"
-version = "0.2.6"
+version = "0.3.0"
 dependencies = [
  "async-recursion",
  "bytes 1.2.1",

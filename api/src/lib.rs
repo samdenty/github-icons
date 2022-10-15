@@ -8,15 +8,15 @@ use worker::*;
 pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
   set_once();
 
-  for (key, token) in req.url()?.query_pairs() {
-    if key == "token" {
-      repo_icons::set_token(token)
-    }
-  }
+  let mut url = req.url()?;
+
+  let token = url
+    .query_pairs()
+    .find_map(|(key, token)| if key == "token" { Some(token) } else { None });
+  repo_icons::set_token(token);
 
   let cache = Cache::default();
 
-  let mut url = req.url()?;
   if !url.path().ends_with("/all") {
     url.set_query(None);
   }
@@ -33,7 +33,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
-      let repo_icons = match RepoIcons::load(owner, repo).await {
+      let repo_icons = match RepoIcons::load(owner, repo, true).await {
         Ok(repo_icons) => repo_icons,
         Err(err) => return Response::error(err.to_string(), 404),
       };
@@ -74,7 +74,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
-      let repo_icons = match RepoIcons::load(owner, repo).await {
+      let repo_icons = match RepoIcons::load(owner, repo, false).await {
         Ok(repo_icons) => repo_icons,
         Err(err) => return Response::error(err.to_string(), 404),
       };
@@ -92,7 +92,10 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
       let images = match Readme::load(owner, repo).await {
-        Ok(readme) => readme.load_images().await,
+        Ok(readme) => match readme.load_body().await {
+          Ok(images) => images,
+          Err(err) => return Response::error(err.to_string(), 404),
+        },
         Err(err) => return Response::error(err.to_string(), 404),
       };
 

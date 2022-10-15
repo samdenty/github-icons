@@ -11,6 +11,7 @@ pub(crate) fn owner_name_lowercase(owner: &str) -> String {
   let owner = owner.to_lowercase();
   let owner = owner.rsplit_once('-').unwrap_or((&owner, "")).0;
   let owner = owner.strip_suffix("js").unwrap_or(owner);
+  let owner = owner.strip_suffix("io").unwrap_or(owner);
   owner.to_string()
 }
 
@@ -171,8 +172,6 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)
       .collect::<Vec<_>>();
 
     results.sort_by(|(_, a_weight), (_, b_weight)| b_weight.cmp(&a_weight));
-
-    println!("{:#?}", results);
 
     results.get(0).cloned().map(|(file, weight)| {
       let final_results = results

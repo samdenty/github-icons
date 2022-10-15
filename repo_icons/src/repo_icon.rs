@@ -4,7 +4,7 @@ use gh_api::get_token;
 #[cfg(feature = "image")]
 use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
 use maplit::hashmap;
-use site_icons::{IconInfo, IconKind, Icons};
+use site_icons::{IconInfo, IconKind};
 use std::{
   cmp::Ordering,
   collections::HashMap,
@@ -15,9 +15,7 @@ use std::{
 };
 use url::Url;
 
-use crate::github_api::owner_name_lowercase;
-
-#[derive(Debug, Eq)]
+#[derive(Debug, Clone, Eq)]
 pub struct RepoBlob {
   pub owner: String,
   pub repo: String,
@@ -45,7 +43,7 @@ impl PartialEq for RepoBlob {
   }
 }
 
-#[derive(Debug, PartialOrd, PartialEq, Ord, Eq)]
+#[derive(Debug, Clone, PartialOrd, PartialEq, Ord, Eq)]
 pub enum RepoIconKind {
   IconField(Option<RepoBlob>),
   UserAvatar,
@@ -80,7 +78,7 @@ impl FromStr for RepoIconKind {
   }
 }
 
-#[derive(Derivative, Serialize, Deserialize)]
+#[derive(Derivative, Clone, Serialize, Deserialize)]
 #[derivative(Debug, PartialEq, Eq)]
 pub struct RepoIcon {
   pub url: Url,
@@ -99,68 +97,6 @@ pub struct RepoIcon {
 }
 
 impl RepoIcon {
-  pub async fn load(owner: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
-    let mut icons = Icons::new();
-
-    let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
-
-    // Check if the repo contains the owner's username, and load the user's avatar
-    if repo.to_lowercase().contains(&owner_name_lowercase(owner)) {
-      icons.add_icon(user_avatar_url.clone(), IconKind::SiteLogo, None);
-      let entry = icons.entries().await.into_iter().next().unwrap();
-
-      return Ok(RepoIcon::new_with_headers(
-        entry.url,
-        entry.headers,
-        RepoIconKind::UserAvatar,
-        entry.info,
-      ));
-    }
-
-    unimplemented!();
-  }
-
-  pub async fn load_blob(blob: RepoBlob, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
-    let url = Url::parse(&format!(
-      "https://api.github.com/repos/{}/{}/git/blobs/{}",
-      blob.owner, blob.repo, blob.sha
-    ))
-    .unwrap();
-
-    let headers = hashmap! {
-      "Authorization".to_string() => format!("Bearer {}", get_token().unwrap()),
-      "Accept".to_string() => "application/vnd.github.raw".to_string(),
-    };
-
-    let info = IconInfo::load(url.clone(), (&headers).try_into()?, None).await?;
-
-    Ok(Self::new_with_headers(
-      url,
-      headers,
-      if is_icon_field {
-        RepoIconKind::IconField(Some(blob))
-      } else {
-        RepoIconKind::Blob(Some(blob))
-      },
-      info,
-    ))
-  }
-
-  pub fn set_repo_private(&mut self, is_private: bool) {
-    use RepoIconKind::*;
-
-    if let Blob(Some(blob)) | IconField(Some(blob)) = &mut self.kind {
-      if !is_private {
-        self.headers.clear();
-        self.url = Url::parse(&format!(
-          "https://raw.githubusercontent.com/{}/{}/{}/{}",
-          blob.owner, blob.repo, blob.commit_sha, blob.path
-        ))
-        .unwrap();
-      }
-    }
-  }
-
   pub fn new(url: Url, kind: RepoIconKind, info: IconInfo) -> Self {
     Self::new_with_headers(url, HashMap::new(), kind, info)
   }
@@ -178,6 +114,58 @@ impl RepoIcon {
       info,
       #[cfg(feature = "image")]
       image: RefCell::new(None),
+    }
+  }
+
+  pub async fn load(url: Url, kind: RepoIconKind) -> Result<Self, Box<dyn Error>> {
+    Self::load_with_headers(url, HashMap::new(), kind).await
+  }
+
+  pub async fn load_with_headers(
+    url: Url,
+    headers: HashMap<String, String>,
+    kind: RepoIconKind,
+  ) -> Result<Self, Box<dyn Error>> {
+    let info = IconInfo::load(url.clone(), (&headers).try_into()?, None).await?;
+    Ok(Self::new_with_headers(url, headers, kind, info))
+  }
+
+  pub async fn load_blob(blob: RepoBlob, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
+    let url = Url::parse(&format!(
+      "https://api.github.com/repos/{}/{}/git/blobs/{}",
+      blob.owner, blob.repo, blob.sha
+    ))
+    .unwrap();
+
+    let headers = hashmap! {
+      "Authorization".to_string() => format!("Bearer {}", get_token().unwrap()),
+      "Accept".to_string() => "application/vnd.github.raw".to_string(),
+    };
+
+    RepoIcon::load_with_headers(
+      url,
+      headers,
+      if is_icon_field {
+        RepoIconKind::IconField(Some(blob))
+      } else {
+        RepoIconKind::Blob(Some(blob))
+      },
+    )
+    .await
+  }
+
+  pub fn set_repo_private(&mut self, is_private: bool) {
+    use RepoIconKind::*;
+
+    if let Blob(Some(blob)) | IconField(Some(blob)) = &mut self.kind {
+      if !is_private {
+        self.headers.clear();
+        self.url = Url::parse(&format!(
+          "https://raw.githubusercontent.com/{}/{}/{}/{}",
+          blob.owner, blob.repo, blob.commit_sha, blob.path
+        ))
+        .unwrap();
+      }
     }
   }
 

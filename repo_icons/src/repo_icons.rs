@@ -1,27 +1,39 @@
 use crate::{
-  blacklist::{is_badge, is_blacklisted_homepage},
   get_token,
   github_api::{self, owner_name_lowercase},
   RepoIcon, RepoIconKind,
 };
 use async_recursion::async_recursion;
-use futures::future::join_all;
+use futures::{
+  future::{join_all, select_all},
+  Future, FutureExt,
+};
 use itertools::Itertools;
 use reqwest::{
   header::{HeaderMap, HeaderValue, AUTHORIZATION},
   Client, IntoUrl, Url,
 };
-use site_icons::{IconKind, Icons};
+use site_icons::Icons;
 use std::{
   cmp::{max, min},
   collections::HashMap,
   convert::TryInto,
   error::Error,
+  pin::Pin,
 };
 use vec1::Vec1;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RepoIcons(Vec1<RepoIcon>);
+
+#[derive(Clone)]
+enum LoadedKind {
+  UserAvatar(Option<RepoIcon>),
+  Blob(Option<RepoIcon>),
+  ReadmeImage(Option<RepoIcon>),
+  Homepage(Vec<RepoIcon>),
+  PrefixedRepo(Vec<RepoIcon>),
+}
 
 impl RepoIcons {
   /// Fetch all the icons. Ordered from highest to lowest resolution
@@ -35,22 +47,34 @@ impl RepoIcons {
   /// }
   /// ```
   #[async_recursion(?Send)]
-  pub async fn load(owner: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
-    let mut icons = Icons::new();
+  pub async fn load(
+    owner: &str,
+    repo: &str,
+    best_matches_only: bool,
+  ) -> Result<Self, Box<dyn Error>> {
+    let mut repo_icons = Vec::new();
 
-    let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
+    let readme = github_api::Readme::load(owner, repo).shared();
 
-    // Check if the repo contains the owner's username, and load the user's avatar
-    if repo.to_lowercase().contains(&owner_name_lowercase(owner)) {
-      icons.add_icon(user_avatar_url.clone(), IconKind::SiteLogo, None);
-    }
+    let mut futures: Vec<Pin<Box<dyn Future<Output = Result<LoadedKind, Box<dyn Error>>>>>> = vec![
+      async {
+        let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
 
-    let (prefixed_repo_icons, blob_icon, (entries, readme_image, repo_is_private)) = try_join!(
+        // Check if the repo contains the owner's username, and load the user's avatar
+        let icon = if repo.to_lowercase().contains(&owner_name_lowercase(owner)) {
+          Some(RepoIcon::load(user_avatar_url.clone(), RepoIconKind::UserAvatar).await?)
+        } else {
+          None
+        };
+
+        Ok(LoadedKind::UserAvatar(icon))
+      }
+      .boxed_local(),
       // Try and find prefixed repos, and load icons for them on GitHub
       async {
         let repos = github_api::get_user_repos(owner).await?;
 
-        Ok(
+        Ok(LoadedKind::PrefixedRepo(
           join_all(
             repos
               .into_iter()
@@ -59,7 +83,7 @@ impl RepoIcons {
                   && repo.to_lowercase().contains(possibly_prefixed_repo)
               })
               .map(async move |repo| {
-                RepoIcons::load(owner, &repo)
+                RepoIcons::load(owner, &repo, best_matches_only)
                   .await
                   .map(|icons| icons.0.into_vec())
                   .unwrap_or(Vec::new())
@@ -67,90 +91,132 @@ impl RepoIcons {
           )
           .await
           .into_iter()
-          .flatten(),
-        )
-      },
+          .flatten()
+          .collect(),
+        ))
+      }
+      .boxed_local(),
       async {
-        if let Some((is_icon_field, blob)) = github_api::get_blob(owner, repo).await? {
-          RepoIcon::load_blob(blob, is_icon_field).await.map(Some)
-        } else {
-          Ok(None)
-        }
-      },
-      // Try and extract images from the readme website, or directly in it
+        let blob_icon = match github_api::get_blob(owner, repo).await? {
+          Some((is_icon_field, blob)) => Some(RepoIcon::load_blob(blob, is_icon_field).await?),
+          None => None,
+        };
+
+        Ok(LoadedKind::Blob(blob_icon))
+      }
+      .boxed_local(),
       async {
-        let readme = github_api::Readme::load(owner, repo).await?;
+        let mut icons = Icons::new();
 
-        let (image, _) = try_join!(
-          async {
-            readme
-              .load_images()
-              .await
-              .map(|images| images.into_iter().find(|image| image.in_primary_heading))
-          },
-          async {
-            if let Some(homepage) = &readme.homepage {
-              if !is_blacklisted_homepage(homepage) {
-                warn_err!(
-                  icons.load_website(homepage.clone()).await,
-                  "failed to load website {}",
-                  homepage
-                );
-              }
-            }
-            Ok(())
-          }
-        )?;
-
-        if let Some(image) = &image {
-          icons.add_icon_with_headers(
-            image.src.clone(),
-            image.headers.clone(),
-            IconKind::SiteLogo,
-            None,
+        if let Some(homepage) = readme.clone().await?.homepage {
+          warn_err!(
+            icons.load_website(homepage.clone()).await,
+            "failed to load website {}",
+            homepage
           );
         }
 
-        let entries = icons.entries().await;
-
-        Ok((entries, image, readme.private))
+        Ok(LoadedKind::Homepage(
+          icons
+            .entries()
+            .await
+            .into_iter()
+            .map(|icon| RepoIcon::new(icon.url, RepoIconKind::Site(icon.kind), icon.info))
+            .collect(),
+        ))
       }
-    )?;
+      .boxed_local(),
+      // Try and extract images from the readme website, or directly in it
+      async {
+        let image = readme
+          .clone()
+          .await?
+          .load_body()
+          .await?
+          .into_iter()
+          .find(|image| image.in_primary_heading);
 
-    let mut repo_icons = entries
-      .into_iter()
-      .filter(|icon| !is_badge(&icon.url))
-      .map(|entry| {
-        let is_user_avatar = entry.url == user_avatar_url;
-        let is_readme = readme_image
-          .as_ref()
-          .map(|image| image.src == entry.url)
-          .unwrap_or(false);
+        let icon = match image {
+          Some(image) => Some(
+            RepoIcon::load_with_headers(image.src, image.headers, RepoIconKind::ReadmeImage)
+              .await?,
+          ),
+          None => None,
+        };
 
-        RepoIcon::new_with_headers(
-          entry.url,
-          entry.headers,
-          if is_user_avatar {
-            RepoIconKind::UserAvatar
-          } else if is_readme {
-            RepoIconKind::ReadmeImage
-          } else {
-            RepoIconKind::Site(entry.kind)
-          },
-          entry.info,
-        )
-      })
-      .collect::<Vec<_>>();
+        Ok(LoadedKind::ReadmeImage(icon))
+      }
+      .boxed_local(),
+    ];
 
-    if let Some(mut blob_icon) = blob_icon {
-      blob_icon.set_repo_private(repo_is_private);
-      repo_icons.push(blob_icon);
+    let mut previous_loads = Vec::new();
+    let mut found_best_match = false;
+
+    while !futures.is_empty() {
+      let (loaded, index, _) = select_all(&mut futures).await;
+      futures.remove(index);
+      let loaded = loaded?;
+
+      match &loaded {
+        LoadedKind::Blob(blob_icon) => {
+          if let Some(mut blob_icon) = blob_icon.clone() {
+            blob_icon.set_repo_private(readme.clone().await?.private);
+
+            if matches!(blob_icon.kind, RepoIconKind::IconField(_)) {
+              found_best_match = true;
+            }
+
+            repo_icons.push(blob_icon);
+          }
+        }
+
+        LoadedKind::UserAvatar(user_avatar) => {
+          if previous_loads
+            .iter()
+            .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))
+          {
+            found_best_match = true;
+          }
+
+          if let Some(user_avatar) = user_avatar {
+            found_best_match = true;
+
+            repo_icons.push(user_avatar.clone());
+          }
+        }
+
+        LoadedKind::ReadmeImage(readme_image) => {
+          if let Some(readme_image) = readme_image {
+            if previous_loads
+              .iter()
+              .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+              && previous_loads
+                .iter()
+                .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))
+            {
+              found_best_match = true;
+            }
+
+            repo_icons.push(readme_image.clone());
+          }
+        }
+
+        LoadedKind::PrefixedRepo(icons) => {
+          repo_icons.extend(icons.clone());
+        }
+
+        LoadedKind::Homepage(_site_icons) => {}
+      }
+
+      previous_loads.push(loaded);
+
+      repo_icons.sort_by(|a, b| a.info.cmp(&b.info));
+      repo_icons.sort_by(|a, b| a.kind.cmp(&b.kind));
+
+      if best_matches_only && found_best_match {
+        break;
+      }
     }
-
-    repo_icons.extend(prefixed_repo_icons);
-
-    repo_icons.sort_by(|a, b| a.info.cmp(&b.info));
-    repo_icons.sort_by(|a, b| a.kind.cmp(&b.kind));
 
     let repo_icons = repo_icons
       .into_iter()

@@ -22,8 +22,6 @@ extern crate gh_api;
 extern crate derivative;
 #[macro_use]
 extern crate serde_with;
-#[macro_use]
-extern crate futures;
 
 #[macro_use]
 mod macros;

@@ -5,11 +5,13 @@ mod repo_redirect;
 pub use readme_image::*;
 
 use self::{primary_heading::PrimaryHeading, repo_redirect::is_same_repo};
+use crate::blacklist::is_blacklisted_homepage;
 use scraper::Html;
 use serde::{de, Deserialize};
 use std::error::Error;
 use url::Url;
 
+#[derive(Clone)]
 pub struct Readme {
   pub owner: String,
   pub repo: String,
@@ -19,49 +21,51 @@ pub struct Readme {
 }
 
 impl Readme {
-  pub async fn load(owner: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
+  pub async fn load(owner: &str, repo: &str) -> Result<Self, String> {
     #[derive(Deserialize)]
     struct RepoOwner {
       login: String,
     }
 
     #[derive(Deserialize)]
-    struct Repo {
-      owner: RepoOwner,
-      name: String,
-      default_branch: String,
-      private: bool,
-      #[serde(deserialize_with = "deserialize_url")]
-      homepage: Option<Url>,
-    }
-
-    #[derive(Deserialize)]
-    struct Message {
-      message: String,
-    }
-
-    #[derive(Deserialize)]
     #[serde(untagged)]
     enum Response {
-      Repo(Repo),
-      Message(Message),
+      Repo {
+        owner: RepoOwner,
+        name: String,
+        default_branch: String,
+        private: bool,
+        #[serde(deserialize_with = "deserialize_url")]
+        homepage: Option<Url>,
+      },
+      Message {
+        message: String,
+      },
     }
 
     let response = gh_api_get!("repos/{}/{}", owner, repo)
       .send()
-      .await?
+      .await
+      .map_err(|e| e.to_string())?
       .json::<Response>()
-      .await?;
+      .await
+      .map_err(|e| e.to_string())?;
 
     match response {
-      Response::Repo(repo) => Ok(Readme::new(
-        &repo.owner.login,
-        &repo.name,
-        repo.private,
-        &repo.default_branch,
-        repo.homepage,
+      Response::Repo {
+        owner,
+        name,
+        private,
+        default_branch,
+        homepage,
+      } => Ok(Readme::new(
+        &owner.login,
+        &name,
+        private,
+        &default_branch,
+        homepage,
       )),
-      Response::Message(message) => Err(message.message.into()),
+      Response::Message { message } => Err(message),
     }
   }
 
@@ -82,12 +86,18 @@ impl Readme {
       owner: owner.to_lowercase(),
       repo: repo.to_lowercase(),
       private,
-      homepage,
+      homepage: homepage.and_then(|homepage| {
+        if is_blacklisted_homepage(&homepage) {
+          None
+        } else {
+          Some(homepage)
+        }
+      }),
       link_base,
     }
   }
 
-  pub async fn load_images(&self) -> Result<Vec<ReadmeImage>, Box<dyn Error>> {
+  pub async fn load_body(&self) -> Result<Vec<ReadmeImage>, Box<dyn Error>> {
     let body = gh_api_get!("repos/{}/{}/readme", self.owner, self.repo)
       .header("Accept", "application/vnd.github.html")
       .send()

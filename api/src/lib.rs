@@ -1,6 +1,7 @@
-#![feature(async_closure)]
+#![feature(async_closure, let_chains)]
 use console_error_panic_hook::set_once;
-use repo_icons::{IconInfo, Readme, RepoIcons};
+use futures::{future::select_all, FutureExt};
+use repo_icons::{IconInfo, Readme, RepoIcon, RepoIconKind, RepoIcons};
 use serde::Serialize;
 use worker::*;
 
@@ -33,15 +34,42 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
-      let repo_icons = match RepoIcons::load(owner, repo, true).await {
-        Ok(repo_icons) => repo_icons,
-        Err(err) => return Response::error(err.to_string(), 404),
-      };
+      let user_avatar = RepoIcon::load_avatar(owner).shared();
 
-      let repo_icon = repo_icons.closest_match();
+      let mut futures = vec![
+        async {
+          RepoIcons::load(owner, repo, true)
+            .await
+            .map(|icons| icons.into_best_match())
+            .ok()
+        }
+        .boxed_local(),
+        user_avatar.clone().boxed_local(),
+      ];
+
+      let mut repo_icon = None;
+
+      while !futures.is_empty() {
+        let (icon, index, _) = select_all(&mut futures).await;
+        futures.remove(index);
+
+        if let Some(icon) = icon && !matches!(icon.kind, RepoIconKind::UserAvatar) {
+          repo_icon = Some(icon);
+        }
+      }
+
+      if repo_icon.is_none() {
+        repo_icon = user_avatar.await;
+      }
+
+      if repo_icon.is_none() {
+        return Response::error("repo not found", 404);
+      }
+
+      let repo_icon = repo_icon.unwrap();
 
       let mut headers = Headers::new();
-      headers.set("User-Agent", "repo-icons-worker")?;
+      headers.set("User-Agent", "github-icons-worker")?;
       for (header_name, header_value) in &repo_icon.headers {
         headers.set(header_name, header_value)?;
       }

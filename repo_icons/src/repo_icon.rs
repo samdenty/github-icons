@@ -130,6 +130,14 @@ impl RepoIcon {
     Ok(Self::new_with_headers(url, headers, kind, info))
   }
 
+  pub async fn load_avatar(owner: &str) -> Option<Self> {
+    let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
+
+    RepoIcon::load(user_avatar_url.clone(), RepoIconKind::UserAvatar)
+      .await
+      .ok()
+  }
+
   pub async fn load_blob(blob: RepoBlob, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
     let url = Url::parse(&format!(
       "https://api.github.com/repos/{}/{}/git/blobs/{}",

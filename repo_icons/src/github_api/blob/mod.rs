@@ -7,7 +7,7 @@ use repo_files::{get_repo_files, File, FileType};
 use std::error::Error;
 use std::path::Path;
 
-const OWNER_SUFFIXES: [&str; 3] = ["js", "io", "land"];
+const OWNER_SUFFIXES: [&str; 4] = ["js", "rs", "io", "land"];
 
 pub(crate) fn owner_name_lowercase(owner: &str) -> String {
   let owner = owner.to_lowercase();
@@ -38,6 +38,10 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
 
   let mut weight = 0;
   let mut matches_icon = false;
+
+  if filename.contains("issue") {
+    return 0;
+  }
 
   if filename.contains(&repo) {
     matches_icon = true;

@@ -11,7 +11,7 @@ use futures::{
 use itertools::Itertools;
 use reqwest::{
   header::{HeaderMap, HeaderValue, AUTHORIZATION},
-  Client, IntoUrl, Url,
+  Client, IntoUrl,
 };
 use site_icons::Icons;
 use std::{
@@ -58,11 +58,9 @@ impl RepoIcons {
 
     let mut futures: Vec<Pin<Box<dyn Future<Output = Result<LoadedKind, Box<dyn Error>>>>>> = vec![
       async {
-        let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
-
         // Check if the repo contains the owner's username, and load the user's avatar
         let icon = if repo.to_lowercase().contains(&owner_name_lowercase(owner)) {
-          Some(RepoIcon::load(user_avatar_url.clone(), RepoIconKind::UserAvatar).await?)
+          RepoIcon::load_avatar(owner).await
         } else {
           None
         };
@@ -358,11 +356,15 @@ impl RepoIcons {
       }
     }
 
-    self.closest_match()
+    self.best_match()
   }
 
-  pub fn closest_match(&self) -> &RepoIcon {
+  pub fn best_match(&self) -> &RepoIcon {
     self.0.first()
+  }
+
+  pub fn into_best_match(self) -> RepoIcon {
+    self.0.into_iter().next().unwrap()
   }
 }
 

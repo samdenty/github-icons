@@ -92,7 +92,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
       let images = match Readme::load(owner, repo).await {
-        Ok(readme) => readme.images().await,
+        Ok(readme) => readme.load_images().await,
         Err(err) => return Response::error(err.to_string(), 404),
       };
 

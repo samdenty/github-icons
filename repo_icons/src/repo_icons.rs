@@ -81,21 +81,26 @@ impl RepoIcons {
       async {
         let readme = github_api::Readme::load(owner, repo).await?;
 
-        if let Some(homepage) = &readme.homepage {
-          if !is_blacklisted_homepage(homepage) {
-            warn_err!(
-              icons.load_website(homepage.clone()).await,
-              "failed to load website {}",
-              homepage
-            );
+        let (image, _) = try_join!(
+          async {
+            readme
+              .load_images()
+              .await
+              .map(|images| images.into_iter().find(|image| image.in_primary_heading))
+          },
+          async {
+            if let Some(homepage) = &readme.homepage {
+              if !is_blacklisted_homepage(homepage) {
+                warn_err!(
+                  icons.load_website(homepage.clone()).await,
+                  "failed to load website {}",
+                  homepage
+                );
+              }
+            }
+            Ok(())
           }
-        }
-
-        let image = readme
-          .images()
-          .await
-          .into_iter()
-          .find(|image| image.in_primary_heading);
+        )?;
 
         if let Some(image) = &image {
           icons.add_icon_with_headers(

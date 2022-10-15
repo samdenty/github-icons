@@ -4,7 +4,7 @@ use gh_api::get_token;
 #[cfg(feature = "image")]
 use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
 use maplit::hashmap;
-use site_icons::{IconInfo, IconKind};
+use site_icons::{IconInfo, IconKind, Icons};
 use std::{
   cmp::Ordering,
   collections::HashMap,
@@ -14,6 +14,8 @@ use std::{
   str::FromStr,
 };
 use url::Url;
+
+use crate::github_api::owner_name_lowercase;
 
 #[derive(Debug, Eq)]
 pub struct RepoBlob {
@@ -97,19 +99,25 @@ pub struct RepoIcon {
 }
 
 impl RepoIcon {
-  pub fn set_repo_private(&mut self, is_private: bool) {
-    use RepoIconKind::*;
+  pub async fn load(owner: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
+    let mut icons = Icons::new();
 
-    if let Blob(Some(blob)) | IconField(Some(blob)) = &mut self.kind {
-      if !is_private {
-        self.headers.clear();
-        self.url = Url::parse(&format!(
-          "https://raw.githubusercontent.com/{}/{}/{}/{}",
-          blob.owner, blob.repo, blob.commit_sha, blob.path
-        ))
-        .unwrap();
-      }
+    let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
+
+    // Check if the repo contains the owner's username, and load the user's avatar
+    if repo.to_lowercase().contains(&owner_name_lowercase(owner)) {
+      icons.add_icon(user_avatar_url.clone(), IconKind::SiteLogo, None);
+      let entry = icons.entries().await.into_iter().next().unwrap();
+
+      return Ok(RepoIcon::new_with_headers(
+        entry.url,
+        entry.headers,
+        RepoIconKind::UserAvatar,
+        entry.info,
+      ));
     }
+
+    unimplemented!();
   }
 
   pub async fn load_blob(blob: RepoBlob, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
@@ -136,6 +144,21 @@ impl RepoIcon {
       },
       info,
     ))
+  }
+
+  pub fn set_repo_private(&mut self, is_private: bool) {
+    use RepoIconKind::*;
+
+    if let Blob(Some(blob)) | IconField(Some(blob)) = &mut self.kind {
+      if !is_private {
+        self.headers.clear();
+        self.url = Url::parse(&format!(
+          "https://raw.githubusercontent.com/{}/{}/{}/{}",
+          blob.owner, blob.repo, blob.commit_sha, blob.path
+        ))
+        .unwrap();
+      }
+    }
   }
 
   pub fn new(url: Url, kind: RepoIconKind, info: IconInfo) -> Self {

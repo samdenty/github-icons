@@ -16,7 +16,6 @@ pub struct Readme {
   pub homepage: Option<Url>,
   pub private: bool,
   link_base: Url,
-  document: Html,
 }
 
 impl Readme {
@@ -48,30 +47,16 @@ impl Readme {
       Message(Message),
     }
 
-    let (response, readme_body) = try_join!(
-      async {
-        gh_api_get!("repos/{}/{}", owner, repo)
-          .send()
-          .await?
-          .json::<Response>()
-          .await
-      },
-      async {
-        gh_api_get!("repos/{}/{}/readme", owner, repo)
-          .header("Accept", "application/vnd.github.html")
-          .send()
-          .await?
-          .error_for_status()?
-          .text()
-          .await
-      }
-    )?;
+    let response = gh_api_get!("repos/{}/{}", owner, repo)
+      .send()
+      .await?
+      .json::<Response>()
+      .await?;
 
     match response {
       Response::Repo(repo) => Ok(Readme::new(
         &repo.owner.login,
         &repo.name,
-        &readme_body,
         repo.private,
         &repo.default_branch,
         repo.homepage,
@@ -80,16 +65,13 @@ impl Readme {
     }
   }
 
-  pub fn new(
+  fn new(
     owner: &str,
     repo: &str,
-    body: &str,
     private: bool,
     default_branch: &str,
     homepage: Option<Url>,
   ) -> Self {
-    let document = Html::parse_document(&body);
-
     let link_base = Url::parse(&format!(
       "https://github.com/{}/{}/raw/{}/",
       owner, repo, default_branch
@@ -101,16 +83,25 @@ impl Readme {
       repo: repo.to_lowercase(),
       private,
       homepage,
-      document,
       link_base,
     }
   }
 
-  pub async fn images(&self) -> Vec<ReadmeImage> {
-    let primary_heading = &mut PrimaryHeading::new(&self.document);
+  pub async fn load_images(&self) -> Result<Vec<ReadmeImage>, Box<dyn Error>> {
+    let body = gh_api_get!("repos/{}/{}/readme", self.owner, self.repo)
+      .header("Accept", "application/vnd.github.html")
+      .send()
+      .await?
+      .error_for_status()?
+      .text()
+      .await?;
+
+    let document = Html::parse_document(&body);
+
+    let primary_heading = &mut PrimaryHeading::new(&document);
 
     let mut images = Vec::new();
-    for element_ref in self.document.select(selector!("img[src]")) {
+    for element_ref in document.select(selector!("img[src]")) {
       if let Some(image) = ReadmeImage::get(self, &element_ref, primary_heading).await {
         images.push(image);
       }
@@ -139,7 +130,7 @@ impl Readme {
         .collect::<Vec<_>>()
     );
 
-    images
+    Ok(images)
   }
 
   /// Check if a given url is a project link.

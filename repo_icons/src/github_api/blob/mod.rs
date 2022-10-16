@@ -53,7 +53,8 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
     weight += 2;
   }
 
-  let fixtures = regex!("(e2e|fixtures|third[-_]party|extensions|themes|test(s)?)/");
+  let fixtures =
+    regex!("(e2e|fixtures|(examples?)|third[-_]party|manual|extensions|themes|tests?)/");
   if !fixtures.is_match(&fullpath).unwrap() {
     if filename.contains(&owner) {
       matches_icon = true;

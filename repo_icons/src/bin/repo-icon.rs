@@ -44,13 +44,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
   let repo = &slug[2];
 
   let icons = RepoIcons::load(user, repo, true).await?;
+  let icon = icons.best_match();
 
   if opts.json {
-    println!("{}", serde_json::to_string_pretty(&icons)?)
+    println!("{}", serde_json::to_string_pretty(icon)?)
   } else {
-    for icon in icons {
-      println!("{} {} {}", icon.url, icon.kind, icon.info);
-    }
+    println!("{} {} {}", icon.url, icon.kind, icon.info);
   }
 
   Ok(())

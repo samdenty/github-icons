@@ -169,6 +169,13 @@ impl RepoIcons {
 
             repo_icons.push(blob_icon);
           }
+
+          if previous_loads
+            .iter()
+            .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+          {
+            found_best_match = true;
+          }
         }
 
         LoadedKind::UserAvatar(user_avatar) => {
@@ -180,8 +187,6 @@ impl RepoIcons {
           }
 
           if let Some(user_avatar) = user_avatar {
-            found_best_match = true;
-
             repo_icons.push(user_avatar.clone());
           }
         }

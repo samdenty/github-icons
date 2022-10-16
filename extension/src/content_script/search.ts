@@ -1,4 +1,4 @@
-import { onElement, setImageSlug } from '../utils';
+import { onElement, setImageSlug, css } from '../utils';
 
 onElement('.repo-list', (repos) => {
   for (const repo of repos.querySelectorAll('.repo-list-item')) {
@@ -8,7 +8,7 @@ onElement('.repo-list', (repos) => {
     setImageSlug(img, slug);
 
     // @ts-ignore
-    img.style = `
+    img.style = css`
       height: 50px;
       width: 50px;
       object-fit: contain;

@@ -40,6 +40,7 @@ static BLACKLISTED_HOMEPAGES: Lazy<Vec<Regex>> = Lazy::new(|| {
     r"^pr.new",
     r"^codesandbox.io/s/",
     r"^[^/]*npm[^/*]*",
+    r"^hex.pm",
     r"^crates.io",
     r"^docs.rs",
     r"^github.com",

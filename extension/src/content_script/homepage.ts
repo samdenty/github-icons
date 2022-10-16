@@ -124,6 +124,7 @@ onElement('.js-feed-item-view .body > *', (item) => {
   img.style = css`
     height: 54px;
     width: 54px;
+    object-fit: contain;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);

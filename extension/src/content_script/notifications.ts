@@ -8,8 +8,9 @@ onElement('.js-notifications-group', (notification) => {
 
   // @ts-ignore
   img.style = css`
-    max-height: 26px;
-    max-width: 26px;
+    height: 26px;
+    width: 26px;
+    object-fit: contain;
     position: absolute;
     top: -4.5px;
     left: -6.5px;

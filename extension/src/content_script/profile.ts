@@ -13,8 +13,9 @@ onElement('.js-pinned-items-reorder-container li', (item) => {
 
   // @ts-ignore
   img.style = css`
-    max-height: 54px;
-    max-width: 54px;
+    height: 54px;
+    width: 54px;
+    object-fit: contain;
     border-radius: 6px;
     margin-right: 20px;
   `;

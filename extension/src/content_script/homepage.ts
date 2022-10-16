@@ -31,8 +31,9 @@ onElement(
 
     // @ts-ignore
     img.style = css`
-      max-height: 16px;
-      max-width: 16px;
+      height: 16px;
+      width: 16px;
+      object-fit: contain;
       border-radius: 3px;
       margin-bottom: 4px;
     `;
@@ -79,8 +80,9 @@ onElement('aside[aria-label="Explore"]', (explore) => {
 
     // @ts-ignore
     img.style = css`
-      max-height: 54px;
-      max-width: 54px;
+      height: 54px;
+      width: 54px;
+      object-fit: contain;
       margin-right: 20px;
       border-radius: 6px;
     `;
@@ -120,8 +122,9 @@ onElement('.js-feed-item-view .body > *', (item) => {
 
   // @ts-ignore
   img.style = css`
-    max-height: 54px;
-    max-width: 54px;
+    height: 54px;
+    width: 54px;
+    object-fit: contain;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);

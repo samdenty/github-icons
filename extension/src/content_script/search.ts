@@ -9,8 +9,9 @@ onElement('.repo-list', (repos) => {
 
     // @ts-ignore
     img.style = css`
-      max-height: 50px;
-      max-width: 50px;
+      height: 50px;
+      width: 50px;
+      object-fit: contain;
       margin-right: 20px;
     `;
 

@@ -122,7 +122,7 @@ impl RepoIcons {
             .entries()
             .await
             .into_iter()
-            .map(|icon| RepoIcon::new(icon.url, RepoIconKind::Site(icon.kind), icon.info))
+            .map(|icon| RepoIcon::new(icon.url, icon.kind.into(), icon.info))
             .collect(),
         ))
       }
@@ -173,17 +173,25 @@ impl RepoIcons {
           if previous_loads
             .iter()
             .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+            && previous_loads
+              .iter()
+              .any(|loaded| matches!(loaded, LoadedKind::Homepage(_)))
           {
             found_best_match = true;
           }
         }
 
         LoadedKind::UserAvatar(user_avatar) => {
-          if previous_loads
-            .iter()
-            .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))
-          {
-            found_best_match = true;
+          if let Some(blob_kind) = previous_loads.iter().find_map(|loaded| {
+            if let LoadedKind::Blob(blob) = loaded {
+              Some(blob.clone().map(|blob| blob.kind))
+            } else {
+              None
+            }
+          }) {
+            if matches!(blob_kind, Some(RepoIconKind::Blob(_)) | None) {
+              found_best_match = true;
+            }
           }
 
           if let Some(user_avatar) = user_avatar {
@@ -199,6 +207,9 @@ impl RepoIcons {
               && previous_loads
                 .iter()
                 .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))
+              && previous_loads
+                .iter()
+                .any(|loaded| matches!(loaded, LoadedKind::Homepage(_)))
             {
               found_best_match = true;
             }
@@ -213,6 +224,19 @@ impl RepoIcons {
 
         LoadedKind::Homepage(site_icons) => {
           repo_icons.extend(site_icons.clone());
+
+          if site_icons
+            .iter()
+            .any(|icon| matches!(icon.kind, RepoIconKind::AppIcon))
+            && previous_loads
+              .iter()
+              .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+            && previous_loads
+              .iter()
+              .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))
+          {
+            found_best_match = true;
+          }
         }
       }
 

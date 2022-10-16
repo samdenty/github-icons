@@ -47,19 +47,33 @@ impl PartialEq for RepoBlob {
 pub enum RepoIconKind {
   IconField(Option<RepoBlob>),
   UserAvatar,
+  AppIcon,
   Blob(Option<RepoBlob>),
   ReadmeImage,
-  Site(IconKind),
+  SiteLogo,
+  SiteFavicon,
+}
+
+impl From<IconKind> for RepoIconKind {
+  fn from(kind: IconKind) -> Self {
+    match kind {
+      IconKind::AppIcon => RepoIconKind::AppIcon,
+      IconKind::SiteLogo => RepoIconKind::SiteLogo,
+      IconKind::SiteFavicon => RepoIconKind::SiteFavicon,
+    }
+  }
 }
 
 impl Display for RepoIconKind {
   fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
     match self {
       RepoIconKind::IconField(_) => write!(f, "icon_field"),
-      RepoIconKind::ReadmeImage => write!(f, "readme_image"),
       RepoIconKind::UserAvatar => write!(f, "user_avatar"),
+      RepoIconKind::AppIcon => write!(f, "app_icon"),
       RepoIconKind::Blob(_) => write!(f, "blob"),
-      RepoIconKind::Site(kind) => write!(f, "{}", kind),
+      RepoIconKind::ReadmeImage => write!(f, "readme_image"),
+      RepoIconKind::SiteLogo => write!(f, "site_logo"),
+      RepoIconKind::SiteFavicon => write!(f, "site_favicon"),
     }
   }
 }
@@ -70,10 +84,13 @@ impl FromStr for RepoIconKind {
   fn from_str(kind: &str) -> Result<Self, Self::Err> {
     Ok(match kind {
       "icon_field" => RepoIconKind::IconField(None),
-      "readme_image" => RepoIconKind::ReadmeImage,
       "user_avatar" => RepoIconKind::UserAvatar,
+      "app_icon" => RepoIconKind::AppIcon,
       "blob" => RepoIconKind::Blob(None),
-      kind => RepoIconKind::Site(IconKind::from_str(kind)?),
+      "readme_image" => RepoIconKind::ReadmeImage,
+      "site_logo" => RepoIconKind::SiteLogo,
+      "site_favicon" => RepoIconKind::SiteFavicon,
+      _ => return Err("invalid icon kind".to_string()),
     })
   }
 }

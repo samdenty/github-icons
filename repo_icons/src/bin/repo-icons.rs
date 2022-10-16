@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
   let user = &slug[1];
   let repo = &slug[2];
 
-  let icons = RepoIcons::load(user, repo, true).await?;
+  let icons = RepoIcons::load(user, repo, false).await?;
 
   if opts.json {
     println!("{}", serde_json::to_string_pretty(&icons)?)

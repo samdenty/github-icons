@@ -7,7 +7,7 @@ use repo_files::{get_repo_files, File, FileType};
 use std::error::Error;
 use std::path::Path;
 
-const OWNER_SUFFIXES: [&str; 4] = ["js", "rs", "io", "land"];
+const OWNER_SUFFIXES: [&str; 5] = ["js", "rs", "io", "land", "pkg"];
 
 pub(crate) fn owner_name_lowercase(owner: &str) -> String {
   let owner = owner.to_lowercase();

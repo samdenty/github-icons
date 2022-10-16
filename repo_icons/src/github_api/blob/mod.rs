@@ -44,10 +44,13 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
     weight += 2;
   }
 
-  let exactly_repo_name =
-    Regex::new(&format!("^{}(?:[-_]logo.*)?\\.[^.]+$", escape(&repo))).unwrap();
+  let exactly_repo_name = Regex::new(&format!(
+    "^{}([-_](logo|icon).*)?([-_]?(\\d+x\\d+|\\d+))?\\.[^.]+$",
+    escape(&repo)
+  ))
+  .unwrap();
   if exactly_repo_name.is_match(&filename).unwrap() {
-    weight += 1;
+    weight += 2;
   }
 
   let fixtures = regex!("(e2e|fixtures|third[-_]party|extensions|themes|test(s)?)/");
@@ -63,12 +66,12 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
       weight += 2;
     }
 
-    let logo = regex!("logo(?!ut|n|s)");
+    let logo = regex!("logo(?!ut|n|s)|icon");
     if logo.is_match(&fullpath).unwrap() {
       matches_icon = true;
       weight += 1;
 
-      let exactly_logo = regex!("^logo\\.[^.]+$");
+      let exactly_logo = regex!("^(logo|icon)\\.[^.]+$");
       if exactly_logo.is_match(&filename).unwrap() {
         weight += 2;
       }

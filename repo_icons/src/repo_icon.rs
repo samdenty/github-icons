@@ -48,10 +48,10 @@ pub enum RepoIconKind {
   IconField(Option<RepoBlob>),
   UserAvatar,
   AppIcon,
+  SiteFavicon,
   Blob(Option<RepoBlob>),
   ReadmeImage,
   SiteLogo,
-  SiteFavicon,
 }
 
 impl From<IconKind> for RepoIconKind {

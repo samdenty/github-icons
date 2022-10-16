@@ -13,9 +13,8 @@ onElement('.js-pinned-items-reorder-container li', (item) => {
 
   // @ts-ignore
   img.style = css`
-    height: 54px;
-    width: 54px;
-    object-fit: contain;
+    max-height: 54px;
+    max-width: 54px;
     border-radius: 6px;
     margin-right: 20px;
   `;
@@ -26,6 +25,11 @@ onElement('.js-pinned-items-reorder-container li', (item) => {
   container.style = css`
     display: flex;
     align-items: center;
+  `;
+
+  // @ts-ignore
+  container.firstElementChild!.style = css`
+    flex-grow: 1;
   `;
 
   container.prepend(img);

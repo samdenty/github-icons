@@ -227,7 +227,7 @@ impl RepoIcons {
 
           if site_icons
             .iter()
-            .any(|icon| matches!(icon.kind, RepoIconKind::AppIcon))
+            .any(|icon| matches!(icon.kind, RepoIconKind::AppIcon | RepoIconKind::SiteFavicon))
             && previous_loads
               .iter()
               .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))

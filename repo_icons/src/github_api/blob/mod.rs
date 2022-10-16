@@ -35,7 +35,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
   let mut weight = 0;
   let mut matches_icon = false;
 
-  if filename.contains("issue") {
+  if filename.contains("issue") || path.contains("setup") {
     return 0;
   }
 

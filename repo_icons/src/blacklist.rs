@@ -6,6 +6,7 @@ use url::Url;
 static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
   regexes![
     r"badge",
+    r"build",
     r"status",
     r"coverage",
     r"shields.io",

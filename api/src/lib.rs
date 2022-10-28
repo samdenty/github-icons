@@ -11,6 +11,12 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
 
   let mut url = req.url()?;
 
+  let lowercase_path = url.path().to_lowercase();
+  if url.path().to_lowercase() != url.path() {
+    url.set_path(&lowercase_path);
+    return Response::redirect_with_status(url, 301);
+  }
+
   let token = url
     .query_pairs()
     .find_map(|(key, token)| if key == "token" { Some(token) } else { None });
@@ -31,6 +37,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
 
   let mut response = router
     .get_async("/:owner/:repo", async move |_, ctx| {
+      let mut write_to_cache = true;
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
@@ -59,6 +66,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       }
 
       if repo_icon.is_none() {
+        write_to_cache = false;
         repo_icon = user_avatar.await;
       }
 
@@ -85,7 +93,9 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       };
 
       let headers = res.headers_mut();
-      headers.set("Cache-Control", "public, max-age=259200")?;
+      if write_to_cache {
+        headers.set("Cache-Control", "public, max-age=259200")?;
+      }
       headers.set(
         "Content-Type",
         match repo_icon.info {
@@ -143,7 +153,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
     ctx.wait_until(async move {
       if response.status_code() == 404 {
         let _ = cache.delete(&url, false).await;
-      } else {
+      } else if response.headers().has("Cache-Control").unwrap() {
         let _ = cache.put(&url, response).await;
       }
     });

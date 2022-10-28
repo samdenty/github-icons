@@ -191,6 +191,8 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)
 
     results.sort_by(|(_, a_weight), (_, b_weight)| b_weight.cmp(&a_weight));
 
+    println!("{:#?}", results);
+
     results.get(0).cloned().map(|(file, weight)| {
       let final_results = results
         .into_iter()

@@ -1,11 +1,11 @@
-import { onElement, setImageSlug, css } from '../utils';
+import { onElement, slugImage, css } from '../utils';
 
 onElement('.repo-list', (repos) => {
   for (const repo of repos.querySelectorAll('.repo-list-item')) {
     const slug = repo.querySelector('a')!.textContent!.trim();
 
     const img = document.createElement('img');
-    setImageSlug(img, slug);
+    slugImage(slug, img);
 
     // @ts-ignore
     img.style = css`

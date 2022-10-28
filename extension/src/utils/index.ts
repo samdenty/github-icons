@@ -1,4 +1,5 @@
 export * from './onElement';
-export * from './updateImage';
+export * from './image';
+export * from './onURLUpdate';
 
 export const css = String.raw;

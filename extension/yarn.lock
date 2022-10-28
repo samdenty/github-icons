@@ -643,6 +643,11 @@ function-bind@^1.1.1:
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
   integrity sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==
 
+github-reserved-names@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/github-reserved-names/-/github-reserved-names-2.0.4.tgz#ad4fca01488442e6ec3eae1a0d9425225362fb2c"
+  integrity sha512-T2azXbRJTJGQc28G6x89LpzQmuVjzl0hzJXPRD2t9yMh7URYUW8Opqr5ptHvjAVDJ+hwhBtoYmVx3VyFawRoFg==
+
 glob-parent@^5.1.2:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/glob-parent/-/glob-parent-5.1.2.tgz#869832c58034fe68a4093c17dc15e8340d8401c4"

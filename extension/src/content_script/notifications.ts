@@ -1,10 +1,10 @@
-import { onElement, setImageSlug, css } from '../utils';
+import { onElement, slugImage, css } from '../utils';
 
 onElement('.js-notifications-group', (notification) => {
   const slug = notification.querySelector('a')!.textContent!.trim();
 
   const img = document.createElement('img');
-  setImageSlug(img, slug);
+  slugImage(slug, img);
 
   // @ts-ignore
   img.style = css`
@@ -32,6 +32,6 @@ onElement('.js-notification-sidebar-repositories', (repos) => {
   for (const repo of repos.querySelectorAll('a')) {
     const slug = repo.lastChild!.textContent!.trim();
     const img = repo.querySelector('img')!;
-    setImageSlug(img, slug);
+    slugImage(slug, img);
   }
 });

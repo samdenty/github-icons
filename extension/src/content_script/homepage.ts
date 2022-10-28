@@ -1,4 +1,4 @@
-import { onElement, setImageSlug, css } from '../utils';
+import { onElement, slugImage, css } from '../utils';
 
 // Recent repositories
 onElement('.js-repos-container[aria-label="Repositories"]', (repos) => {
@@ -6,13 +6,13 @@ onElement('.js-repos-container[aria-label="Repositories"]', (repos) => {
     const slug = source.querySelector('.markdown-title')!.textContent!.trim();
 
     const img = source.querySelector('img')!;
-    setImageSlug(img, slug);
+    slugImage(slug, img);
   }
 });
 
 // Recent activity
 onElement(
-  '.js-repos-container[aria-label="Repositories"] + .border-top .flex-items-baseline',
+  '.js-repos-container[aria-label="Repositories"] + * [data-repository-hovercards-enabled] > *',
   (recentActivity) => {
     const slugAndNumber = recentActivity
       .querySelectorAll('a')[1]!
@@ -20,7 +20,7 @@ onElement(
     const [slug] = slugAndNumber.split('#');
 
     const img = document.createElement('img');
-    setImageSlug(img, slug);
+    slugImage(slug, img);
 
     // @ts-ignore
     recentActivity.style = css`
@@ -70,13 +70,14 @@ onElement(
   }
 );
 
+// Explore repositories
 onElement('aside[aria-label="Explore"]', (explore) => {
   for (const repo of explore.querySelectorAll('.py-2.my-2')) {
     let link = repo.querySelector('a')!;
     const slug = link.textContent!.trim();
 
     const img = document.createElement('img');
-    setImageSlug(img, slug);
+    slugImage(slug, img);
 
     // @ts-ignore
     img.style = css`
@@ -108,11 +109,18 @@ onElement('aside[aria-label="Explore"]', (explore) => {
   }
 });
 
+// Feed items
 onElement('.js-feed-item-view .body > *', (item) => {
-  const slug = item.querySelectorAll('a')[2]!.textContent!.trim();
+  const slug = [...item.querySelectorAll('a')]
+    .find((link) => new URL(link.href).pathname.split('/').length === 3)!
+    ?.textContent!.trim();
+
+  if (!slug) {
+    return;
+  }
 
   const img = document.createElement('img');
-  setImageSlug(img, slug);
+  slugImage(slug, img);
 
   // @ts-ignore
   item.style = css`

@@ -210,21 +210,7 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)
         .or_else(|| {
           let mut sizes = final_results
             .iter()
-            .filter_map(|file| {
-              regex!(".*([\\d.]+)x([\\d.]+)(?:@([\\d.]+)x)")
-                .captures(&file.path.to_lowercase())
-                .unwrap()
-                .map(|result| {
-                  let width = (result[2].parse::<f64>().unwrap()) as u64;
-                  let height = (result[3].parse::<f64>().unwrap()) as u64;
-                  let scale = result
-                    .get(4)
-                    .map(|times| times.as_str().parse::<f64>().unwrap() as u64)
-                    .unwrap_or(1);
-
-                  (width * height * scale, file)
-                })
-            })
+            .filter_map(|file| get_filename_size(file).map(|size| (size, file)))
             .collect::<Vec<_>>();
 
           sizes.sort_by(|(a_size, _), (b_size, _)| b_size.cmp(a_size));
@@ -259,4 +245,20 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)
 
 fn get_path_and_filename(fullpath: &str) -> (&str, &str) {
   fullpath.rsplit_once('/').unwrap_or(("", &fullpath))
+}
+
+fn get_filename_size(file: &File) -> Option<u64> {
+  regex!(".*([\\d.]+)x([\\d.]+)(?:@([\\d.]+)x)")
+    .captures(&file.path.to_lowercase())
+    .unwrap()
+    .map(|result| {
+      let width = (result[2].parse::<f64>().unwrap()) as u64;
+      let height = (result[3].parse::<f64>().unwrap()) as u64;
+      let scale = result
+        .get(4)
+        .map(|times| times.as_str().parse::<f64>().unwrap() as u64)
+        .unwrap_or(1);
+
+      width * height * scale
+    })
 }

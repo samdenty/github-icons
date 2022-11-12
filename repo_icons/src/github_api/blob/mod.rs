@@ -67,6 +67,12 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
       weight += 2;
     }
 
+    let app_icon = regex!("(app.*icon)|(icon.*app)");
+    if app_icon.is_match(filename).unwrap() {
+      matches_icon = true;
+      weight += 2;
+    }
+
     let logo = regex!("logo(?!ut|n|s)");
     if logo.is_match(&fullpath).unwrap() {
       matches_icon = true;
@@ -190,8 +196,6 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)
       .collect::<Vec<_>>();
 
     results.sort_by(|(_, a_weight), (_, b_weight)| b_weight.cmp(&a_weight));
-
-    println!("{:#?}", results);
 
     results.get(0).cloned().map(|(file, weight)| {
       let final_results = results

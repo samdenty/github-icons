@@ -38,6 +38,17 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
   let router = Router::new();
 
   let mut response = router
+    .get_async("/", async move |req, _| {
+      let mut url = req.url()?;
+      url.set_host(
+        url
+          .host_str()
+          .map(|host| format!("www.{}", host))
+          .as_deref(),
+      )?;
+
+      Response::redirect_with_status(url, 301)
+    })
     .get_async("/:owner/:repo", async move |_, ctx| {
       let mut write_to_cache = true;
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();

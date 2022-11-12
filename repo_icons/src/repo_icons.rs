@@ -32,8 +32,8 @@ enum LoadedKind {
   UserAvatar(Option<RepoIcon>),
   Blob(Option<RepoIcon>),
   ReadmeImage(Option<RepoIcon>),
-  Homepage(Vec<RepoIcon>),
-  PrefixedRepo(Vec<RepoIcon>),
+  Homepage(Option<Vec1<RepoIcon>>),
+  PrefixedRepo(Option<Vec1<RepoIcon>>),
 }
 
 impl RepoIcons {
@@ -94,7 +94,9 @@ impl RepoIcons {
           .await
           .into_iter()
           .flatten()
-          .collect(),
+          .collect::<Vec<_>>()
+          .try_into()
+          .ok(),
         ))
       }
       .boxed_local(),
@@ -125,7 +127,9 @@ impl RepoIcons {
             .into_iter()
             .filter(|icon| !is_badge(&icon.url))
             .map(|icon| RepoIcon::new(icon.url, icon.kind.into(), icon.info))
-            .collect(),
+            .collect::<Vec<_>>()
+            .try_into()
+            .ok(),
         ))
       }
       .boxed_local(),
@@ -170,16 +174,16 @@ impl RepoIcons {
             }
 
             repo_icons.push(blob_icon);
-          }
 
-          if previous_loads
-            .iter()
-            .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
-            && previous_loads
+            if previous_loads
               .iter()
-              .any(|loaded| matches!(loaded, LoadedKind::Homepage(_)))
-          {
-            found_best_match = true;
+              .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+              && previous_loads
+                .iter()
+                .any(|loaded| matches!(loaded, LoadedKind::Homepage(_)))
+            {
+              found_best_match = true;
+            }
           }
         }
 
@@ -221,23 +225,27 @@ impl RepoIcons {
         }
 
         LoadedKind::PrefixedRepo(icons) => {
-          repo_icons.extend(icons.clone());
+          if let Some(icons) = icons {
+            repo_icons.extend(icons.clone());
+          }
         }
 
         LoadedKind::Homepage(site_icons) => {
-          repo_icons.extend(site_icons.clone());
+          if let Some(site_icons) = site_icons {
+            repo_icons.extend(site_icons.clone());
 
-          if site_icons
-            .iter()
-            .any(|icon| matches!(icon.kind, RepoIconKind::AppIcon | RepoIconKind::SiteFavicon))
-            && previous_loads
+            if site_icons
               .iter()
-              .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
-            && previous_loads
-              .iter()
-              .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))
-          {
-            found_best_match = true;
+              .any(|icon| matches!(icon.kind, RepoIconKind::AppIcon | RepoIconKind::SiteFavicon))
+              && previous_loads
+                .iter()
+                .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+              && previous_loads
+                .iter()
+                .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))
+            {
+              found_best_match = true;
+            }
           }
         }
       }

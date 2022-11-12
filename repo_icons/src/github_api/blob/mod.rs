@@ -85,7 +85,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
     }
 
     if matches_icon {
-      let public = regex!("(public|static|resources|assets|media|www)/");
+      let public = regex!("(public|static|resources|assets|media|www|xcassets|appiconset)/");
       if public.is_match(&fullpath).unwrap() {
         weight += 1;
       }
@@ -197,22 +197,46 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)
 
     results.sort_by(|(_, a_weight), (_, b_weight)| b_weight.cmp(&a_weight));
 
-    results.get(0).cloned().map(|(file, weight)| {
+    results.get(0).cloned().map(|(first_file, first_weight)| {
       let final_results = results
         .into_iter()
-        .filter(|(_, other_weight)| weight == *other_weight)
+        .filter_map(|(file, other_weight)| (first_weight == other_weight).then_some(file))
         .collect::<Vec<_>>();
 
-      let (file, _) = final_results
+      let file = final_results
         .iter()
         .cloned()
-        .find(|(file, _)| file.path.ends_with(".svg"))
+        .find(|file| file.path.ends_with(".svg"))
+        .or_else(|| {
+          let mut sizes = final_results
+            .iter()
+            .filter_map(|file| {
+              regex!(".*([\\d.]+)x([\\d.]+)(?:@([\\d.]+)x)")
+                .captures(&file.path.to_lowercase())
+                .unwrap()
+                .map(|result| {
+                  let width = (result[2].parse::<f64>().unwrap()) as u64;
+                  let height = (result[3].parse::<f64>().unwrap()) as u64;
+                  let scale = result
+                    .get(4)
+                    .map(|times| times.as_str().parse::<f64>().unwrap() as u64)
+                    .unwrap_or(1);
+
+                  (width * height * scale, file)
+                })
+            })
+            .collect::<Vec<_>>();
+
+          sizes.sort_by(|(a_size, _), (b_size, _)| b_size.cmp(a_size));
+
+          sizes.get(0).map(|(_, file)| *file).cloned()
+        })
         .or_else(|| {
           final_results
             .into_iter()
-            .find(|(file, _)| file.path.ends_with(".png"))
+            .find(|file| file.path.ends_with(".png"))
         })
-        .unwrap_or((file, weight));
+        .unwrap_or(first_file);
 
       (false, file)
     })

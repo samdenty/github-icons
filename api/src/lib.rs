@@ -20,7 +20,9 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
   let token = url
     .query_pairs()
     .find_map(|(key, token)| if key == "token" { Some(token) } else { None });
-  repo_icons::set_token(token);
+  if url.path().ends_with("/all") || url.path().ends_with("/images") || token.is_some() {
+    repo_icons::set_token(token);
+  }
 
   let cache = Cache::default();
 
@@ -96,6 +98,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       if write_to_cache {
         headers.set("Cache-Control", "public, max-age=259200")?;
       }
+      headers.set("Access-Control-Allow-Origin", "*")?;
       headers.set(
         "Content-Type",
         match repo_icon.info {
@@ -119,9 +122,9 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
 
       let mut response = from_json_pretty(&repo_icons)?;
 
-      response
-        .headers_mut()
-        .set("Cache-Control", "public, max-age=259200")?;
+      let headers = response.headers_mut();
+      headers.set("Access-Control-Allow-Origin", "*")?;
+      headers.set("Cache-Control", "public, max-age=259200")?;
 
       Ok(response)
     })
@@ -139,9 +142,9 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
 
       let mut response = from_json_pretty(&images)?;
 
-      response
-        .headers_mut()
-        .set("Cache-Control", "public, max-age=259200")?;
+      let headers = response.headers_mut();
+      headers.set("Access-Control-Allow-Origin", "*")?;
+      headers.set("Cache-Control", "public, max-age=259200")?;
 
       Ok(response)
     })

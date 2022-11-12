@@ -16,8 +16,8 @@ onElement(
   (recentActivity) => {
     const slugAndNumber = recentActivity
       .querySelectorAll('a')[1]!
-      .textContent!.trim();
-    const [slug] = slugAndNumber.split('#');
+      .textContent!;
+    const slug = slugAndNumber.split('#')[0].trim();
 
     const img = document.createElement('img');
     slugImage(slug, img);

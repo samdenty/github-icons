@@ -1,6 +1,7 @@
-import { onURLUpdate, slugImage } from '../utils';
+import { css, onElement, onURLUpdate, slugImage } from '../utils';
 import isReserved from 'github-reserved-names';
 
+// favicon
 onURLUpdate(async (isDarkMode) => {
   const [, owner, repo] = /\/([^/]+)\/([^/]+)/.exec(location.pathname) || [];
   if (!owner || isReserved.check(owner)) {
@@ -24,4 +25,27 @@ onURLUpdate(async (isDarkMode) => {
 
   const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]')!;
   icon.href = `data:image/svg+xml;utf8,${encodeURIComponent(faviconSVG)}`;
+});
+
+onElement('#repository-container-header', (header) => {
+  const owner = header
+    .querySelector('[itemprop="author"]')!
+    .textContent!.trim();
+
+  const repoName = header.querySelector('[itemprop="name"]')!;
+  const repo = repoName.textContent!.trim();
+
+  const img = document.createElement('img');
+  img.className = `avatar ml-1 mr-2 d-block`;
+
+  // @ts-ignore
+  img.style = css`
+    height: 24px;
+    width: 24px;
+    object-fit: contain;
+  `;
+
+  slugImage(`${owner}/${repo}`, img);
+
+  repoName.parentElement!.insertBefore(img, repoName);
 });

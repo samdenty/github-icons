@@ -66,7 +66,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
   }
 
   if let Some(token) = &opts.token {
-    set_token(token);
+    set_token(Some(token));
 
     let response = gh_get!("https://api.github.com")
       .send()

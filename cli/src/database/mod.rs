@@ -21,7 +21,7 @@ static DB: Lazy<ThreadLocal<PooledConnection<ConnectionManager<SqliteConnection>
   Lazy::new(|| ThreadLocal::new());
 
 static REGEX_CACHE: Lazy<Arc<Mutex<LruCache<String, Arc<Regex>>>>> =
-  Lazy::new(|| Arc::new(Mutex::new(LruCache::new(16))));
+  Lazy::new(|| Arc::new(Mutex::new(LruCache::unbounded())));
 
 embed_migrations!("./migrations");
 

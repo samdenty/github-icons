@@ -6,6 +6,7 @@ use crate::{
 };
 use diesel::prelude::*;
 use image::{imageops::FilterType, io::Reader as ImageReader, ImageBuffer, ImageFormat};
+use resvg::{tiny_skia, usvg};
 use std::{
   env,
   error::Error,
@@ -50,7 +51,7 @@ pub async fn write(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync
           let options = usvg::Options::default();
           let rtree = usvg::Tree::from_data(&svg_data, &options.to_ref())?;
 
-          let pixmap_size = rtree.svg_node().size.to_screen_size();
+          let pixmap_size = rtree.size.to_screen_size();
           let (width, height) = resize_box(1024, 1024, pixmap_size.width(), pixmap_size.height());
 
           let mut pixmap = tiny_skia::Pixmap::new(width, height).unwrap();

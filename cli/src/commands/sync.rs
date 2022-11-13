@@ -8,6 +8,7 @@ use diesel::RunQueryDsl;
 use futures::future;
 use parking_lot::RwLock;
 use repo_icons::RepoIcons;
+use reqwest::Client;
 use site_icons::IconInfo;
 use std::{
   collections::hash_map::DefaultHasher,
@@ -133,7 +134,7 @@ pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync>
   modify_gitignore::modify()?;
 
   let (user, repo_name, repo_path) = get_slug(slug_or_path)?;
-  let icons = RepoIcons::load(&user, &repo_name).await;
+  let icons = RepoIcons::fetch("https://github-icons.com", &user, &repo_name).await;
 
   if let Ok(icons) = icons {
     let mut tasks: Vec<_> = icons
@@ -190,7 +191,12 @@ pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync>
                 }
               }
               _ => {
-                let response = reqwest::get(icon.url).await.ok()?;
+                let response = Client::new()
+                  .get(icon.url)
+                  .headers((&icon.headers).try_into().unwrap())
+                  .send()
+                  .await
+                  .ok()?;
                 let mut content = Cursor::new(response.bytes().await.ok()?);
 
                 copy(&mut content, &mut icon_file).await.ok()?;

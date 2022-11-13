@@ -273,7 +273,7 @@ impl RepoIcons {
   ///
   /// ```
   /// # async fn run() {
-  /// let icons = RepoIcons::fetch("https://repo-icons.api.com", "facebook", "react").await?;
+  /// let icons = RepoIcons::fetch("https://github-icons.com", "facebook", "react").await?;
   ///
   /// for icon in icons {
   ///   println("{:?}", icon)

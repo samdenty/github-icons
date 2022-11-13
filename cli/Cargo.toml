@@ -1,6 +1,6 @@
 [package]
-name = "github-icons"
-version = "1.0.6"
+name = "git-icons"
+version = "1.1.0"
 edition = "2021"
 license = "GPL-3.0"
 description = "Mac CLI that adds folder icons to your local repos"
@@ -22,9 +22,7 @@ thread_local = "1.1.0"
 rand = "0.8.5"
 shellexpand = "2.1.0"
 image = "0.24.1"
-usvg = "0.22.0"
 resvg = "0.25.0"
-tiny-skia = "0.6.3"
 home = "0.5.3"
 futures = "0.3.21"
 diesel = { version = "1.4.8", features = ["sqlite", "r2d2"] }

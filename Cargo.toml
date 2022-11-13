@@ -1,2 +1,2 @@
 [workspace]
-members = ["repo_icons", "api"]
+members = ["repo_icons", "api", "cli"]

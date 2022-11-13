@@ -10,10 +10,7 @@ use futures::{
   Future, FutureExt,
 };
 use itertools::Itertools;
-use reqwest::{
-  header::{HeaderMap, HeaderValue, AUTHORIZATION},
-  Client, IntoUrl,
-};
+use reqwest::IntoUrl;
 use site_icons::Icons;
 use std::{
   cmp::{max, min},
@@ -287,22 +284,15 @@ impl RepoIcons {
     owner: &str,
     repo: &str,
   ) -> Result<Self, Box<dyn Error>> {
-    let endpoint = endpoint
+    let mut endpoint = endpoint
       .into_url()?
       .join(&format!("{}/{}/all", owner, repo))?;
 
-    let mut headers = HeaderMap::new();
     if let Some(token) = get_token() {
-      headers.insert(
-        AUTHORIZATION,
-        HeaderValue::from_str(&format!("token {}", token))?,
-      );
+      endpoint.set_query(Some(&format!("token={}", token)));
     }
 
-    let repo_icons = Client::new()
-      .get(endpoint)
-      .headers(headers)
-      .send()
+    let repo_icons = reqwest::get(endpoint)
       .await?
       .error_for_status()?
       .json()

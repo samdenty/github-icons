@@ -41,7 +41,7 @@ impl RepoIcons {
   ///
   /// ```
   /// # async fn run() {
-  /// let icons = RepoIcons::load("facebook", "react").await?;
+  /// let icons = RepoIcons::load("facebook", "react", false).await?;
   ///
   /// for icon in icons {
   ///   println("{:?}", icon)

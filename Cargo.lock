@@ -1798,7 +1798,7 @@ dependencies = [
 
 [[package]]
 name = "repo_icons"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "async-recursion",
  "bytes 1.2.1",

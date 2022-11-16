@@ -202,7 +202,7 @@ pub async fn get_blobs(
 
     results.sort_by(|(_, a_weight), (_, b_weight)| b_weight.cmp(&a_weight));
 
-    results.get(0).cloned().map(|(first_file, first_weight)| {
+    results.get(0).cloned().map(|(_, first_weight)| {
       let final_results = results
         .into_iter()
         .filter_map(|(file, other_weight)| (first_weight == other_weight).then_some(file))

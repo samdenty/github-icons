@@ -173,7 +173,7 @@ impl RepoIcons {
       match &loaded {
         LoadedKind::Blob(blob_icons) => {
           if let Some(mut blob_icons) = blob_icons.clone() {
-            for blob_icon in blob_icons {
+            for blob_icon in &mut blob_icons {
               blob_icon.set_repo_private(readme.clone().await?.private);
 
               if matches!(blob_icon.kind, RepoIconKind::IconField(_)) {
@@ -196,14 +196,25 @@ impl RepoIcons {
         }
 
         LoadedKind::UserAvatar(user_avatar) => {
-          if let Some(blob_kind) = previous_loads.iter().find_map(|loaded| {
-            if let LoadedKind::Blob(blob) = loaded {
-              Some(blob.clone().map(|blob| blob.kind))
+          if let Some(blob_kinds) = previous_loads.iter().find_map(|loaded| {
+            if let LoadedKind::Blob(blob_icons) = loaded {
+              Some(blob_icons.as_ref().map(|blob_icons| {
+                blob_icons
+                  .iter()
+                  .map(|blob| blob.kind.clone())
+                  .collect::<Vec<_>>()
+              }))
             } else {
               None
             }
           }) {
-            if matches!(blob_kind, Some(RepoIconKind::Blob(_)) | None) {
+            if let Some(blob_kinds) = blob_kinds {
+              for blob_kind in blob_kinds {
+                if matches!(blob_kind, RepoIconKind::Blob(_)) {
+                  found_best_match = true;
+                }
+              }
+            } else {
               found_best_match = true;
             }
           }

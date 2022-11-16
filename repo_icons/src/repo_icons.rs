@@ -6,7 +6,7 @@ use crate::{
 };
 use async_recursion::async_recursion;
 use futures::{
-  future::{join_all, select_all},
+  future::{join_all, select_all, try_join_all},
   Future, FutureExt,
 };
 use itertools::Itertools;
@@ -27,7 +27,7 @@ pub struct RepoIcons(Vec1<RepoIcon>);
 #[derive(Clone)]
 enum LoadedKind {
   UserAvatar(Option<RepoIcon>),
-  Blob(Option<RepoIcon>),
+  Blob(Option<Vec1<RepoIcon>>),
   ReadmeImage(Option<RepoIcon>),
   Homepage(Option<Vec1<RepoIcon>>),
   PrefixedRepo(Option<Vec1<RepoIcon>>),
@@ -98,12 +98,21 @@ impl RepoIcons {
       }
       .boxed_local(),
       async {
-        let blob_icon = match github_api::get_blob(owner, repo).await? {
-          Some((is_icon_field, blob)) => Some(RepoIcon::load_blob(blob, is_icon_field).await?),
+        let blob_icons = match github_api::get_blobs(owner, repo).await? {
+          Some((is_icon_field, blobs)) => Some(
+            try_join_all(
+              blobs
+                .into_iter()
+                .map(|blob| RepoIcon::load_blob(blob, is_icon_field)),
+            )
+            .await?
+            .try_into()
+            .unwrap(),
+          ),
           None => None,
         };
 
-        Ok(LoadedKind::Blob(blob_icon))
+        Ok(LoadedKind::Blob(blob_icons))
       }
       .boxed_local(),
       async {
@@ -162,15 +171,17 @@ impl RepoIcons {
       let loaded = loaded?;
 
       match &loaded {
-        LoadedKind::Blob(blob_icon) => {
-          if let Some(mut blob_icon) = blob_icon.clone() {
-            blob_icon.set_repo_private(readme.clone().await?.private);
+        LoadedKind::Blob(blob_icons) => {
+          if let Some(mut blob_icons) = blob_icons.clone() {
+            for blob_icon in blob_icons {
+              blob_icon.set_repo_private(readme.clone().await?.private);
 
-            if matches!(blob_icon.kind, RepoIconKind::IconField(_)) {
-              found_best_match = true;
+              if matches!(blob_icon.kind, RepoIconKind::IconField(_)) {
+                found_best_match = true;
+              }
             }
 
-            repo_icons.push(blob_icon);
+            repo_icons.extend(blob_icons);
 
             if previous_loads
               .iter()

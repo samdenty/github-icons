@@ -4,8 +4,10 @@ use crate::RepoBlob;
 use fancy_regex::{escape, Regex};
 use futures::future::join_all;
 use repo_files::{get_repo_files, File, FileType};
+use std::convert::TryInto;
 use std::error::Error;
 use std::path::Path;
+use vec1::Vec1;
 
 const OWNER_SUFFIXES: [&str; 5] = ["js", "rs", "io", "land", "pkg"];
 
@@ -179,11 +181,14 @@ async fn get_package_json_icon(
   }
 }
 
-pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)>, Box<dyn Error>> {
+pub async fn get_blobs(
+  owner: &str,
+  repo: &str,
+) -> Result<Option<(bool, Vec1<RepoBlob>)>, Box<dyn Error>> {
   let (commit_sha, files) = get_repo_files(owner, repo).await?;
 
   let result = if let Some(result) = get_package_json_icon(owner, repo, &commit_sha, &files).await {
-    Some((true, result))
+    Some((true, Vec1::new(result)))
   } else {
     let mut results = files
       .into_iter()
@@ -203,62 +208,30 @@ pub async fn get_blob(owner: &str, repo: &str) -> Result<Option<(bool, RepoBlob)
         .filter_map(|(file, other_weight)| (first_weight == other_weight).then_some(file))
         .collect::<Vec<_>>();
 
-      let file = final_results
-        .iter()
-        .cloned()
-        .find(|file| file.path.ends_with(".svg"))
-        .or_else(|| {
-          let mut sizes = final_results
-            .iter()
-            .filter_map(|file| get_filename_size(file).map(|size| (size, file)))
-            .collect::<Vec<_>>();
-
-          sizes.sort_by(|(a_size, _), (b_size, _)| b_size.cmp(a_size));
-
-          sizes.get(0).map(|(_, file)| *file).cloned()
-        })
-        .or_else(|| {
-          final_results
-            .into_iter()
-            .find(|file| file.path.ends_with(".png"))
-        })
-        .unwrap_or(first_file);
-
-      (false, file)
+      (false, final_results.try_into().unwrap())
     })
   };
 
-  Ok(result.map(|(is_package_json, file)| {
+  Ok(result.map(|(is_package_json, files)| {
     (
       is_package_json,
-      RepoBlob {
-        owner: owner.to_string(),
-        repo: repo.to_string(),
-        commit_sha,
+      files
+        .into_iter()
+        .map(|file| RepoBlob {
+          owner: owner.to_string(),
+          repo: repo.to_string(),
+          commit_sha: commit_sha.clone(),
 
-        sha: file.sha,
-        path: file.path,
-      },
+          sha: file.sha,
+          path: file.path,
+        })
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap(),
     )
   }))
 }
 
 fn get_path_and_filename(fullpath: &str) -> (&str, &str) {
   fullpath.rsplit_once('/').unwrap_or(("", &fullpath))
-}
-
-fn get_filename_size(file: &File) -> Option<u64> {
-  regex!(".*([\\d.]+)x([\\d.]+)(?:@([\\d.]+)x)")
-    .captures(&file.path.to_lowercase())
-    .unwrap()
-    .map(|result| {
-      let width = (result[2].parse::<f64>().unwrap()) as u64;
-      let height = (result[3].parse::<f64>().unwrap()) as u64;
-      let scale = result
-        .get(4)
-        .map(|times| times.as_str().parse::<f64>().unwrap() as u64)
-        .unwrap_or(1);
-
-      width * height * scale
-    })
 }

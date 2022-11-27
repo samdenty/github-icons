@@ -14,9 +14,7 @@ onElement('.js-repos-container[aria-label="Repositories"]', (repos) => {
 onElement(
   '.js-repos-container[aria-label="Repositories"] + * [data-repository-hovercards-enabled] > *',
   (recentActivity) => {
-    const slugAndNumber = recentActivity
-      .querySelectorAll('a')[1]!
-      .textContent!;
+    const slugAndNumber = recentActivity.querySelectorAll('a')[1]!.textContent!;
     const slug = slugAndNumber.split('#')[0].trim();
 
     const img = document.createElement('img');
@@ -33,7 +31,6 @@ onElement(
     img.style = css`
       height: 16px;
       width: 16px;
-      object-fit: contain;
       border-radius: 3px;
       margin-bottom: 4px;
     `;

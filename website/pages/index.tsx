@@ -7,7 +7,7 @@ import styled from '@emotion/styled';
 
 const Repos = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   grid-gap: 18px;
   width: 100%;
 `;

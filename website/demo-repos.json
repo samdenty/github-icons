@@ -14,7 +14,6 @@
   "jquery/jquery",
   "gatsbyjs/gatsby",
   "airbnb/javascript",
-  "lodash/lodash",
   "golang/go",
   "grafana/grafana",
   "Homebrew/brew",

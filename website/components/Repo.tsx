@@ -5,42 +5,63 @@ export interface RepoProps {
   slug: string;
 }
 
-const StyledRepo = styled.div`
+const StyledRepo = styled.a`
   display: flex;
   flex-direction: column;
   text-align: center;
   align-items: center;
-  white-space: nowrap;
-  overflow: hidden;
+  width: 80px;
+  height: 115px;
+
+  &:hover {
+    cursor: pointer;
+    img {
+      transform: scale(1.2);
+    }
+  }
 `;
 
 const Logo = styled.img`
-  height: 70px;
-  width: 70px;
+  height: 80px;
+  width: 80px;
   object-fit: contain;
+  border-radius: 10px;
+  opacity: 0.8;
+  transition: all 0.1s ease;
+`;
+
+const Slug = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+  font-size: 13px;
 `;
 
 const Owner = styled.div`
-  margin-top: 5px;
   opacity: 0.5;
-  font-size: 70%;
-  line-height: 8px;
+  font-size: 77%;
 `;
 
-const RepoName = styled.div`
-  line-height: 14px;
-`;
+const RepoName = styled.div``;
 
 export function Repo({ slug }: RepoProps) {
   const { fontSize, ref } = useFitText();
-
   const [owner, repo] = slug.split('/');
 
+  const url = `https://github-icons.com/${slug}`;
+
   return (
-    <StyledRepo ref={ref} style={{ fontSize }}>
-      <Logo alt={slug} src={`https://github-icons.com/${slug}`} />
-      <Owner>{owner}/</Owner>
-      <RepoName>{repo}</RepoName>
+    <StyledRepo href={url} target="_blank">
+      <Logo alt={slug} src={url} />
+      <Slug ref={ref}>
+        <Owner>{owner}/</Owner>
+        <RepoName style={{ fontSize }}>{repo}</RepoName>
+      </Slug>
     </StyledRepo>
   );
 }

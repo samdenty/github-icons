@@ -20,6 +20,10 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
     return Response::redirect_with_status(url, 301);
   }
 
+  let refetch = url
+    .query_pairs()
+    .any(|(key, _)| key == "refetch" || key == "force" || key == "refresh");
+
   let token = url
     .query_pairs()
     .find_map(|(key, token)| if key == "token" { Some(token) } else { None });
@@ -27,6 +31,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
     repo_icons::set_token(token);
   }
 
+  // default to the default token
   if repo_icons::get_token().is_none() {
     repo_icons::set_token(env.secret("GITHUB_TOKEN").ok());
   }
@@ -40,10 +45,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
   }
   let cache_key = url.to_string();
 
-  if !url
-    .query_pairs()
-    .any(|(key, _)| key == "force" || key == "refresh")
-  {
+  if !refetch {
     if let Some(res) = cache.get(&cache_key, false).await? {
       return Ok(res);
     };

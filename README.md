@@ -15,8 +15,8 @@ This repository contains the source code for the github-icons CLI. You can also 
 | [`api`](/api)               | Cloudflare worker for fetching repo icons            |
 | [`cli`](/cli)               | CLI for adding repo icons to .git folders            |
 | [`extension`](/extension)   | Chrome extension for adding repo icons to github.com |
-| [`repo_icons`](/repo_icons) | Rust module for scraping repo icons                  |
-| [`website`](/website)       | www.github-icons.com website                         |
+| [`repo_icons`](/repo_icons) | Rust crate for scraping repo icons                   |
+| [`website`](/website)       | The www.github-icons.com website                     |
 
 ## Running the CLI
 

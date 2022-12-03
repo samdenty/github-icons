@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { useSession } from 'next-auth/react';
 import useFitText from 'use-fit-text';
 
 export interface RepoProps {
@@ -52,10 +53,14 @@ const Owner = styled.div`
 const RepoName = styled.div``;
 
 export function Repo({ slug }: RepoProps) {
+  const { data } = useSession();
+
   const { fontSize, ref } = useFitText();
   const [owner, repo] = slug.split('/');
 
-  const url = `https://github-icons.com/${slug}`;
+  const url = `https://github-icons.com/${slug}${
+    data?.accessToken ? `?token=${data.accessToken}` : ''
+  }`;
 
   return (
     <StyledRepo href={`https://github.com/${slug}`} target="_blank">

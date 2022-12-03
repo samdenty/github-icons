@@ -26,7 +26,7 @@ export default function Home() {
       <main>
         {session ? (
           <>
-            Signed in as {session.accessToken} <br />
+            Signed in as {session.user.name} <br />
             <button onClick={() => signOut()}>Sign out</button>
           </>
         ) : (

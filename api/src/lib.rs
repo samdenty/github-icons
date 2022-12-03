@@ -29,6 +29,10 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
     repo_icons::set_token(token);
   }
 
+  if repo_icons::get_token().is_none() {
+    repo_icons::set_token(env.secret("GITHUB_TOKEN").ok());
+  }
+
   let cache = Cache::default();
 
   // clear the token from the URL

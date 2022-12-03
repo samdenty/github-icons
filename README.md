@@ -8,6 +8,16 @@ Automatically adds project logos to your locally cloned GitHub repos. [Youtube V
 
 This repository contains the source code for the github-icons CLI. You can also [sponsor this project](https://github.com/sponsors/samdenty)
 
+## Repo structure
+
+| Folder                      | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| [`api`](/api)               | Cloudflare worker for fetching repo icons            |
+| [`cli`](/cli)               | CLI for adding repo icons to .git folders            |
+| [`extension`](/extension)   | Chrome extension for adding repo icons to github.com |
+| [`repo_icons`](/repo_icons) | Rust module for scraping repo icons                  |
+| [`website`](/website)       | www.github-icons.com website                         |
+
 ## Running the CLI
 
 You can run the CLI using the below commands.

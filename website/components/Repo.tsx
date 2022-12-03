@@ -16,7 +16,9 @@ const StyledRepo = styled.a`
   &:hover {
     cursor: pointer;
     img {
-      transform: scale(1.2);
+      opacity: 1;
+      transform: scale(1.1);
+      filter: brightness(1.1);
     }
   }
 `;
@@ -56,11 +58,13 @@ export function Repo({ slug }: RepoProps) {
   const url = `https://github-icons.com/${slug}`;
 
   return (
-    <StyledRepo href={url} target="_blank">
+    <StyledRepo href={`https://github.com/${slug}`} target="_blank">
       <Logo alt={slug} src={url} />
-      <Slug ref={ref}>
+      <Slug>
         <Owner>{owner}/</Owner>
-        <RepoName style={{ fontSize }}>{repo}</RepoName>
+        <RepoName ref={ref} style={{ fontSize }}>
+          {repo}
+        </RepoName>
       </Slug>
     </StyledRepo>
   );

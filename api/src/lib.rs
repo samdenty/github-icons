@@ -12,8 +12,6 @@ use worker::*;
 pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
   set_once();
 
-  let cache_kv = env.kv("CACHE")?;
-
   let mut url = req.url()?;
 
   let lowercase_path = url.path().to_lowercase();
@@ -34,6 +32,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
   }
 
   let cache = Cache::default();
+  let cache_kv = env.kv("CACHE")?;
 
   // clear the token from the URL
   if !lowercase_path.ends_with("/all") {
@@ -41,13 +40,18 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
   }
   let cache_key = url.to_string();
 
-  if let Some(res) = cache.get(&cache_key, false).await? {
-    return Ok(res);
-  };
+  if !url
+    .query_pairs()
+    .any(|(key, _)| key == "force" || key == "refresh")
+  {
+    if let Some(res) = cache.get(&cache_key, false).await? {
+      return Ok(res);
+    };
 
-  if let Some(res) = cache_kv.get(&cache_key).text().await? {
-    return Ok(SerializedResponse::deserialize(res)?);
-  };
+    if let Some(res) = cache_kv.get(&cache_key).text().await? {
+      return Ok(SerializedResponse::deserialize(res)?);
+    };
+  }
 
   let router = Router::new();
 

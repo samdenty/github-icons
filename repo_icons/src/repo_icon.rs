@@ -162,10 +162,13 @@ impl RepoIcon {
     ))
     .unwrap();
 
-    let headers = hashmap! {
-      "Authorization".to_string() => format!("Bearer {}", get_token().unwrap()),
+    let mut headers = hashmap! {
       "Accept".to_string() => "application/vnd.github.raw".to_string(),
     };
+
+    if let Some(token) = get_token() {
+      headers.insert("Authorization".to_string(), format!("Bearer {}", token));
+    }
 
     RepoIcon::load_with_headers(
       url,

@@ -1,18 +1,23 @@
 #![feature(async_closure, let_chains)]
+mod serialized_response;
+
 use console_error_panic_hook::set_once;
 use futures::{future::select_all, FutureExt};
 use repo_icons::{IconInfo, Readme, RepoIcon, RepoIconKind, RepoIcons};
 use serde::Serialize;
+use serialized_response::SerializedResponse;
 use worker::*;
 
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
   set_once();
 
+  let cache_kv = env.kv("CACHE")?;
+
   let mut url = req.url()?;
 
   let lowercase_path = url.path().to_lowercase();
-  if url.path().to_lowercase() != url.path() {
+  if lowercase_path != url.path() {
     url.set_path(&lowercase_path);
     return Response::redirect_with_status(url, 301);
   }
@@ -20,19 +25,24 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
   let token = url
     .query_pairs()
     .find_map(|(key, token)| if key == "token" { Some(token) } else { None });
-  if url.path().ends_with("/all") || url.path().ends_with("/images") || token.is_some() {
+  if lowercase_path.ends_with("/all") || lowercase_path.ends_with("/images") || token.is_some() {
     repo_icons::set_token(token);
   }
 
   let cache = Cache::default();
 
-  if !url.path().ends_with("/all") {
+  // clear the token from the URL
+  if !lowercase_path.ends_with("/all") {
     url.set_query(None);
   }
-  let url = url.to_string();
+  let cache_key = url.to_string();
 
-  if let Some(res) = cache.get(&url, false).await? {
+  if let Some(res) = cache.get(&cache_key, false).await? {
     return Ok(res);
+  };
+
+  if let Some(res) = cache_kv.get(&cache_key).text().await? {
+    return Ok(SerializedResponse::deserialize(res)?);
   };
 
   let router = Router::new();
@@ -163,12 +173,22 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
     .await?;
 
   {
-    let response = response.cloned()?;
+    let mut response = response.cloned()?;
     ctx.wait_until(async move {
       if response.status_code() == 404 {
-        let _ = cache.delete(&url, false).await;
+        let _ = cache.delete(&cache_key, false).await;
       } else if response.headers().has("Cache-Control").unwrap() {
-        let _ = cache.put(&url, response).await;
+        let serialized_response = SerializedResponse::from(response.cloned().unwrap())
+          .await
+          .ok();
+
+        if let Some(put) = serialized_response
+          .and_then(|serialized_response| cache_kv.put(&cache_key, serialized_response).ok())
+        {
+          let _ = put.execute().await;
+        }
+
+        let _ = cache.put(cache_key, response).await;
       }
     });
   }

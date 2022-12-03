@@ -1,9 +1,11 @@
 name = "github-icons"
-type = "javascript"
+main = "build/worker/shim.mjs"
 workers_dev = true
 compatibility_date = "2022-10-09"
 account_id = "3abe6f685dab548d1e22cb0f977a9e18"
 usage_model = "unbound"
+
+kv_namespaces = [{ binding = "CACHE", id = "dba88694538545fa8821d6010e1d1e17" }]
 
 [vars]
 WORKERS_RS_VERSION = "0.0.9"
@@ -11,11 +13,6 @@ WORKERS_RS_VERSION = "0.0.9"
 [build]
 command = "cargo install -q worker-build && worker-build --release" # required
 
-[build.upload]
-dir = "build/worker"
-format = "modules"
-main = "./shim.mjs"
-
-[[build.upload.rules]]
+[[rules]]
 globs = ["**/*.wasm"]
 type = "CompiledWasm"

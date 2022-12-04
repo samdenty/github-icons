@@ -14,10 +14,13 @@
     "@types/node": "18.11.9",
     "@types/react": "18.0.25",
     "@types/react-dom": "18.0.8",
+    "@types/react-modal": "^3.13.1",
     "next": "13.0.3",
     "next-auth": "^4.18.0",
+    "next-use-contextual-routing": "^2.3.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-modal": "^3.16.1",
     "typescript": "4.8.4",
     "use-fit-text": "^2.4.0"
   }

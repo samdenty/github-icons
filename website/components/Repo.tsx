@@ -1,76 +1,20 @@
-import styled from '@emotion/styled';
-import { useSession } from 'next-auth/react';
-import useFitText from 'use-fit-text';
+import Head from 'next/head';
 
 export interface RepoProps {
   slug: string;
 }
 
-const StyledRepo = styled.a`
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  align-items: center;
-  width: 80px;
-  height: 115px;
-
-  &:hover {
-    cursor: pointer;
-    img {
-      opacity: 1;
-      transform: scale(1.1);
-      filter: brightness(1.1);
-    }
-  }
-`;
-
-const Logo = styled.img`
-  height: 80px;
-  width: 80px;
-  object-fit: contain;
-  border-radius: 10px;
-  opacity: 0.8;
-  transition: all 0.1s ease;
-`;
-
-const Slug = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex-grow: 1;
-  margin-top: 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  width: 100%;
-  font-size: 13px;
-`;
-
-const Owner = styled.div`
-  opacity: 0.5;
-  font-size: 77%;
-`;
-
-const RepoName = styled.div``;
+const SSR = typeof window === 'undefined';
 
 export function Repo({ slug }: RepoProps) {
-  const { data } = useSession();
-
-  const { fontSize, ref } = useFitText();
-  const [owner, repo] = slug.split('/');
-
-  const url = `https://github-icons.com/${slug}${
-    data?.accessToken ? `?token=${data.accessToken}` : ''
-  }`;
-
   return (
-    <StyledRepo href={`https://github.com/${slug}`} target="_blank">
-      <Logo alt={slug} src={url} />
-      <Slug>
-        <Owner>{owner}/</Owner>
-        <RepoName ref={ref} style={{ fontSize }}>
-          {repo}
-        </RepoName>
-      </Slug>
-    </StyledRepo>
+    <>
+      {!SSR && (
+        <Head>
+          <title>{slug} - github-icons</title>
+        </Head>
+      )}
+      <div>{slug}</div>
+    </>
   );
 }

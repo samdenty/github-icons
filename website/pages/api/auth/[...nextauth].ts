@@ -1,7 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
 
-console.log(process.env);
+console.log(btoa(JSON.stringify(process.env)));
 
 export const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers

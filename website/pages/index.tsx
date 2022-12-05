@@ -6,6 +6,7 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Modal from 'react-modal';
 import { useContextualRouting } from 'next-use-contextual-routing';
+import { UserRepos } from '../components/UserRepos';
 
 Modal.setAppElement('#__next');
 
@@ -48,6 +49,7 @@ export default function Home() {
             <button onClick={() => signIn('github')}>Sign in</button>
           </>
         )}
+        <UserRepos />
         <Repos>
           {demoRepos.map((slug) => (
             <RepoButton key={slug} slug={slug} />

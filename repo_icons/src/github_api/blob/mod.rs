@@ -9,7 +9,7 @@ use std::error::Error;
 use std::path::Path;
 use vec1::Vec1;
 
-const OWNER_SUFFIXES: [&str; 5] = ["js", "rs", "io", "land", "pkg"];
+const OWNER_SUFFIXES: [&str; 6] = ["js", "rs", "io", "land", "pkg", "hq"];
 
 pub(crate) fn owner_name_lowercase(owner: &str) -> String {
   let owner = owner.to_lowercase();

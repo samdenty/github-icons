@@ -8,6 +8,7 @@ import Modal from 'react-modal';
 import { useContextualRouting } from 'next-use-contextual-routing';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
+import useFitText from 'use-fit-text';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,
@@ -22,9 +23,41 @@ const Repos = styled.div`
   width: 100%;
 `;
 
+const StyledRepoButton = styled(RepoButton)`
+  flex-direction: column;
+  text-align: center;
+  width: 80px;
+
+  &:hover img {
+    transform: scale(1.1);
+  }
+`;
+
+const Slug = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+  font-size: 13px;
+`;
+
+const Owner = styled.div`
+  opacity: 0.5;
+  font-size: 77%;
+`;
+
+const RepoName = styled.div`
+  ${StyledRepoButton}:hover & {
+    text-decoration: underline;
+  }
+`;
+
 export default function Home() {
   const { data: session } = useSession();
-
   const router = useRouter();
   const { returnHref } = useContextualRouting();
 
@@ -59,9 +92,21 @@ export default function Home() {
         )}
 
         <Repos>
-          {demoRepos.map((slug) => (
-            <RepoButton key={slug} slug={slug} />
-          ))}
+          {demoRepos.map((slug) => {
+            const [owner, repo] = slug.split('/');
+            const { fontSize, ref } = useFitText();
+
+            return (
+              <StyledRepoButton key={slug} slug={slug}>
+                <Slug>
+                  <Owner>{owner}/</Owner>
+                  <RepoName ref={ref} style={{ fontSize }}>
+                    {repo}
+                  </RepoName>
+                </Slug>
+              </StyledRepoButton>
+            );
+          })}
         </Repos>
       </main>
     </>

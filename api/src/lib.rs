@@ -8,6 +8,19 @@ use serde::Serialize;
 use serialized_response::SerializedResponse;
 use worker::*;
 
+fn redirect_to_www(req: Request, permanent: bool) -> Result<Response> {
+  let mut url = req.url()?;
+
+  url.set_host(
+    url
+      .host_str()
+      .map(|host| format!("www.{}", host))
+      .as_deref(),
+  )?;
+
+  Response::redirect_with_status(url, if permanent { 301 } else { 302 })
+}
+
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
   set_once();
@@ -58,18 +71,15 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
   let router = Router::new();
 
   let mut response = router
-    .get_async("/", async move |req, _| {
-      let mut url = req.url()?;
-      url.set_host(
-        url
-          .host_str()
-          .map(|host| format!("www.{}", host))
-          .as_deref(),
-      )?;
+    .get("/", move |req, _| redirect_to_www(req, true))
+    .get_async("/:owner/:repo", async move |req, ctx| {
+      // if user navigates to URL directly, then redirect them to www.
+      if let Some(fetch_mode) = req.headers().get("Sec-Fetch-Mode")? {
+        if fetch_mode == "navigate" {
+          return redirect_to_www(req, false);
+        }
+      }
 
-      Response::redirect_with_status(url, 301)
-    })
-    .get_async("/:owner/:repo", async move |_, ctx| {
       let mut write_to_cache = true;
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();

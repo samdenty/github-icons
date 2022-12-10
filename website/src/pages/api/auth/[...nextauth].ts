@@ -14,6 +14,17 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  jwt:
+    process.env.NODE_ENV === 'development'
+      ? {
+          encode({ token }) {
+            return JSON.stringify(token);
+          },
+          decode({ token }) {
+            return JSON.parse(token);
+          },
+        }
+      : undefined,
   callbacks: {
     async jwt({ token, account }) {
       if (account?.access_token) {

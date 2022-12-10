@@ -1,5 +1,15 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
+import { JWTOptions } from 'next-auth/jwt';
 import GithubProvider from 'next-auth/providers/github';
+
+const plainTextJWT: Partial<JWTOptions> = {
+  encode({ token }) {
+    return JSON.stringify(token);
+  },
+  decode({ token }) {
+    return token && JSON.parse(token);
+  },
+};
 
 export const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
@@ -14,17 +24,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  jwt:
-    process.env.NODE_ENV === 'development'
-      ? {
-          encode({ token }) {
-            return JSON.stringify(token);
-          },
-          decode({ token }) {
-            return JSON.parse(token);
-          },
-        }
-      : undefined,
+  jwt: process.env.NODE_ENV === 'development' ? plainTextJWT : undefined,
   callbacks: {
     async jwt({ token, account }) {
       if (account?.access_token) {

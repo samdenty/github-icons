@@ -8,7 +8,18 @@ use serde::Serialize;
 use serialized_response::SerializedResponse;
 use worker::*;
 
-fn redirect_to_www(req: Request, permanent: bool) -> Result<Response> {
+fn is_navigate(req: &Request) -> bool {
+  // if user navigates to URL directly, then redirect them to www.
+  if let Some(fetch_mode) = req.headers().get("Sec-Fetch-Mode").unwrap() {
+    if fetch_mode == "navigate" {
+      return true;
+    }
+  }
+
+  false
+}
+
+fn redirect_to_www(req: &Request, permanent: bool) -> Result<Response> {
   let mut url = req.url()?;
 
   url.set_host(
@@ -33,14 +44,17 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
     return Response::redirect_with_status(url, 301);
   }
 
+  let json_req = lowercase_path.ends_with("/all") || lowercase_path.ends_with("/images");
+
   let refetch = url
     .query_pairs()
-    .any(|(key, _)| key == "refetch" || key == "force" || key == "refresh");
+    .any(|(key, _)| key == "refetch" || key == "force" || key == "refresh")
+    || (!json_req && is_navigate(&req));
 
   let token = url
     .query_pairs()
     .find_map(|(key, token)| if key == "token" { Some(token) } else { None });
-  if lowercase_path.ends_with("/all") || lowercase_path.ends_with("/images") || token.is_some() {
+  if json_req || token.is_some() {
     repo_icons::set_token(token);
   }
 
@@ -71,13 +85,10 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
   let router = Router::new();
 
   let mut response = router
-    .get("/", move |req, _| redirect_to_www(req, true))
+    .get("/", move |req, _| redirect_to_www(&req, true))
     .get_async("/:owner/:repo", async move |req, ctx| {
-      // if user navigates to URL directly, then redirect them to www.
-      if let Some(fetch_mode) = req.headers().get("Sec-Fetch-Mode")? {
-        if fetch_mode == "navigate" {
-          return redirect_to_www(req, false);
-        }
+      if is_navigate(&req) {
+        return redirect_to_www(&req, false);
       }
 
       let mut write_to_cache = true;

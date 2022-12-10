@@ -1,12 +1,17 @@
 import { RepoButton } from '../components/RepoButton';
 import { Repo } from '../components/Repo';
-import demoRepos from '../demo-repos.json';
+import demoRepos from '../../demo-repos.json';
 import styled from '@emotion/styled';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Modal from 'react-modal';
 import { useContextualRouting } from 'next-use-contextual-routing';
-import { UserRepos } from '../components/UserRepos';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+
+const UserRepos = dynamic(() => import('../components/UserRepos'), {
+  ssr: false,
+});
 
 Modal.setAppElement('#__next');
 
@@ -42,6 +47,9 @@ export default function Home() {
           <>
             Signed in as {session.accessToken} <br />
             <button onClick={() => signOut()}>Sign out</button>
+            <Suspense fallback="loading">
+              <UserRepos />
+            </Suspense>
           </>
         ) : (
           <>
@@ -49,7 +57,7 @@ export default function Home() {
             <button onClick={() => signIn('github')}>Sign in</button>
           </>
         )}
-        <UserRepos />
+
         <Repos>
           {demoRepos.map((slug) => (
             <RepoButton key={slug} slug={slug} />

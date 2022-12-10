@@ -1,3 +1,5 @@
 {
-  "rust-analyzer.diagnostics.disabled": ["macro-error"]
+  "rust-analyzer.diagnostics.disabled": ["macro-error"],
+  "relay.autoStartCompiler": true,
+  "relay.rootDirectory": "website"
 }

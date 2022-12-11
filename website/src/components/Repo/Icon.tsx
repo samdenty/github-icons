@@ -142,7 +142,7 @@ export function Icon({
     <StyledIcon selected={selected} onClick={() => {}}>
       <img src={url} />
 
-      <SetAsIcon>Set as Icon in PR</SetAsIcon>
+      <SetAsIcon>Set as icon in PR</SetAsIcon>
 
       <Info>
         <Kind>{kind} — </Kind>

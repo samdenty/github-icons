@@ -10,7 +10,7 @@ kv_namespaces = [
 ]
 
 [build]
-command = "cargo install -q worker-build && worker-build --release" # required
+command = "cargo install -q worker-build && worker-build --release && cat src/init.js build/worker/shim.mjs > build/worker/shim2.mjs && mv build/worker/shim2.mjs build/worker/shim.mjs" # required
 
 [[rules]]
 globs = ["**/*.wasm"]

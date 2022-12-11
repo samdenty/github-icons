@@ -40,9 +40,10 @@ const OpenPR = styled.div`
   padding: 3px 8px;
   border-radius: 6px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
   white-space: nowrap;
+  letter-spacing: -0.2px;
 `;
 
 const StyledIcon = styled.button<{ selected: boolean }>`
@@ -141,7 +142,7 @@ export function Icon({
     <StyledIcon selected={selected} onClick={() => {}}>
       <img src={url} />
 
-      <OpenPR>Open PR</OpenPR>
+      <OpenPR>Open PR to switch</OpenPR>
 
       <Info>
         <Kind>{kind} — </Kind>

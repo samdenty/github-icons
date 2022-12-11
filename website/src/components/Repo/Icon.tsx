@@ -28,7 +28,7 @@ export type Icon = IconInfo & {
     | 'site_favicon';
 };
 
-const OpenPR = styled.div`
+const NewPR = styled.div`
   opacity: 0;
   position: absolute;
   top: 50%;
@@ -36,6 +36,7 @@ const OpenPR = styled.div`
   transform: translate(-50%, -50%);
   background: rgb(55 200 82 / 66%);
   backdrop-filter: blur(15px);
+  color: white;
   border: 1px solid rgba(240, 246, 252, 0.1);
   padding: 3px 8px;
   border-radius: 6px;
@@ -43,7 +44,6 @@ const OpenPR = styled.div`
   font-size: 13px;
   line-height: 20px;
   white-space: nowrap;
-  letter-spacing: -0.2px;
 `;
 
 const StyledIcon = styled.button<{ selected: boolean }>`
@@ -56,12 +56,13 @@ const StyledIcon = styled.button<{ selected: boolean }>`
   cursor: ${(props) => (props.selected ? `auto` : `pointer`)};
   height: 150px;
   width: 150px;
+  color: ${(props) => (props.selected ? '#308ff7' : '#37c852')};
 
   &:hover {
     background: ${(props) => (props.selected ? `#007aff21` : `#ffffff21`)};
     border-color: ${(props) => (props.selected ? `#007aff` : 'rgb(55 200 82)')};
 
-    ${OpenPR} {
+    ${NewPR} {
       opacity: ${(props) => (props.selected ? 0 : 1)};
     }
 
@@ -106,7 +107,6 @@ const Kind = styled.span`
 `;
 
 const Resolution = styled.span`
-  color: #308ff7;
   font-weight: 600;
 `;
 
@@ -142,7 +142,7 @@ export function Icon({
     <StyledIcon selected={selected} onClick={() => {}}>
       <img src={url} />
 
-      <OpenPR>Open PR to switch</OpenPR>
+      <NewPR>Set in New PR</NewPR>
 
       <Info>
         <Kind>{kind} — </Kind>

@@ -57,8 +57,7 @@ const StyledIcon = styled.button<{ selected: boolean }>`
 
   &:hover {
     background: ${(props) => (props.selected ? `#007aff21` : `#ffffff21`)};
-    border-color: ${(props) =>
-      props.selected ? `#007aff` : 'rgb(55 200 82 / 66%)'};
+    border-color: ${(props) => (props.selected ? `#007aff` : 'rgb(55 200 82)')};
 
     ${OpenPR} {
       opacity: ${(props) => (props.selected ? 0 : 1)};
@@ -125,10 +124,13 @@ export function Icon({
   const hasHeaders = Object.keys(headers).length !== 0;
 
   if (hasHeaders) {
-    const { data } = useQuery([url, headers], () =>
-      fetch(url, { headers })
-        .then((res) => res.blob())
-        .then(URL.createObjectURL)
+    const { data } = useQuery(
+      [url, headers],
+      () =>
+        fetch(url, { headers })
+          .then((res) => res.blob())
+          .then(URL.createObjectURL),
+      { cacheTime: 0 }
     );
 
     url = data!;

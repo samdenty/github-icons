@@ -49,8 +49,10 @@ export function Repo({ slug }: RepoProps) {
   }: typeof import('react-json-view') = require('react-json-view');
 
   const url = useUrl(slug, true);
-  const { data } = useQuery<Icon[]>([slug, 'all'], () =>
-    fetch(url).then((res) => res.json())
+  const { data } = useQuery<Icon[]>(
+    [slug, 'all'],
+    () => fetch(url).then((res) => res.json()),
+    { cacheTime: 0 }
   );
 
   return (

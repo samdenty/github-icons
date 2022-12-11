@@ -40,6 +40,8 @@ const AddIcon = styled.button`
 `;
 
 export function Repo({ slug }: RepoProps) {
+  slug = slug.toLowerCase();
+
   if (SSR) {
     return null;
   }

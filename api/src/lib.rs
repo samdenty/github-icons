@@ -34,6 +34,18 @@ fn redirect_to_www(req: &Request, permanent: bool) -> Result<Response> {
 
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
+  let response = request(req, env, ctx).await?;
+
+  let mut response =
+    Response::from_body(response.body().clone())?.with_headers(response.headers().clone());
+
+  let headers = response.headers_mut();
+  headers.set("Access-Control-Allow-Origin", "*")?;
+
+  Ok(response)
+}
+
+async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
   set_once();
 
   let mut url = req.url()?;
@@ -142,8 +154,8 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       )?;
 
       let mut res = match Fetch::Request(request).send().await {
-        Ok(mut response) => {
-          Response::from_stream(response.stream()?)?.with_headers(response.headers().clone())
+        Ok(response) => {
+          Response::from_body(response.body().clone())?.with_headers(response.headers().clone())
         }
         Err(err) => return Response::error(err.to_string(), 404),
       };
@@ -202,9 +214,6 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
     })
     .run(req.clone()?, env)
     .await?;
-
-  let headers = response.headers_mut();
-  headers.set("Access-Control-Allow-Origin", "*")?;
 
   {
     let mut response = response.cloned()?;

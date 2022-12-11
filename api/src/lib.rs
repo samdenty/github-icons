@@ -152,7 +152,6 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       if write_to_cache {
         headers.set("Cache-Control", "public, max-age=259200")?;
       }
-      headers.set("Access-Control-Allow-Origin", "*")?;
       headers.set(
         "Content-Type",
         match repo_icon.info {
@@ -177,7 +176,6 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       let mut response = from_json_pretty(&repo_icons)?;
 
       let headers = response.headers_mut();
-      headers.set("Access-Control-Allow-Origin", "*")?;
       headers.set("Cache-Control", "public, max-age=259200")?;
 
       Ok(response)
@@ -204,6 +202,9 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
     })
     .run(req.clone()?, env)
     .await?;
+
+  let headers = response.headers_mut();
+  headers.set("Access-Control-Allow-Origin", "*")?;
 
   {
     let mut response = response.cloned()?;

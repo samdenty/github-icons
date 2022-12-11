@@ -5,12 +5,14 @@ export type IconInfo =
   | {
       type: 'png' | 'jpeg';
       size: string;
+      sizes?: undefined;
     }
   | {
       type: 'ico';
+      size?: undefined;
       sizes: string[];
     }
-  | { type: 'svg' };
+  | { type: 'svg'; size?: undefined; sizes?: undefined };
 
 export type Icon = IconInfo & {
   url: string;
@@ -26,17 +28,45 @@ export type Icon = IconInfo & {
     | 'site_favicon';
 };
 
+const OpenPR = styled.div`
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgb(55 200 82 / 66%);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(240, 246, 252, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+`;
+
 const StyledIcon = styled.button<{ selected: boolean }>`
   position: relative;
   border-radius: 16px;
   padding: 17px;
-  border: 4px solid transparent;
+  border: 3px solid transparent;
   border-color: ${(props) => (props.selected ? `#007aff` : 'transparent')};
   background: ${(props) => (props.selected ? `#007aff21` : `transparent`)};
   cursor: ${(props) => (props.selected ? `auto` : `pointer`)};
+  height: 180px;
+  width: 180px;
 
   &:hover {
     background: ${(props) => (props.selected ? `#007aff21` : `#ffffff21`)};
+    border-color: ${(props) =>
+      props.selected ? `#007aff` : 'rgb(55 200 82 / 66%)'};
+
+    ${OpenPR} {
+      opacity: ${(props) => (props.selected ? 0 : 1)};
+    }
+
+    img {
+      filter: brightness(${(props) => (props.selected ? 1 : 0.3)});
+    }
   }
 
   img {
@@ -52,27 +82,46 @@ const StyledIcon = styled.button<{ selected: boolean }>`
   }
 `;
 
-const Resolution = styled.div`
+const Info = styled.div`
+  display: flex;
+  align-items: center;
+  white-space: pre;
   position: absolute;
-  bottom: 0;
+  bottom: 2px;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
   font-family: system-ui;
-  font-size: 10px;
-  font-weight: 600;
-  margin-bottom: 3px;
   padding: 2px 5px;
-  line-height: 9px;
-  color: #ffffff6b;
   background: #ffffff12;
+  border-radius: 3px;
+  line-height: 9px;
+  font-size: 10px;
+`;
+
+const Kind = styled.span`
+  color: #ffffff6b;
+  font-weight: 400;
+`;
+
+const Resolution = styled.span`
+  color: #308ff7;
+  font-weight: 600;
 `;
 
 type IconProps = Icon & {
   selected?: boolean;
 };
 
-export function Icon({ url, headers, type, selected = false }: IconProps) {
+export function Icon({
+  url,
+  headers,
+  type,
+  kind,
+  size,
+  sizes,
+  selected = false,
+}: IconProps) {
   const hasHeaders = Object.keys(headers).length !== 0;
 
   if (hasHeaders) {
@@ -87,24 +136,16 @@ export function Icon({ url, headers, type, selected = false }: IconProps) {
 
   return (
     <StyledIcon selected={selected} onClick={() => {}}>
-      <img
-        src={url}
-        ref={(elem: HTMLImageElement) => {
-          if (!elem) return;
+      <img src={url} />
 
-          function setResolution() {
-            (elem.nextElementSibling as HTMLDivElement).innerText =
-              type === 'svg'
-                ? `SVG`
-                : `${elem.naturalWidth}x${elem.naturalHeight}`;
-          }
+      <OpenPR>Open PR</OpenPR>
 
-          setResolution();
-          elem.onload = setResolution;
-        }}
-      />
-
-      <Resolution />
+      <Info>
+        <Kind>{kind} — </Kind>
+        <Resolution>
+          {type === 'svg' ? 'SVG' : type === 'ico' ? sizes[0] : size}
+        </Resolution>
+      </Info>
     </StyledIcon>
   );
 }

@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-import { useSession } from 'next-auth/react';
 import Head from 'next/head';
 import { useQuery } from 'react-query';
 import { useUrl } from '../../lib/useUrl';
@@ -14,7 +13,7 @@ const SSR = typeof window === 'undefined';
 const AddIcon = styled.button`
   border-radius: 16px;
   padding: 10px;
-  border: 4px solid #0000006e;
+  border: 3px solid #0000006e;
   background: #00000021;
   font-size: 70px;
   line-height: 1px;
@@ -41,6 +40,14 @@ const AddIcon = styled.button`
 `;
 
 export function Repo({ slug }: RepoProps) {
+  if (SSR) {
+    return null;
+  }
+
+  const {
+    default: ReactJson,
+  }: typeof import('react-json-view') = require('react-json-view');
+
   const url = useUrl(slug, true);
   const { data } = useQuery<Icon[]>([slug, 'all'], () =>
     fetch(url).then((res) => res.json())
@@ -48,15 +55,19 @@ export function Repo({ slug }: RepoProps) {
 
   return (
     <>
-      {!SSR && (
-        <Head>
-          <title>{slug} - github-icons</title>
-        </Head>
-      )}
+      <Head>
+        <title>{slug} - github-icons</title>
+      </Head>
+
       <div>
-        {data?.map((icon, i) => (
-          <Icon key={JSON.stringify(icon)} {...icon} selected={i === 0} />
-        ))}
+        {data && (
+          <>
+            {data.map((icon, i) => (
+              <Icon key={JSON.stringify(icon)} {...icon} selected={i === 0} />
+            ))}
+            <ReactJson src={data} name={false} theme="summerfruit" />
+          </>
+        )}
       </div>
     </>
   );

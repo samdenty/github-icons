@@ -5,7 +5,9 @@ compatibility_date = "2022-10-09"
 account_id = "3abe6f685dab548d1e22cb0f977a9e18"
 usage_model = "unbound"
 
-kv_namespaces = [{ binding = "CACHE", id = "dba88694538545fa8821d6010e1d1e17" }]
+kv_namespaces = [
+  { binding = "CACHE", id = "dba88694538545fa8821d6010e1d1e17", preview_id = "61845afb9e4b486aaf7f02453c3620c8" },
+]
 
 [build]
 command = "cargo install -q worker-build && worker-build --release" # required

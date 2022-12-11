@@ -142,7 +142,9 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
       )?;
 
       let mut res = match Fetch::Request(request).send().await {
-        Ok(mut response) => response.cloned()?,
+        Ok(mut response) => {
+          Response::from_stream(response.stream()?)?.with_headers(response.headers().clone())
+        }
         Err(err) => return Response::error(err.to_string(), 404),
       };
 

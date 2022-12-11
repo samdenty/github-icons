@@ -28,7 +28,7 @@ export type Icon = IconInfo & {
     | 'site_favicon';
 };
 
-const NewPR = styled.div`
+const SetAsIcon = styled.div`
   opacity: 0;
   position: absolute;
   top: 50%;
@@ -62,7 +62,7 @@ const StyledIcon = styled.button<{ selected: boolean }>`
     background: ${(props) => (props.selected ? `#007aff21` : `#ffffff21`)};
     border-color: ${(props) => (props.selected ? `#007aff` : 'rgb(55 200 82)')};
 
-    ${NewPR} {
+    ${SetAsIcon} {
       opacity: ${(props) => (props.selected ? 0 : 1)};
     }
 
@@ -142,7 +142,7 @@ export function Icon({
     <StyledIcon selected={selected} onClick={() => {}}>
       <img src={url} />
 
-      <NewPR>Set in New PR</NewPR>
+      <SetAsIcon>Set as Icon in PR</SetAsIcon>
 
       <Info>
         <Kind>{kind} — </Kind>

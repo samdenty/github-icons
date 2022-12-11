@@ -1,6 +1,6 @@
 import Modal from 'react-modal';
 import { useRouter } from 'next/router';
-import { Repo } from '../../components/Repo';
+import { Repo } from '../../components/Repo/Repo';
 
 export default function RepoPage() {
   const router = useRouter();

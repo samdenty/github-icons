@@ -7,10 +7,19 @@ import { Session } from 'next-auth';
 import { RelayEnvironmentProvider } from 'react-relay/hooks';
 import { getInitialPreloadedQuery, getRelayProps } from 'relay-nextjs/app';
 import { getClientEnvironment } from '../lib/clientEnvironment';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 const clientEnv = getClientEnvironment();
 const initialPreloadedQuery = getInitialPreloadedQuery({
   createClientEnvironment: () => getClientEnvironment()!,
+});
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      suspense: true,
+    },
+  },
 });
 
 export default function App({
@@ -21,20 +30,22 @@ export default function App({
   const env = relayProps.preloadedQuery?.environment ?? clientEnv!;
 
   return (
-    <SessionProvider session={session}>
-      <RelayEnvironmentProvider environment={env}>
-        <Head>
-          <title>github-icons</title>
-          <meta
-            name="description"
-            content="Chrome Extension, API & Mac App/CLI that adds icons to your repos"
-          />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+    <QueryClientProvider client={queryClient}>
+      <SessionProvider session={session}>
+        <RelayEnvironmentProvider environment={env}>
+          <Head>
+            <title>github-icons</title>
+            <meta
+              name="description"
+              content="Chrome Extension, API & Mac App/CLI that adds icons to your repos"
+            />
+            <link rel="icon" href="/favicon.ico" />
+          </Head>
 
-        <BackgroundEffect />
-        <Component {...pageProps} {...relayProps} />
-      </RelayEnvironmentProvider>
-    </SessionProvider>
+          <BackgroundEffect />
+          <Component {...pageProps} {...relayProps} />
+        </RelayEnvironmentProvider>
+      </SessionProvider>
+    </QueryClientProvider>
   );
 }

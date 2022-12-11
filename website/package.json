@@ -24,6 +24,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-modal": "^3.16.1",
+    "react-query": "^3.39.2",
     "react-relay": "^14.1.0",
     "relay-nextjs": "^1.0.1",
     "relay-runtime": "^14.1.0",

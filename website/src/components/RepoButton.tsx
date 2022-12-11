@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { useSession } from 'next-auth/react';
 import { useContextualRouting } from 'next-use-contextual-routing';
 import Link from 'next/link';
+import { useUrl } from '../lib/useUrl';
 
 export interface RepoButtonProps {
   slug: string;
@@ -36,13 +37,9 @@ const Logo = styled.img`
 
 export function RepoButton({ slug, children, ...props }: RepoButtonProps) {
   const { makeContextualHref } = useContextualRouting();
-  const { data } = useSession();
+  const iconUrl = useUrl(slug);
 
   const [owner, repo] = slug.split('/');
-
-  const url = `https://github-icons.com/${slug}${
-    data?.accessToken ? `?token=${data.accessToken}` : ''
-  }`;
 
   return (
     <RepoLink
@@ -50,7 +47,7 @@ export function RepoButton({ slug, children, ...props }: RepoButtonProps) {
       href={makeContextualHref({ owner, repo })}
       as={`/${slug}`}
     >
-      <Logo alt={slug} src={url} />
+      <Logo alt={slug} src={iconUrl} />
       {typeof children === 'function' ? children({ owner, repo }) : children}
     </RepoLink>
   );

@@ -1,5 +1,5 @@
 import { RepoButton } from '../components/RepoButton';
-import { Repo } from '../components/Repo';
+import { Repo } from '../components/Repo/Repo';
 import demoRepos from '../../demo-repos.json';
 import styled from '@emotion/styled';
 import { useSession, signIn, signOut } from 'next-auth/react';
@@ -72,7 +72,11 @@ export default function Home() {
           },
         }}
       >
-        <Repo slug={`${router.query.owner}/${router.query.repo}`}></Repo>
+        {router.query.repo && (
+          <Suspense fallback="loading">
+            <Repo slug={`${router.query.owner}/${router.query.repo}`}></Repo>
+          </Suspense>
+        )}
       </Modal>
 
       <main>

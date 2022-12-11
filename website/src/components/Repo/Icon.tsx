@@ -42,6 +42,7 @@ const OpenPR = styled.div`
   font-weight: 500;
   font-size: 14px;
   line-height: 20px;
+  white-space: nowrap;
 `;
 
 const StyledIcon = styled.button<{ selected: boolean }>`
@@ -52,8 +53,8 @@ const StyledIcon = styled.button<{ selected: boolean }>`
   border-color: ${(props) => (props.selected ? `#007aff` : 'transparent')};
   background: ${(props) => (props.selected ? `#007aff21` : `transparent`)};
   cursor: ${(props) => (props.selected ? `auto` : `pointer`)};
-  height: 180px;
-  width: 180px;
+  height: 150px;
+  width: 150px;
 
   &:hover {
     background: ${(props) => (props.selected ? `#007aff21` : `#ffffff21`)};
@@ -64,7 +65,7 @@ const StyledIcon = styled.button<{ selected: boolean }>`
     }
 
     img {
-      filter: brightness(${(props) => (props.selected ? 1 : 0.3)});
+      opacity: ${(props) => (props.selected ? 1 : 0.3)};
     }
   }
 

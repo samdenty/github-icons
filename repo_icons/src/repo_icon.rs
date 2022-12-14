@@ -48,8 +48,8 @@ pub enum RepoIconKind {
   IconField(Option<RepoBlob>),
   UserAvatar,
   AppIcon,
-  SiteFavicon,
   Blob(Option<RepoBlob>),
+  SiteFavicon,
   ReadmeImage,
   SiteLogo,
 }

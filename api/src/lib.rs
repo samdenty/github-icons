@@ -32,12 +32,17 @@ fn redirect_to_www(req: &Request, permanent: bool) -> Result<Response> {
   Response::redirect_with_status(url, if permanent { 301 } else { 302 })
 }
 
+fn clone_response(response: Response) -> Result<Response> {
+  Ok(
+    Response::from_body(response.body().clone())?
+      .with_status(response.status_code())
+      .with_headers(response.headers().clone()),
+  )
+}
+
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
-  let response = request(req, env, ctx).await?;
-
-  let mut response =
-    Response::from_body(response.body().clone())?.with_headers(response.headers().clone());
+  let mut response = clone_response(request(req, env, ctx).await?)?;
 
   let headers = response.headers_mut();
   headers.set("Access-Control-Allow-Origin", "*")?;
@@ -154,9 +159,7 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       )?;
 
       let mut res = match Fetch::Request(request).send().await {
-        Ok(response) => {
-          Response::from_body(response.body().clone())?.with_headers(response.headers().clone())
-        }
+        Ok(response) => clone_response(response)?,
         Err(err) => return Response::error(err.to_string(), 404),
       };
 

@@ -22,7 +22,7 @@ export type Icon = IconInfo & {
     | 'icon_field'
     | 'user_avatar'
     | 'app_icon'
-    | 'blob'
+    | 'repo_file'
     | 'readme_image'
     | 'site_logo'
     | 'site_favicon';

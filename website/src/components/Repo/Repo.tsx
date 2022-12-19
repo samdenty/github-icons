@@ -10,8 +10,8 @@ const PRETTY_KINDS: Record<Icon['kind'], string> = {
   app_icon: `App Icons from repo's homepage`,
   site_favicon: `Favicons from repo's homepage`,
   site_logo: `Logo on repo's homepage`,
-  blob: `Files within repo`,
-  user_avatar: `Repo Owners Avatar`,
+  repo_file: `Files within repo`,
+  user_avatar: `Repo owner's Avatar`,
   readme_image: `Images at top of README`,
 };
 

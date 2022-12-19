@@ -40,7 +40,7 @@ const SetAsIcon = styled.div`
   padding: 4px;
   font-weight: 500;
   font-size: 13px;
-  line-height: 13px;
+  line-height: 15px;
   white-space: nowrap;
 `;
 
@@ -48,7 +48,8 @@ const StyledIcon = styled.button<{ selected: boolean }>`
   position: relative;
   overflow: hidden;
   border-radius: 12px;
-  padding: 17px;
+  padding: 8px 17px 17px;
+  outline: none;
   border: 2px solid transparent;
   background: ${(props) => (props.selected ? `#4dff6e1a` : `transparent`)};
   border-color: ${(props) => (props.selected ? `#37c852` : 'transparent')};
@@ -58,10 +59,11 @@ const StyledIcon = styled.button<{ selected: boolean }>`
   color: ${(props) => (props.selected ? '#2cff54e6' : '#ffffffa6')};
   transition: all 0.2s ease;
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     background: #4dff6e1a;
     border-color: #37c852;
-    padding: ${(props) => (props.selected ? '17px' : '5px 17px 40px')};
+    padding: ${(props) => (props.selected ? '' : '5px 17px 40px')};
     color: ${(props) => (props.selected ? '#2cff54e6' : '#c8ffd3e6')};
 
     ${SetAsIcon} {

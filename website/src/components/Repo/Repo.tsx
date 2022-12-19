@@ -5,6 +5,16 @@ import { useUrl } from '../../lib/useUrl';
 import { Icon } from './Icon';
 import _ from 'lodash';
 
+const PRETTY_KINDS: Record<Icon['kind'], string> = {
+  icon_field: `Root package.json "icon" field`,
+  app_icon: `App Icons from repo's homepage`,
+  site_favicon: `Favicons from repo's homepage`,
+  site_logo: `Logo on repo's homepage`,
+  blob: `Files within repo`,
+  user_avatar: `Repo Owners Avatar`,
+  readme_image: `Images at top of README`,
+};
+
 export interface RepoProps {
   slug: string;
 }
@@ -40,6 +50,16 @@ const AddIcon = styled.button`
   }
 `;
 
+const KindGroup = styled.div``;
+
+const Kind = styled.div``;
+
+const Icons = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 100px);
+  grid-gap: 8px;
+`;
+
 export function Repo({ slug }: RepoProps) {
   slug = slug.toLowerCase();
 
@@ -69,18 +89,21 @@ export function Repo({ slug }: RepoProps) {
       <div>
         {data && (
           <>
+            <h2>Auto-Detected repo icons</h2>
             {Object.entries(iconByKinds).map(
               ([kind, icons], iconByKindIndex) => (
-                <div>
-                  {kind}
-                  {icons.map((icon, index) => (
-                    <Icon
-                      key={JSON.stringify(icon)}
-                      {...icon}
-                      selected={iconByKindIndex === 0 && index === 0}
-                    />
-                  ))}
-                </div>
+                <KindGroup>
+                  <Kind>{PRETTY_KINDS[kind as Icon['kind']]}:</Kind>
+                  <Icons>
+                    {icons.map((icon, index) => (
+                      <Icon
+                        key={JSON.stringify(icon)}
+                        {...icon}
+                        selected={iconByKindIndex === 0 && index === 0}
+                      />
+                    ))}
+                  </Icons>
+                </KindGroup>
               )
             )}
             <ReactJson src={data} name={false} theme="summerfruit" />

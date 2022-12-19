@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useQuery } from 'react-query';
 import { useUrl } from '../../lib/useUrl';
 import { Icon } from './Icon';
+import _ from 'lodash';
 
 export interface RepoProps {
   slug: string;
@@ -57,6 +58,8 @@ export function Repo({ slug }: RepoProps) {
     { cacheTime: 0 }
   );
 
+  const iconByKinds = _.groupBy(data, 'kind');
+
   return (
     <>
       <Head>
@@ -66,9 +69,20 @@ export function Repo({ slug }: RepoProps) {
       <div>
         {data && (
           <>
-            {data.map((icon, i) => (
-              <Icon key={JSON.stringify(icon)} {...icon} selected={i === 0} />
-            ))}
+            {Object.entries(iconByKinds).map(
+              ([kind, icons], iconByKindIndex) => (
+                <div>
+                  {kind}
+                  {icons.map((icon, index) => (
+                    <Icon
+                      key={JSON.stringify(icon)}
+                      {...icon}
+                      selected={iconByKindIndex === 0 && index === 0}
+                    />
+                  ))}
+                </div>
+              )
+            )}
             <ReactJson src={data} name={false} theme="summerfruit" />
           </>
         )}

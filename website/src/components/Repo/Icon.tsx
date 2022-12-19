@@ -29,45 +29,43 @@ export type Icon = IconInfo & {
 };
 
 const SetAsIcon = styled.div`
-  opacity: 0;
+  display: none;
   position: absolute;
-  top: 50%;
+  bottom: -2px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgb(55 200 82 / 66%);
-  backdrop-filter: blur(15px);
-  color: white;
-  border: 1px solid rgba(240, 246, 252, 0.1);
-  padding: 3px 8px;
-  border-radius: 6px;
+  width: 100%;
+  transform: translateX(-50%);
+  background: #258e39;
+  color: #ffffffdb;
+  padding: 4px;
   font-weight: 500;
   font-size: 13px;
-  line-height: 20px;
+  line-height: 13px;
   white-space: nowrap;
 `;
 
 const StyledIcon = styled.button<{ selected: boolean }>`
   position: relative;
-  border-radius: 16px;
+  overflow: hidden;
+  border-radius: 12px;
   padding: 17px;
-  border: 3px solid transparent;
-  border-color: ${(props) => (props.selected ? `#007aff` : 'transparent')};
-  background: ${(props) => (props.selected ? `#007aff21` : `transparent`)};
+  border: 2px solid transparent;
+  background: ${(props) => (props.selected ? `#4dff6e1a` : `transparent`)};
+  border-color: ${(props) => (props.selected ? `#37c852` : 'transparent')};
   cursor: ${(props) => (props.selected ? `auto` : `pointer`)};
-  height: 150px;
-  width: 150px;
-  color: ${(props) => (props.selected ? '#308ff7' : '#37c852')};
+  height: 100px;
+  width: 100px;
+  color: ${(props) => (props.selected ? '#2cff54e6' : '#ffffffa6')};
+  transition: all 0.2s ease;
 
   &:hover {
-    background: ${(props) => (props.selected ? `#007aff21` : `#ffffff21`)};
-    border-color: ${(props) => (props.selected ? `#007aff` : 'rgb(55 200 82)')};
+    background: #4dff6e1a;
+    border-color: #37c852;
+    padding: ${(props) => (props.selected ? '17px' : '5px 17px 40px')};
+    color: ${(props) => (props.selected ? '#2cff54e6' : '#c8ffd3e6')};
 
     ${SetAsIcon} {
-      opacity: ${(props) => (props.selected ? 0 : 1)};
-    }
-
-    img {
-      opacity: ${(props) => (props.selected ? 1 : 0.3)};
+      display: ${(props) => (props.selected ? 'none' : 'block')};
     }
   }
 
@@ -84,7 +82,7 @@ const StyledIcon = styled.button<{ selected: boolean }>`
   }
 `;
 
-const Info = styled.div`
+const Resolution = styled.span`
   display: flex;
   align-items: center;
   white-space: pre;
@@ -93,21 +91,23 @@ const Info = styled.div`
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
+  font-weight: 600;
   font-family: system-ui;
   padding: 2px 5px;
-  background: #ffffff12;
-  border-radius: 3px;
   line-height: 9px;
   font-size: 10px;
-`;
 
-const Kind = styled.span`
-  color: #ffffff6b;
-  font-weight: 400;
-`;
-
-const Resolution = styled.span`
-  font-weight: 600;
+  &:after {
+    content: '';
+    background: currentColor;
+    opacity: 0.18;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+  }
 `;
 
 type IconProps = Icon & {
@@ -142,14 +142,15 @@ export function Icon({
     <StyledIcon selected={selected} onClick={() => {}}>
       <img src={url} />
 
-      <SetAsIcon>Set as icon in PR</SetAsIcon>
+      <Resolution>
+        {type === 'svg' ? 'SVG' : type === 'ico' ? sizes[0] : size}
+      </Resolution>
 
-      <Info>
-        <Kind>{kind} — </Kind>
-        <Resolution>
-          {type === 'svg' ? 'SVG' : type === 'ico' ? sizes[0] : size}
-        </Resolution>
-      </Info>
+      <SetAsIcon>
+        Set as icon
+        <br />
+        in PR
+      </SetAsIcon>
     </StyledIcon>
   );
 }

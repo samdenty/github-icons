@@ -12,7 +12,7 @@ const PRETTY_KINDS: Record<Icon['kind'], string> = {
   site_logo: `Logo on repo's homepage`,
   repo_file: `Files within repo`,
   user_avatar: `Repo owner's Avatar`,
-  readme_image: `Images at top of README`,
+  readme_image: `Image at top of README`,
 };
 
 export interface RepoProps {

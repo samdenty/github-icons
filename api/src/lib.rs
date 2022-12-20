@@ -159,7 +159,7 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       )?;
 
       let mut res = match Fetch::Request(request).send().await {
-        Ok(response) => modifiable_response(response)?,
+        Ok(response) => Response::from_body(response.body().clone())?,
         Err(err) => return Response::error(err.to_string(), 404),
       };
 

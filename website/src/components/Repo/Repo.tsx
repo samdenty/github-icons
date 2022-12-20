@@ -15,6 +15,14 @@ const PRETTY_KINDS: Record<Icon['kind'], string> = {
   readme_image: `Image at top of README`,
 };
 
+function prettyKind(kind: Icon['kind'], kindIndex: number) {
+  const prettyKind = PRETTY_KINDS[kind as Icon['kind']];
+
+  return `${prettyKind}${
+    kind === 'user_avatar' && kindIndex !== 0 ? ' (fallback)' : ''
+  }`;
+}
+
 export interface RepoProps {
   slug: string;
 }
@@ -93,7 +101,10 @@ export function Repo({ slug }: RepoProps) {
             {Object.entries(iconByKinds).map(
               ([kind, icons], iconByKindIndex) => (
                 <KindGroup>
-                  <Kind>{PRETTY_KINDS[kind as Icon['kind']]}:</Kind>
+                  <Kind>
+                    {prettyKind(kind as Icon['kind'], iconByKindIndex)}:
+                  </Kind>
+
                   <Icons>
                     {icons.map((icon, index) => (
                       <Icon

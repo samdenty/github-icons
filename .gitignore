@@ -1,4 +1,5 @@
 /target
+/vscode-extension
 extension/src/utils/image.ts
 **/*.rs.bk
 **/.DS_STORE

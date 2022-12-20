@@ -10,13 +10,14 @@ This repository contains the source code for the github-icons CLI. You can also 
 
 ## Repo structure
 
-| Folder                      | Description                                          |
-| --------------------------- | ---------------------------------------------------- |
-| [`api`](/api)               | Cloudflare worker for fetching repo icons            |
-| [`cli`](/cli)               | CLI for adding repo icons to .git folders            |
-| [`extension`](/extension)   | Chrome extension for adding repo icons to github.com |
-| [`repo_icons`](/repo_icons) | Rust crate for scraping repo icons                   |
-| [`website`](/website)       | The www.github-icons.com website                     |
+| Folder                                  | Description                                          |
+| --------------------------------------- | ---------------------------------------------------- |
+| [`api`](/api)                           | Cloudflare worker for fetching repo icons            |
+| [`cli`](/cli)                           | CLI for adding repo icons to .git folders            |
+| [`chrome-extension`](/chrome-extension) | Chrome extension for adding repo icons to github.com |
+| [`vscode-extension`](/vscode-extension) | VSCode extension that adds NPM / GitHub icons        |
+| [`repo_icons`](/repo_icons)             | Rust crate for scraping repo icons                   |
+| [`website`](/website)                   | The www.github-icons.com website                     |
 
 ## Running the CLI
 

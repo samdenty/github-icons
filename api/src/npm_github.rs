@@ -19,7 +19,7 @@ pub async fn get_slug(package_name: &str) -> Result<String, Box<dyn Error>> {
   let repository_url = match repository {
     Value::String(s) => &s,
     Value::Object(o) => o["url"].as_str().unwrap(),
-    _ => return Err("unexpected npm response".into()),
+    value => return Err(format!("unexpected npm response {:?}", value).into()),
   };
 
   let re = Regex::new(r"github(\.com)?[/:]([^/]+/[^/]+)").unwrap();

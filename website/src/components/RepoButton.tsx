@@ -35,7 +35,7 @@ const Logo = styled.img`
   }
 `;
 
-export function RepoButton({ slug, children, ...props }: RepoButtonProps) {
+export function IconButton({ slug, children, ...props }: RepoButtonProps) {
   const { makeContextualHref } = useContextualRouting();
   const iconUrl = useUrl(slug);
 

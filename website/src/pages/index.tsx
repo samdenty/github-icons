@@ -1,6 +1,6 @@
-import { RepoButton } from '../components/RepoButton';
+import { IconButton } from '../components/RepoButton';
 import { Repo } from '../components/Repo/Repo';
-import demoRepos from '../../demo-repos.json';
+import demo from '../../demo.json';
 import styled from '@emotion/styled';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
@@ -23,7 +23,7 @@ const Repos = styled.div`
   width: 100%;
 `;
 
-const StyledRepoButton = styled(RepoButton)`
+const StyledIconButton = styled(IconButton)`
   flex-direction: column;
   text-align: center;
   width: 80px;
@@ -50,8 +50,8 @@ const Owner = styled.div`
   font-size: 77%;
 `;
 
-const RepoName = styled.div`
-  ${StyledRepoButton}:hover & {
+const Name = styled.div`
+  ${StyledIconButton}:hover & {
     text-decoration: underline;
   }
 `;
@@ -94,21 +94,48 @@ export default function Home() {
             <button onClick={() => signIn('github')}>Sign in</button>
           </>
         )}
-
+        NPM packages:
         <Repos>
-          {demoRepos.map((slug) => {
+          {demo.npmPackages.map((slug) => {
+            let [org, packageName] = slug.split('/') as [
+              string | undefined,
+              string
+            ];
+
+            if (!packageName) {
+              packageName = org!;
+              org = undefined;
+            }
+
+            const { fontSize, ref } = useFitText();
+
+            return (
+              <StyledIconButton key={slug} slug={`npm/${slug}`}>
+                <Slug>
+                  {org && <Owner>{org}</Owner>}
+                  <Name ref={ref} style={{ fontSize }}>
+                    {packageName}
+                  </Name>
+                </Slug>
+              </StyledIconButton>
+            );
+          })}
+        </Repos>
+        GitHub repos:
+        <Repos>
+          {demo.repos.map((slug) => {
             const [owner, repo] = slug.split('/');
             const { fontSize, ref } = useFitText();
 
             return (
-              <StyledRepoButton key={slug} slug={slug}>
+              <StyledIconButton key={slug} slug={slug}>
                 <Slug>
                   <Owner>{owner}/</Owner>
-                  <RepoName ref={ref} style={{ fontSize }}>
+                  <Name ref={ref} style={{ fontSize }}>
                     {repo}
-                  </RepoName>
+                  </Name>
                 </Slug>
-              </StyledRepoButton>
+              </StyledIconButton>
             );
           })}
         </Repos>

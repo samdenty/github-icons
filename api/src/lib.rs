@@ -103,13 +103,12 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
   let router = Router::new();
 
   let npm_handler = async move |req: Request, ctx: RouteContext<()>| {
-    let org = ctx.param("org");
-    let package = ctx.param("package").ok_or("expected package")?;
+    let org_or_package = ctx.param("org_or_package").unwrap().clone();
 
-    let package_name = if let Some(org) = org {
-      format!("{}/{}", org, package)
+    let package_name = if let Some(package) = ctx.param("package") {
+      format!("{}/{}", org_or_package, package)
     } else {
-      package.clone()
+      org_or_package
     };
 
     let slug = match npm_github::get_slug(&package_name).await {
@@ -125,8 +124,8 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
 
   let mut response = router
     .get("/", move |req, _| redirect_to_www(&req, true))
-    .get_async("/npm/:org/:package", npm_handler)
-    .get_async("/npm/:package", npm_handler)
+    .get_async("/npm/:org_or_package/:package", npm_handler)
+    .get_async("/npm/:org_or_package", npm_handler)
     .get_async("/:owner/:repo", async move |req, ctx| {
       if is_navigate(&req) {
         return redirect_to_www(&req, false);

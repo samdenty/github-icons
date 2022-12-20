@@ -1,4 +1,5 @@
 #![feature(async_closure, let_chains)]
+mod npm_github;
 mod serialized_response;
 
 use console_error_panic_hook::set_once;
@@ -103,6 +104,19 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
 
   let mut response = router
     .get("/", move |req, _| redirect_to_www(&req, true))
+    .get_async("/npm/:package", async move |req, ctx| {
+      let package = ctx.param("package").ok_or("expected package")?.as_str();
+
+      let slug = match npm_github::get_slug(package).await {
+        Ok(slug) => slug,
+        Err(err) => return Response::error(err.to_string(), 404),
+      };
+
+      let mut url = req.url()?;
+      url.set_path(&format!("/{}", slug));
+
+      Response::redirect_with_status(url, 302)
+    })
     .get_async("/:owner/:repo", async move |req, ctx| {
       if is_navigate(&req) {
         return redirect_to_www(&req, false);
@@ -112,7 +126,7 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
       let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
 
-      let user_avatar = RepoIcon::load_avatar(owner).shared();
+      let user_avatar = RepoIcon::load_user_avatar(owner).shared();
 
       let mut futures = vec![
         async {
@@ -153,15 +167,12 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
         headers.set(header_name, header_value)?;
       }
 
-      let request = Request::new_with_init(
-        &repo_icon.url.to_string(),
-        RequestInit::new().with_headers(headers),
-      )?;
-
-      let mut res = match Fetch::Request(request).send().await {
-        Ok(response) => Response::from_body(response.body().clone())?,
+      let bytes = match repo_icon.data().await {
+        Ok(bytes) => bytes,
         Err(err) => return Response::error(err.to_string(), 404),
       };
+
+      let mut res = Response::from_bytes(bytes)?;
 
       let headers = res.headers_mut();
       if write_to_cache {

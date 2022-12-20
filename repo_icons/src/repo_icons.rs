@@ -61,7 +61,7 @@ impl RepoIcons {
         let icon = if repo.to_lowercase().contains(&owner_name_lowercase(owner))
           || docs.is_match(&repo.to_lowercase()).unwrap()
         {
-          RepoIcon::load_avatar(owner).await
+          RepoIcon::load_user_avatar(owner).await
         } else {
           None
         };

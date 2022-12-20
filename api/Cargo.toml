@@ -14,6 +14,7 @@ serde_json = "1.0"
 serde = "1.0"
 futures = "0.3.12"
 repo_icons = { path = "../repo_icons" }
+regex = "1.7.0"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.

@@ -1,4 +1,3 @@
-use bytes::Bytes;
 use data_url::DataUrl;
 use gh_api::get_token;
 #[cfg(feature = "image")]
@@ -147,7 +146,7 @@ impl RepoIcon {
     Ok(Self::new_with_headers(url, headers, kind, info))
   }
 
-  pub async fn load_avatar(owner: &str) -> Option<Self> {
+  pub async fn load_user_avatar(owner: &str) -> Option<Self> {
     let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
 
     RepoIcon::load(user_avatar_url.clone(), RepoIconKind::UserAvatar)
@@ -197,7 +196,7 @@ impl RepoIcon {
     }
   }
 
-  pub async fn data(&self) -> Result<Bytes, Box<dyn Error>> {
+  pub async fn data(&self) -> Result<Vec<u8>, Box<dyn Error>> {
     if self.url.scheme() == "data" {
       let url = self.url.to_string();
       let data = DataUrl::process(&url).map_err(|_| "failed to parse data uri")?;
@@ -205,7 +204,7 @@ impl RepoIcon {
         .decode_to_vec()
         .map_err(|_| "invalid base64 in data uri")?;
 
-      return Ok(body.into());
+      return Ok(body);
     }
 
     let res = reqwest::Client::new()
@@ -214,7 +213,7 @@ impl RepoIcon {
       .send()
       .await?;
 
-    Ok(res.bytes().await?)
+    Ok(res.bytes().await?.to_vec())
   }
 
   #[cfg(feature = "image")]

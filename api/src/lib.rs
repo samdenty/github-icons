@@ -113,7 +113,7 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       };
 
       let mut url = req.url()?;
-      url.set_path(&format!("/{}", slug));
+      url.set_path(&format!("/{}", slug.to_lowercase()));
 
       Response::redirect_with_status(url, 302)
     })

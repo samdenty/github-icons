@@ -22,7 +22,7 @@ pub async fn get_slug(package_name: &str) -> Result<String, Box<dyn Error>> {
     _ => return Err("unexpected npm response".into()),
   };
 
-  let re = Regex::new(r"github(\.com)?[/:]([^/]+/[^/]+)$").unwrap();
+  let re = Regex::new(r"github(\.com)?[/:]([^/]+/[^/]+)").unwrap();
   let captures = re
     .captures(repository_url)
     .ok_or("not a github repository")?;

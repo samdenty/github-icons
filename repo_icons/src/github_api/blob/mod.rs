@@ -3,6 +3,7 @@ mod repo_files;
 use crate::RepoBlob;
 use fancy_regex::{escape, Regex};
 use futures::future::join_all;
+use itertools::Itertools;
 use repo_files::{get_repo_files, File, FileType};
 use std::convert::TryInto;
 use std::error::Error;
@@ -206,6 +207,7 @@ pub async fn get_blobs(
       let final_results = results
         .into_iter()
         .filter_map(|(file, other_weight)| (first_weight == other_weight).then_some(file))
+        .unique_by(|file| file.sha.clone())
         .collect::<Vec<_>>();
 
       (false, final_results.try_into().unwrap())

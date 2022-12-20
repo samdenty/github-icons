@@ -52,7 +52,7 @@ pub async fn get_repo_files(
   owner: &str,
   repo: &str,
 ) -> Result<(String, Vec<File>), Box<dyn Error>> {
-  let res = gh_api_get!("repos/{}/{}/commits", owner, repo)
+  let res = gh_api_get!("repos/{}/{}/commits?per_page=1", owner, repo)
     .send()
     .await?
     .json::<Vec<Commit>>()

@@ -102,21 +102,31 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
 
   let router = Router::new();
 
+  let npm_handler = async move |req: Request, ctx: RouteContext<()>| {
+    let org = ctx.param("org");
+    let package = ctx.param("package").ok_or("expected package")?;
+
+    let package_name = if let Some(org) = org {
+      format!("{}/{}", org, package)
+    } else {
+      package.clone()
+    };
+
+    let slug = match npm_github::get_slug(&package_name).await {
+      Ok(slug) => slug,
+      Err(err) => return Response::error(err.to_string(), 404),
+    };
+
+    let mut url = req.url()?;
+    url.set_path(&format!("/{}", slug.to_lowercase()));
+
+    Response::redirect_with_status(url, 302)
+  };
+
   let mut response = router
     .get("/", move |req, _| redirect_to_www(&req, true))
-    .get_async("/npm/:package", async move |req, ctx| {
-      let package = ctx.param("package").ok_or("expected package")?.as_str();
-
-      let slug = match npm_github::get_slug(package).await {
-        Ok(slug) => slug,
-        Err(err) => return Response::error(err.to_string(), 404),
-      };
-
-      let mut url = req.url()?;
-      url.set_path(&format!("/{}", slug.to_lowercase()));
-
-      Response::redirect_with_status(url, 302)
-    })
+    .get_async("/npm/:org/:package", npm_handler)
+    .get_async("/npm/:package", npm_handler)
     .get_async("/:owner/:repo", async move |req, ctx| {
       if is_navigate(&req) {
         return redirect_to_www(&req, false);

@@ -165,10 +165,19 @@ impl RepoIcons {
     let mut previous_loads = Vec::new();
     let mut found_best_match = false;
 
+    let mut error = Ok(());
+
     while !futures.is_empty() {
       let (loaded, index, _) = select_all(&mut futures).await;
       futures.remove(index);
-      let loaded = loaded?;
+
+      let loaded = match loaded {
+        Err(err) => {
+          error = Err(err);
+          continue;
+        }
+        Ok(loaded) => loaded,
+      };
 
       match &loaded {
         LoadedKind::Blob(blob_icons) => {
@@ -278,6 +287,8 @@ impl RepoIcons {
         break;
       }
     }
+
+    error?;
 
     let repo_icons = repo_icons
       .into_iter()

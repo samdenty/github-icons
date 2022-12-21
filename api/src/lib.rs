@@ -159,7 +159,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
         async {
           match RepoIcons::load(owner, repo, true).await {
             Err(err) => {
-              console_error!("{:?}", err);
+              console_error!("{}", err);
               None
             }
             Ok(icons) => Some(icons.into_best_match()),
@@ -265,6 +265,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       if response.status_code() > 400 {
         let _ = cache.delete(&cache_key, false).await;
       } else if response.headers().has("Cache-Control").unwrap() {
+        console_log!("caching as {}", cache_key);
         let serialized_response = SerializedResponse::from(response.cloned().unwrap())
           .await
           .ok();

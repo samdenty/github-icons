@@ -22,8 +22,15 @@ struct Commit {
 }
 
 #[derive(Deserialize)]
-struct Trees {
-  tree: Vec<File>,
+enum CommitResponse {
+  Commits(Vec<Commit>),
+  Message { message: String },
+}
+
+#[derive(Deserialize)]
+enum TreesResponse {
+  Trees { tree: Vec<File> },
+  Message { message: String },
 }
 
 #[cached]
@@ -41,11 +48,14 @@ async fn get_repo_files_cached(
   .send()
   .await
   .map_err(|e| format!("{:?}", e).to_string())?
-  .json::<Trees>()
+  .json::<TreesResponse>()
   .await
   .map_err(|e| format!("{:?}", e).to_string())?;
 
-  Ok(res.tree)
+  match res {
+    TreesResponse::Trees { tree } => Ok(tree),
+    TreesResponse::Message { message } => Err(message),
+  }
 }
 
 pub async fn get_repo_files(
@@ -55,10 +65,15 @@ pub async fn get_repo_files(
   let res = gh_api_get!("repos/{}/{}/commits?per_page=1", owner, repo)
     .send()
     .await?
-    .json::<Vec<Commit>>()
+    .json::<CommitResponse>()
     .await?;
 
-  let commit_sha = res
+  let commits = match res {
+    CommitResponse::Commits(commits) => commits,
+    CommitResponse::Message { message } => return Err(message.into()),
+  };
+
+  let commit_sha = commits
     .into_iter()
     .next()
     .ok_or(format!("no commits found for repo {}/{}!", owner, repo))?

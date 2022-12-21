@@ -1,4 +1,4 @@
-import { IconButton } from '../components/RepoButton';
+import { IconButton } from '../components/IconButton';
 import { Repo } from '../components/Repo/Repo';
 import demo from '../../demo.json';
 import styled from '@emotion/styled';

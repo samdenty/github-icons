@@ -1,10 +1,10 @@
 import styled from '@emotion/styled';
-import { useSession } from 'next-auth/react';
 import { useContextualRouting } from 'next-use-contextual-routing';
 import Link from 'next/link';
 import { useUrl } from '../lib/useUrl';
 
-export interface RepoButtonProps {
+export interface RepoButtonProps
+  extends Omit<React.HTMLProps<HTMLAnchorElement>, 'children'> {
   slug: string;
   children?:
     | React.ReactNode

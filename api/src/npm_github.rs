@@ -5,7 +5,7 @@ use worker::Fetch;
 
 pub async fn get_slug(package_name: &str) -> Result<String, Box<dyn Error>> {
   let resp: Value = Fetch::Url(
-    format!("https://registry.npmjs.org/{}", package_name)
+    format!("https://registry.npmjs.org/{}/latest", package_name)
       .parse()
       .unwrap(),
   )

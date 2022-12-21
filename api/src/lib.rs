@@ -138,7 +138,7 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       }
 
       let mut write_to_cache = true;
-      let owner = ctx.param("owner").unwrap().as_str().trim_start_matches("@");
+      let owner = ctx.param("owner").unwrap().trim_start_matches("@");
       let repo = ctx.param("repo").unwrap().as_str();
 
       let user_avatar = RepoIcon::load_user_avatar(owner).shared();
@@ -206,7 +206,7 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       Ok(res)
     })
     .get_async("/:owner/:repo/all", async move |_, ctx| {
-      let owner = ctx.param("owner").unwrap().as_str().trim_start_matches("@");
+      let owner = ctx.param("owner").unwrap().trim_start_matches("@");
       let repo = ctx.param("repo").unwrap().as_str();
 
       let repo_icons = match RepoIcons::load(owner, repo, false).await {
@@ -222,7 +222,7 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       Ok(response)
     })
     .get_async("/:owner/:repo/images", async move |_, ctx| {
-      let owner = ctx.param("owner").unwrap().as_str().trim_start_matches("@");
+      let owner = ctx.param("owner").unwrap().trim_start_matches("@");
       let repo = ctx.param("repo").unwrap().as_str();
 
       let images = match Readme::load(owner, repo).await {

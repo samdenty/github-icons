@@ -125,7 +125,13 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
     let mut url = req.url()?;
     url.set_path(&format!("/{}", slug));
 
-    Response::redirect_with_status(url, 302)
+    let mut response = modifiable_response(Response::redirect_with_status(url, 301)?)?;
+
+    let headers = response.headers_mut();
+    headers.set("Access-Control-Allow-Origin", "*")?;
+    headers.set("Cache-Control", "public, max-age=259200")?;
+
+    Ok(response)
   };
 
   let mut response = router
@@ -247,7 +253,7 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
   {
     let mut response = response.cloned()?;
     ctx.wait_until(async move {
-      if response.status_code() == 404 {
+      if response.status_code() > 400 {
         let _ = cache.delete(&cache_key, false).await;
       } else if response.headers().has("Cache-Control").unwrap() {
         let serialized_response = SerializedResponse::from(response.cloned().unwrap())

@@ -112,7 +112,7 @@ export default function Home() {
             const { fontSize, ref } = useFitText();
 
             return (
-              <StyledIconButton key={slug} slug={`npm/${slug}`}>
+              <StyledIconButton key={slug} type="npm" slug={slug}>
                 <Slug>
                   {org && <Owner>{org}/</Owner>}
                   <Name ref={ref} style={{ fontSize }}>
@@ -130,7 +130,7 @@ export default function Home() {
             const { fontSize, ref } = useFitText();
 
             return (
-              <StyledIconButton key={slug} slug={slug}>
+              <StyledIconButton key={slug} type="github" slug={slug}>
                 <Slug>
                   <Owner>{owner}/</Owner>
                   <Name ref={ref} style={{ fontSize }}>

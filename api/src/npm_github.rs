@@ -27,6 +27,6 @@ pub async fn get_slug(package_name: &str) -> Result<String, Box<dyn Error>> {
     .captures(repository_url)
     .ok_or("not a github repository")?;
 
-  let slug = captures[2].trim_end_matches(".git").to_string();
+  let slug = captures[2].trim_end_matches(".git").to_lowercase();
   Ok(slug)
 }

@@ -111,13 +111,19 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       org_or_package
     };
 
-    let slug = match npm_github::get_slug(&package_name).await {
+    let mut slug = match npm_github::get_slug(&package_name).await {
       Ok(slug) => slug,
       Err(err) => return Response::error(err.to_string(), 404),
     };
 
+    // if it starts with a reserved name,
+    // then prefix it with @
+    if slug.starts_with("npm/") {
+      slug = format!("@{}", slug);
+    }
+
     let mut url = req.url()?;
-    url.set_path(&format!("/{}", slug.to_lowercase()));
+    url.set_path(&format!("/{}", slug));
 
     Response::redirect_with_status(url, 302)
   };
@@ -132,8 +138,8 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       }
 
       let mut write_to_cache = true;
-      let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
-      let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
+      let owner = ctx.param("owner").unwrap().as_str().trim_start_matches("@");
+      let repo = ctx.param("repo").unwrap().as_str();
 
       let user_avatar = RepoIcon::load_user_avatar(owner).shared();
 
@@ -200,8 +206,8 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       Ok(res)
     })
     .get_async("/:owner/:repo/all", async move |_, ctx| {
-      let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
-      let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
+      let owner = ctx.param("owner").unwrap().as_str().trim_start_matches("@");
+      let repo = ctx.param("repo").unwrap().as_str();
 
       let repo_icons = match RepoIcons::load(owner, repo, false).await {
         Ok(repo_icons) => repo_icons,
@@ -216,8 +222,8 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
       Ok(response)
     })
     .get_async("/:owner/:repo/images", async move |_, ctx| {
-      let owner = ctx.param("owner").ok_or("expected owner")?.as_str();
-      let repo = ctx.param("repo").ok_or("expected repo")?.as_str();
+      let owner = ctx.param("owner").unwrap().as_str().trim_start_matches("@");
+      let repo = ctx.param("repo").unwrap().as_str();
 
       let images = match Readme::load(owner, repo).await {
         Ok(readme) => match readme.load_body().await {

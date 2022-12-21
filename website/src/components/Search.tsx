@@ -29,10 +29,11 @@ function Option({
     <StyledOption
       key={data.name}
       ref={innerRef as any}
-      slug={`npm/${data.name}`}
+      type="npm"
+      slug={data.name}
       focused={isFocused}
       aria-disabled={isDisabled}
-      {...(innerProps as any)}
+      {...(innerProps as {})}
       onMouseDown={(e) => {
         if (e.button === 1) {
           e.preventDefault();

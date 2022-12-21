@@ -1,11 +1,12 @@
 import styled from '@emotion/styled';
 import { useContextualRouting } from 'next-use-contextual-routing';
 import Link from 'next/link';
-import { useUrl } from '../lib/useUrl';
+import { IconType, useUrl } from '../lib/useUrl';
 
-export interface RepoButtonProps
+export interface IconButtonProps
   extends Omit<React.HTMLProps<HTMLAnchorElement>, 'children'> {
   slug: string;
+  type: IconType;
   children?:
     | React.ReactNode
     | ((ownerAndRepo: { owner: string; repo: string }) => React.ReactNode);
@@ -35,15 +36,20 @@ const Logo = styled.img`
   }
 `;
 
-export function IconButton({ slug, children, ...props }: RepoButtonProps) {
+export function IconButton({
+  slug,
+  type,
+  children,
+  ...props
+}: IconButtonProps) {
   const { makeContextualHref } = useContextualRouting();
-  const iconUrl = useUrl(slug);
+  const iconUrl = useUrl(type, slug);
 
   const [owner, repo] = slug.split('/');
 
   return (
     <RepoLink
-      {...props}
+      {...(props as any)}
       href={makeContextualHref({ owner, repo })}
       as={`/${slug}`}
     >

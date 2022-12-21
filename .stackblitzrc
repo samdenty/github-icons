@@ -1,0 +1,3 @@
+{
+  "startCommand": "cd website && yarn && yarn dev"
+}

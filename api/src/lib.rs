@@ -4,7 +4,7 @@ mod serialized_response;
 
 use console_error_panic_hook::set_once;
 use futures::{future::select_all, FutureExt};
-use repo_icons::{IconInfo, Readme, RepoIcon, RepoIconKind, RepoIcons};
+use repo_icons::{IconInfo, Readme, RepoIcon, RepoIcons};
 use serde::Serialize;
 use serialized_response::SerializedResponse;
 use worker::*;
@@ -42,7 +42,7 @@ fn modifiable_response(response: Response) -> Result<Response> {
 }
 
 #[event(fetch)]
-pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
+pub async fn main(req: Request, env: Env, ctx: Context) -> Result<Response> {
   let mut response = modifiable_response(request(req, env, ctx).await?)?;
 
   let headers = response.headers_mut();
@@ -51,7 +51,7 @@ pub async fn main(req: Request, env: Env, ctx: worker::Context) -> Result<Respon
   Ok(response)
 }
 
-async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Response> {
+async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
   set_once();
 
   let mut url = req.url()?;
@@ -92,12 +92,18 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
 
   if !refetch {
     if let Some(res) = cache.get(&cache_key, false).await? {
+      console_log!("from HTTP cache");
       return Ok(res);
     };
 
     if let Some(res) = cache_kv.get(&cache_key).text().await? {
+      console_log!("from KV cache");
       return Ok(SerializedResponse::deserialize(res)?);
     };
+
+    console_log!("missed cache");
+  } else {
+    console_log!("force refetching");
   }
 
   let router = Router::new();
@@ -151,10 +157,13 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
 
       let mut futures = vec![
         async {
-          RepoIcons::load(owner, repo, true)
-            .await
-            .map(|icons| icons.into_best_match())
-            .ok()
+          match RepoIcons::load(owner, repo, true).await {
+            Err(err) => {
+              console_error!("{:?}", err);
+              None
+            }
+            Ok(icons) => Some(icons.into_best_match()),
+          }
         }
         .boxed_local(),
         user_avatar.clone().boxed_local(),
@@ -166,7 +175,7 @@ async fn request(req: Request, env: Env, ctx: worker::Context) -> Result<Respons
         let (icon, index, _) = select_all(&mut futures).await;
         futures.remove(index);
 
-        if let Some(icon) = icon && !matches!(icon.kind, RepoIconKind::UserAvatar) {
+        if let Some(icon) = icon {
           repo_icon = Some(icon);
         }
       }

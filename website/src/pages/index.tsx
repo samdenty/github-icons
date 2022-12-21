@@ -9,6 +9,7 @@ import { useContextualRouting } from 'next-use-contextual-routing';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import useFitText from 'use-fit-text';
+import { Search } from '../components/Search';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,
@@ -80,6 +81,7 @@ export default function Home() {
       </Modal>
 
       <main>
+        <Search />
         {session ? (
           <>
             Signed in as {session.accessToken} <br />
@@ -112,7 +114,7 @@ export default function Home() {
             return (
               <StyledIconButton key={slug} slug={`npm/${slug}`}>
                 <Slug>
-                  {org && <Owner>{org}</Owner>}
+                  {org && <Owner>{org}/</Owner>}
                   <Name ref={ref} style={{ fontSize }}>
                     {packageName}
                   </Name>

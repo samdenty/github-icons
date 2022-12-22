@@ -42,7 +42,7 @@ export function Search() {
       cacheOptions
       loadOptions={loadOptions}
       autoFocus
-      placeholder="Search NPM / GitHub repos"
+      placeholder="Search NPM packages / GitHub repos"
       components={{ Option, Input }}
     />
   );

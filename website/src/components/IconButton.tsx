@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { useContextualRouting } from 'next-use-contextual-routing';
 import Link from 'next/link';
 import { IconType, useUrl } from '../lib/useUrl';
+import React from 'react';
 
 export interface IconButtonProps
   extends Omit<React.HTMLProps<HTMLAnchorElement>, 'children'> {
@@ -36,25 +37,23 @@ const Logo = styled.img`
   }
 `;
 
-export function IconButton({
-  slug,
-  type,
-  children,
-  ...props
-}: IconButtonProps) {
-  const { makeContextualHref } = useContextualRouting();
-  const iconUrl = useUrl(type, slug);
+export const IconButton = React.forwardRef(
+  ({ slug, type, children, ...props }: IconButtonProps, ref) => {
+    const { makeContextualHref } = useContextualRouting();
+    const iconUrl = useUrl(type, slug);
 
-  const [owner, repo] = slug.split('/');
+    const [owner, repo] = slug.split('/');
 
-  return (
-    <RepoLink
-      {...(props as any)}
-      href={makeContextualHref({ owner, repo })}
-      as={`/${type !== 'github' ? `${type}/` : ''}${slug}`}
-    >
-      <Logo alt={slug} src={iconUrl} />
-      {typeof children === 'function' ? children({ owner, repo }) : children}
-    </RepoLink>
-  );
-}
+    return (
+      <RepoLink
+        ref={ref}
+        {...(props as any)}
+        href={makeContextualHref({ owner, repo })}
+        as={`/${type !== 'github' ? `${type}/` : ''}${slug}`}
+      >
+        <Logo alt={slug} src={iconUrl} />
+        {typeof children === 'function' ? children({ owner, repo }) : children}
+      </RepoLink>
+    );
+  }
+);

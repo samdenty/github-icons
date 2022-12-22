@@ -9,7 +9,7 @@ import { useContextualRouting } from 'next-use-contextual-routing';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import useFitText from 'use-fit-text';
-import { Search } from '../components/Search';
+import { Search } from '../components/Search/Search';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,

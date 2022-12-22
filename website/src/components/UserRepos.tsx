@@ -113,7 +113,11 @@ export default function UserRepos({}) {
   return (
     <StyledUserRepos>
       {query.viewer.pinnedItems.nodes?.map((repo) => (
-        <StyledRepoButton type="github" slug={repo!.nameWithOwner!}>
+        <StyledRepoButton
+          key={repo!.nameWithOwner}
+          type="github"
+          slug={repo!.nameWithOwner!}
+        >
           <Content>
             <Name>
               <Slug>{repo!.nameWithOwner!}</Slug>

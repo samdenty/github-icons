@@ -119,7 +119,14 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 
     let mut slug = match npm_github::get_slug(&package_name).await {
       Ok(slug) => slug,
-      Err(err) => return Response::error(err.to_string(), 404),
+      Err(_) => {
+        return Response::redirect_with_status(
+          "https://static.npmjs.com/1996fcfdf7ca81ea795f67f093d7f449.png"
+            .parse()
+            .unwrap(),
+          302,
+        )
+      }
     };
 
     // if it starts with a reserved name,
@@ -131,7 +138,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
     let mut url = req.url()?;
     url.set_path(&format!("/{}", slug));
 
-    let mut response = modifiable_response(Response::redirect_with_status(url, 301)?)?;
+    let mut response = modifiable_response(Response::redirect_with_status(url, 302)?)?;
 
     let headers = response.headers_mut();
     headers.set("Access-Control-Allow-Origin", "*")?;

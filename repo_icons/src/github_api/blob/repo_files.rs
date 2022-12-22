@@ -22,12 +22,14 @@ struct Commit {
 }
 
 #[derive(Deserialize)]
+#[serde(untagged)]
 enum CommitResponse {
   Commits(Vec<Commit>),
   Message { message: String },
 }
 
 #[derive(Deserialize)]
+#[serde(untagged)]
 enum TreesResponse {
   Trees { tree: Vec<File> },
   Message { message: String },

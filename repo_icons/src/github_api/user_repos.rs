@@ -7,6 +7,7 @@ struct Repo {
 }
 
 #[derive(Deserialize)]
+#[serde(untagged)]
 enum Response {
   Repos(Vec<Repo>),
   Message { message: String },

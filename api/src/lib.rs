@@ -138,7 +138,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
     let mut url = req.url()?;
     url.set_path(&format!("/{}", slug));
 
-    let mut response = modifiable_response(Response::redirect_with_status(url, 302)?)?;
+    let mut response = modifiable_response(Response::redirect_with_status(url, 301)?)?;
 
     let headers = response.headers_mut();
     headers.set("Access-Control-Allow-Origin", "*")?;

@@ -51,7 +51,7 @@ export function IconButton({
     <RepoLink
       {...(props as any)}
       href={makeContextualHref({ owner, repo })}
-      as={`/${slug}`}
+      as={`/${type !== 'github' ? `${type}/` : ''}${slug}`}
     >
       <Logo alt={slug} src={iconUrl} />
       {typeof children === 'function' ? children({ owner, repo }) : children}

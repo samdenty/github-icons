@@ -39,18 +39,18 @@ async fn get_repo_files_cached(
   repo: String,
   tree_sha: String,
 ) -> Result<Vec<File>, String> {
-  let res = gh_api_get!(
+  let url = format!(
     "repos/{}/{}/git/trees/{}?recursive=1",
-    owner,
-    repo,
-    tree_sha
-  )
-  .send()
-  .await
-  .map_err(|e| format!("{:?}", e).to_string())?
-  .json::<TreesResponse>()
-  .await
-  .map_err(|e| format!("{:?}", e).to_string())?;
+    owner, repo, tree_sha
+  );
+
+  let res = gh_api_get!("{}", url)
+    .send()
+    .await
+    .map_err(|e| format!("{}: {:?}", url, e).to_string())?
+    .json::<TreesResponse>()
+    .await
+    .map_err(|e| format!("{}: {:?}", url, e).to_string())?;
 
   match res {
     TreesResponse::Trees { tree } => Ok(tree),
@@ -62,11 +62,15 @@ pub async fn get_repo_files(
   owner: &str,
   repo: &str,
 ) -> Result<(String, Vec<File>), Box<dyn Error>> {
-  let res = gh_api_get!("repos/{}/{}/commits?per_page=1", owner, repo)
+  let url = format!("repos/{}/{}/commits?per_page=1", owner, repo);
+
+  let res = gh_api_get!("{}", url)
     .send()
-    .await?
+    .await
+    .map_err(|e| format!("{}: {:?}", url, e))?
     .json::<CommitResponse>()
-    .await?;
+    .await
+    .map_err(|e| format!("{}: {:?}", url, e))?;
 
   let commits = match res {
     CommitResponse::Commits(commits) => commits,

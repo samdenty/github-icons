@@ -1,8 +1,9 @@
 name = "github-icons"
 main = "build/worker/shim.mjs"
-workers_dev = true
+workers_dev = false
 compatibility_date = "2022-10-09"
 account_id = "3abe6f685dab548d1e22cb0f977a9e18"
+routes = ["github-icons.com/*"]
 # usage_model = "unbound"
 
 kv_namespaces = [

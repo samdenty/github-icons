@@ -14,13 +14,15 @@ enum Response {
 
 #[cached]
 async fn get_user_repos_cached(user: String) -> Result<Vec<String>, String> {
-  let res = gh_api_get!("users/{}/repos?per_page=100", user)
+  let url = format!("users/{}/repos?per_page=100", user);
+
+  let res = gh_api_get!("{}", url)
     .send()
     .await
-    .map_err(|e| format!("{:?}", e).to_string())?
+    .map_err(|e| format!("{}: {:?}", url, e).to_string())?
     .json::<Response>()
     .await
-    .map_err(|e| format!("{:?}", e).to_string())?;
+    .map_err(|e| format!("{}: {:?}", url, e).to_string())?;
 
   match res {
     Response::Repos(repos) => Ok(repos.into_iter().map(|r| r.name.to_lowercase()).collect()),

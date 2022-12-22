@@ -43,13 +43,15 @@ impl Readme {
       },
     }
 
-    let response = gh_api_get!("repos/{}/{}", owner, repo)
+    let url = format!("repos/{}/{}", owner, repo);
+
+    let response = gh_api_get!("{}", url)
       .send()
       .await
-      .map_err(|e| e.to_string())?
+      .map_err(|e| format!("{}: {:?}", url, e))?
       .json::<Response>()
       .await
-      .map_err(|e| e.to_string())?;
+      .map_err(|e| format!("{}: {:?}", url, e))?;
 
     match response {
       Response::Repo {

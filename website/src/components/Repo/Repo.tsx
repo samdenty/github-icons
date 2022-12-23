@@ -79,7 +79,7 @@ export function Repo({ slug }: RepoProps) {
     default: ReactJson,
   }: typeof import('react-json-view') = require('react-json-view');
 
-  const url = useUrl('github', slug);
+  const url = useUrl('github', slug, true);
   const { data } = useQuery<Icon[]>(
     [slug, 'all'],
     () => fetch(url).then((res) => res.json()),

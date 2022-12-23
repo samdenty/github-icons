@@ -2,16 +2,16 @@ import styled from '@emotion/styled';
 import { useContextualRouting } from 'next-use-contextual-routing';
 import Link from 'next/link';
 import { IconType, useUrl } from '../../lib/useUrl';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { PulseLoader } from 'react-spinners';
 import { BsQuestionOctagonFill } from 'react-icons/bs';
 import { IconButtonBadge } from './IconButtonBadge';
+import { giveContrastToIcons } from '../../demoIcons';
 
 export interface IconButtonProps
   extends Omit<React.HTMLProps<HTMLAnchorElement>, 'children'> {
   slug: string;
   showBadge?: boolean;
-  contrast?: boolean;
   type: IconType;
   children?:
     | React.ReactNode
@@ -92,10 +92,7 @@ enum IconState {
 }
 
 export const IconButton = React.forwardRef(
-  (
-    { slug, showBadge, contrast, type, children, ...props }: IconButtonProps,
-    ref
-  ) => {
+  ({ slug, showBadge, type, children, ...props }: IconButtonProps, ref) => {
     const { makeContextualHref } = useContextualRouting();
     const iconUrl = useUrl(type, slug);
     const [state, setState] = useState<IconState>(IconState.LOADING);
@@ -113,9 +110,10 @@ export const IconButton = React.forwardRef(
           <IconButtonIcon loading={state === IconState.LOADING ? 1 : 0}>
             <Logo
               alt={slug}
+              loading="lazy"
               as={state === IconState.NO_ICON ? BsQuestionOctagonFill : 'img'}
               showBadge={showBadge ? 1 : 0}
-              contrast={contrast ? 1 : 0}
+              contrast={giveContrastToIcons.includes(slug) ? 1 : 0}
               src={iconUrl}
               ref={(img) => {
                 if (!(img instanceof HTMLImageElement)) {

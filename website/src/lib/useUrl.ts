@@ -1,5 +1,5 @@
 import { useSession } from 'next-auth/react';
-import demo from '../../demo.json';
+import { demoNpmPackages, demoRepos } from '../demoIcons';
 
 export type IconType = 'github' | 'npm';
 
@@ -8,7 +8,7 @@ export function useUrl(type: IconType, slug: string, all = false) {
 
   slug = slug.toLowerCase();
 
-  const includeToken = !demo[type === 'npm' ? 'npmPackages' : 'repos'].find(
+  const includeToken = !(type === 'npm' ? demoNpmPackages : demoRepos).find(
     (packageSlug) => packageSlug.toLowerCase() === slug
   );
 

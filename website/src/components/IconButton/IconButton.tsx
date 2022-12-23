@@ -115,21 +115,25 @@ export const IconButton = React.forwardRef(
               showBadge={showBadge ? 1 : 0}
               contrast={giveContrastToIcons.includes(slug) ? 1 : 0}
               src={iconUrl}
-              ref={(img) => {
-                if (!(img instanceof HTMLImageElement)) {
-                  return;
-                }
+              ref={
+                state === IconState.NO_ICON
+                  ? undefined
+                  : (img) => {
+                      if (!(img instanceof HTMLImageElement)) {
+                        return;
+                      }
 
-                img.onerror = () => {
-                  setState(IconState.NO_ICON);
-                };
+                      img.onerror = () => {
+                        setState(IconState.NO_ICON);
+                      };
 
-                img.onload = () => setState(IconState.VISIBLE);
+                      img.onload = () => setState(IconState.VISIBLE);
 
-                if (img.complete) {
-                  setState(IconState.VISIBLE);
-                }
-              }}
+                      if (img.complete) {
+                        setState(IconState.VISIBLE);
+                      }
+                    }
+              }
             />
             {showBadge && <StyledIconButtonBadge />}
             <IconButtonLoading />

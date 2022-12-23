@@ -1,5 +1,5 @@
 use crate::{
-  blacklist::is_badge_url,
+  blacklist::{is_badge_url, is_blacklisted_homepage},
   get_token,
   github_api::{self, owner_name_lowercase},
   RepoIcon, RepoIconKind,
@@ -116,7 +116,7 @@ impl RepoIcons {
       }
       .boxed_local(),
       async {
-        let mut icons = Icons::new();
+        let mut icons = Icons::new_with_blacklist(|url| is_blacklisted_homepage(url));
 
         let homepage = readme.clone().await?.homepage;
 

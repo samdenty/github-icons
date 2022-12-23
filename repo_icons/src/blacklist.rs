@@ -47,6 +47,7 @@ static BLACKLISTED_HOMEPAGES: Lazy<Vec<Regex>> = Lazy::new(|| {
     r"^hex.pm",
     r"^crates.io",
     r"^docs.rs",
+    r"git.io",
     r"^github.com",
     r"^chrome.google.com/webstore",
     r"^marketplace.visualstudio.com"

@@ -39,6 +39,7 @@ const Slug = styled.div`
   flex-grow: 1;
   margin-top: 5px;
   white-space: nowrap;
+  word-break: break-all;
   overflow: hidden;
   width: 100%;
   font-size: 13px;
@@ -70,7 +71,7 @@ export function Icon({ type, slug }: IconProps) {
 
   let { fontSize, ref } = useFitText();
 
-  if (parseInt(fontSize) < 70) {
+  if (parseInt(fontSize) < 80) {
     fontSize = undefined!;
   }
 

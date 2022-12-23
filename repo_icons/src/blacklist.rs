@@ -7,6 +7,7 @@ static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
   regexes![
     r"badge",
     r"widget",
+    r"license",
     r"embed",
     r"button",
     r"build",

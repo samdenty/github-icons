@@ -53,7 +53,7 @@ static BLACKLISTED_HOMEPAGES: Lazy<Vec<Regex>> = Lazy::new(|| {
   .to_vec()
 });
 
-pub fn is_badge(url: &Url) -> bool {
+pub fn is_badge_url(url: &Url) -> bool {
   let domain = if let Some(domain) = url.domain() {
     domain
   } else {
@@ -61,9 +61,15 @@ pub fn is_badge(url: &Url) -> bool {
   };
   let url = format!("{}{}", domain, url.path());
 
+  is_badge_text(&url)
+}
+
+pub fn is_badge_text(string: &str) -> bool {
+  let string = string.to_lowercase();
+
   BADGE_PATTERNS
     .iter()
-    .any(|url_regex| url_regex.is_match(&url).unwrap())
+    .any(|url_regex| url_regex.is_match(&string).unwrap())
 }
 
 pub fn is_blacklisted_homepage(url: &Url) -> bool {

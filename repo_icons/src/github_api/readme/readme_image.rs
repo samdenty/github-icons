@@ -1,5 +1,5 @@
 use super::{primary_heading::PrimaryHeading, Readme};
-use crate::blacklist::is_badge;
+use crate::blacklist::{is_badge_text, is_badge_url};
 use gh_api::get_token;
 use scraper::ElementRef;
 use serde::{Deserialize, Serialize};
@@ -57,7 +57,12 @@ impl ReadmeImage {
       .and_then(|src| readme.qualify_url(src).ok())
       .unwrap();
 
-    if is_badge(&src) {
+    let alt = elem
+      .attr("alt")
+      .map(|alt| alt.to_lowercase())
+      .unwrap_or(String::new());
+
+    if is_badge_url(&src) || is_badge_text(&alt) {
       return None;
     }
 
@@ -104,11 +109,6 @@ impl ReadmeImage {
       if let Some((_, file_path)) = &branch_and_path {
         path = file_path;
       }
-
-      let alt = elem
-        .attr("alt")
-        .map(|alt| alt.to_lowercase())
-        .unwrap_or(String::new());
 
       if path.contains("logo") || alt.contains("logo") {
         mentions.insert(KeywordMention::Logo);

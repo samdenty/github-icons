@@ -35,20 +35,16 @@ const StyledUserRepos = styled.div`
 `;
 
 const StyledRepoButton = styled(IconButton)`
+  --size: 54px;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 16px;
-
-  img {
-    height: 54px;
-    width: 54px;
-    margin-right: 20px;
-  }
 `;
 
 const Content = styled.div`
   display: flex;
   flex-direction: column;
+  margin-left: 20px;
 
   > *:not(:last-child) {
     margin-bottom: 8px;

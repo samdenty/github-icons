@@ -8,12 +8,8 @@ interface StyledOptionProps {
 }
 
 const StyledOption = styled(IconButton)<StyledOptionProps>`
+  --size: 40px;
   background: ${(props) => (props.focused ? 'red' : 'none')};
-
-  > img {
-    height: 40px;
-    width: 40px;
-  }
 `;
 
 export function Option({

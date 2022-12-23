@@ -119,14 +119,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 
     let mut slug = match npm_github::get_slug(&package_name).await {
       Ok(slug) => slug,
-      Err(_) => {
-        return Response::redirect_with_status(
-          "https://static.npmjs.com/1996fcfdf7ca81ea795f67f093d7f449.png"
-            .parse()
-            .unwrap(),
-          302,
-        )
-      }
+      Err(err) => return Response::error(err.to_string(), 404),
     };
 
     // if it starts with a reserved name,

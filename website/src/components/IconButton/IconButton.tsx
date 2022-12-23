@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { IconType, useUrl } from '../../lib/useUrl';
 import React, { useRef, useState } from 'react';
 import { PulseLoader } from 'react-spinners';
-import { VscCircleSlash } from 'react-icons/vsc';
+import { BsQuestionOctagonFill } from 'react-icons/bs';
 import { IconButtonBadge } from './IconButtonBadge';
 
 export interface IconButtonProps
@@ -113,7 +113,7 @@ export const IconButton = React.forwardRef(
           <IconButtonIcon loading={state === IconState.LOADING ? 1 : 0}>
             <Logo
               alt={slug}
-              as={state === IconState.NO_ICON ? VscCircleSlash : 'img'}
+              as={state === IconState.NO_ICON ? BsQuestionOctagonFill : 'img'}
               showBadge={showBadge ? 1 : 0}
               contrast={contrast ? 1 : 0}
               src={iconUrl}

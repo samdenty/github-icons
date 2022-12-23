@@ -47,8 +47,8 @@ pub enum RepoIconKind {
   IconField(RepoBlob),
   UserAvatar,
   AppIcon { homepage: Url },
-  RepoFile(RepoBlob),
   SiteFavicon { homepage: Url },
+  RepoFile(RepoBlob),
   ReadmeImage,
   SiteLogo { homepage: Url },
 }

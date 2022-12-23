@@ -926,7 +926,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shellexpand",
- "site_icons",
+ "site_icons 0.4.0",
  "thread_local",
  "tokio 1.21.2",
  "url",
@@ -2068,7 +2068,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "site_icons",
+ "site_icons 0.4.0",
  "tokio 1.21.2",
  "url",
  "vec1",
@@ -2101,7 +2101,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "site_icons",
+ "site_icons 0.3.10",
  "tokio 1.21.2",
  "url",
  "vec1",
@@ -2468,6 +2468,36 @@ name = "site_icons"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3887ce02852bf2f03d4e21e23a1c372dbdcbcde8d16436b31c1e95db3183294e"
+dependencies = [
+ "byteorder",
+ "clap",
+ "data-url 0.1.1",
+ "env_logger",
+ "futures",
+ "html5ever",
+ "itertools",
+ "log",
+ "mime_4",
+ "once_cell",
+ "percent-encoding",
+ "regex",
+ "reqwest",
+ "reqwest-wasm",
+ "scraper",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "tokio 1.21.2",
+ "tokio-futures-byteorder",
+ "url",
+ "vec1",
+]
+
+[[package]]
+name = "site_icons"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a28c411b311a00c4352cd295aa1618453036ec1ef4093a59fc016cf5c07e9a19"
 dependencies = [
  "byteorder",
  "clap",

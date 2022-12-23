@@ -214,6 +214,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
           IconInfo::PNG { .. } => "image/png",
           IconInfo::JPEG { .. } => "image/jpeg",
           IconInfo::ICO { .. } => "image/x-icon",
+          IconInfo::GIF { .. } => "image/gif",
           IconInfo::SVG => "image/svg+xml",
         },
       )?;

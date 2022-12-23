@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { IconType, useUrl } from '../../lib/useUrl';
 import React, { useRef, useState } from 'react';
 import { PulseLoader } from 'react-spinners';
-import { BsQuestionOctagon } from 'react-icons/bs';
+import { VscCircleSlash } from 'react-icons/vsc';
 import { IconButtonBadge } from './IconButtonBadge';
 
 export interface IconButtonProps
@@ -110,10 +110,10 @@ export const IconButton = React.forwardRef(
           href={makeContextualHref({ owner, repo })}
           as={`/${type !== 'github' ? `${type}/` : ''}${slug}`}
         >
-          <IconButtonIcon loading={state === 'loading' ? 1 : 0}>
+          <IconButtonIcon loading={state === IconState.LOADING ? 1 : 0}>
             <Logo
               alt={slug}
-              as={state === IconState.NO_ICON ? BsQuestionOctagon : 'img'}
+              as={state === IconState.NO_ICON ? VscCircleSlash : 'img'}
               showBadge={showBadge ? 1 : 0}
               contrast={contrast ? 1 : 0}
               src={iconUrl}

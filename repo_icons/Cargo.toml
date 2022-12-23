@@ -10,7 +10,7 @@ documentation = "https://docs.rs/repo_icons"
 description = "Get icons for any github repo"
 keywords = ["favicon", "logo", "website", "scraper", "cli"]
 categories = ["command-line-utilities", "multimedia::images", "wasm"]
-default-run = "repo-icon"
+default-run = "repo-icons"
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-Oz", "--enable-mutable-globals"]

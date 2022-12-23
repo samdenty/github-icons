@@ -17,7 +17,7 @@ async function loadOptions(query: string): Promise<Package[]> {
   return data.objects.map((result: any) => result.package);
 }
 
-export function Search() {
+export default function Search() {
   const [value, setValue] = useState<SingleValue<Package> | undefined>();
   const [inputValue, setInputValue] = useState('');
 

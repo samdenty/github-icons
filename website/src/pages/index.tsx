@@ -14,12 +14,15 @@ import { useContextualRouting } from 'next-use-contextual-routing';
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useState } from 'react';
 import useFitText from 'use-fit-text';
-import { Search } from '../components/Search/Search';
 import _ from 'lodash';
 import { IconType } from '../lib/useUrl';
 import { GetServerSideProps } from 'next';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
+  ssr: false,
+});
+
+const Search = dynamic(() => import('../components/Search/Search'), {
   ssr: false,
 });
 

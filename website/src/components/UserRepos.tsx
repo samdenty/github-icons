@@ -1,6 +1,6 @@
 import { UserRepos_pinnedReposQuery } from '../queries/__generated__/UserRepos_pinnedReposQuery.graphql';
 import { graphql, useLazyLoadQuery } from 'react-relay';
-import { IconButton } from './IconButton';
+import { IconButton } from './IconButton/IconButton';
 import styled from '@emotion/styled';
 
 const PinnedReposQuery = graphql`

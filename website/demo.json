@@ -1,4 +1,5 @@
 {
+  "contrast": ["lodash", "vercel/next.js"],
   "npmPackages": [
     "webpack",
     "lodash",

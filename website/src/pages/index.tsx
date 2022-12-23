@@ -1,4 +1,9 @@
-import { IconButton } from '../components/IconButton';
+import {
+  IconButtonBadge,
+  IconButton,
+  IconButtonLoading,
+  IconButtonIcon,
+} from '../components/IconButton/IconButton';
 import { Repo } from '../components/Repo/Repo';
 import demo from '../../demo.json';
 import styled from '@emotion/styled';
@@ -7,9 +12,12 @@ import { useRouter } from 'next/router';
 import Modal from 'react-modal';
 import { useContextualRouting } from 'next-use-contextual-routing';
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import useFitText from 'use-fit-text';
 import { Search } from '../components/Search/Search';
+import _ from 'lodash';
+import { IconType } from '../lib/useUrl';
+import { GetServerSideProps } from 'next';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,
@@ -27,11 +35,26 @@ const Repos = styled.div`
 const StyledIconButton = styled(IconButton)`
   flex-direction: column;
   text-align: center;
-  width: 80px;
+  --size: 80px;
 
-  &:hover img {
+  ${IconButtonIcon} {
+    transition: all 0.2s ease;
+  }
+
+  ${IconButtonLoading} {
+    --size: 40px;
+  }
+
+  &:hover > ${IconButtonIcon} {
     transform: scale(1.1);
   }
+`;
+
+const StyledIconButtonBadge = styled(IconButtonBadge)`
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+  margin-right: 4px;
 `;
 
 const Slug = styled.div`
@@ -57,7 +80,31 @@ const Name = styled.div`
   }
 `;
 
-export default function Home() {
+interface DemoIcon {
+  type: IconType;
+  slug: string;
+}
+
+interface HomeProps {
+  demoIcons: DemoIcon[];
+}
+
+export const getServerSideProps: GetServerSideProps<HomeProps> = async () => {
+  const demoIcons = [
+    ..._.shuffle(
+      demo.npmPackages.map((slug) => ({ type: 'npm' as const, slug }))
+    ),
+    ..._.shuffle(demo.repos.map((slug) => ({ type: 'github' as const, slug }))),
+  ];
+
+  return {
+    props: {
+      demoIcons,
+    },
+  };
+};
+
+export default function Home({ demoIcons }: HomeProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const { returnHref } = useContextualRouting();
@@ -96,9 +143,9 @@ export default function Home() {
             <button onClick={() => signIn('github')}>Sign in</button>
           </>
         )}
-        NPM packages:
+
         <Repos>
-          {demo.npmPackages.map((slug) => {
+          {demoIcons.map(({ type, slug }) => {
             let [org, packageName] = slug.split('/') as [
               string | undefined,
               string
@@ -112,29 +159,17 @@ export default function Home() {
             const { fontSize, ref } = useFitText();
 
             return (
-              <StyledIconButton key={slug} type="npm" slug={slug}>
+              <StyledIconButton
+                key={slug}
+                type={type}
+                slug={slug}
+                contrast={demo.contrast.includes(slug)}
+              >
                 <Slug>
                   {org && <Owner>{org}/</Owner>}
                   <Name ref={ref} style={{ fontSize }}>
+                    <StyledIconButtonBadge />
                     {packageName}
-                  </Name>
-                </Slug>
-              </StyledIconButton>
-            );
-          })}
-        </Repos>
-        GitHub repos:
-        <Repos>
-          {demo.repos.map((slug) => {
-            const [owner, repo] = slug.split('/');
-            const { fontSize, ref } = useFitText();
-
-            return (
-              <StyledIconButton key={slug} type="github" slug={slug}>
-                <Slug>
-                  <Owner>{owner}/</Owner>
-                  <Name ref={ref} style={{ fontSize }}>
-                    {repo}
                   </Name>
                 </Slug>
               </StyledIconButton>

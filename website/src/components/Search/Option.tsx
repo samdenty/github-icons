@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { IconButton } from '../IconButton';
+import { IconButton } from '../IconButton/IconButton';
 import { OptionProps } from 'react-select';
 import { Package } from './Search';
 
@@ -8,7 +8,8 @@ interface StyledOptionProps {
 }
 
 const StyledOption = styled(IconButton)<StyledOptionProps>`
-  --size: 40px;
+  --size: 30px;
+  padding: 5px;
   background: ${(props) => (props.focused ? 'red' : 'none')};
 `;
 
@@ -26,6 +27,7 @@ export function Option({
       type="npm"
       slug={data.name}
       focused={isFocused ? 1 : 0}
+      showBadge
       aria-disabled={isDisabled}
       {...(innerProps as {})}
       onMouseDown={(e) => {

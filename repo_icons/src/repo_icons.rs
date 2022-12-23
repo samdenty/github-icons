@@ -1,5 +1,5 @@
 use crate::{
-  blacklist::is_badge,
+  blacklist::is_badge_url,
   get_token,
   github_api::{self, owner_name_lowercase},
   RepoIcon, RepoIconKind,
@@ -131,7 +131,7 @@ impl RepoIcons {
             .entries()
             .await
             .into_iter()
-            .filter(|icon| !is_badge(&icon.url))
+            .filter(|icon| !is_badge_url(&icon.url))
             .map(|icon| RepoIcon::new(icon.url, icon.kind.into(), icon.info))
             .collect::<Vec<_>>()
             .try_into()

@@ -3,6 +3,7 @@ use gh_api::get_token;
 #[cfg(feature = "image")]
 use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
 use maplit::hashmap;
+use serde::{de, ser::SerializeMap, Deserialize, Deserializer, Serialize, Serializer};
 use site_icons::{IconInfo, IconKind};
 use std::{
   cmp::Ordering,
@@ -10,14 +11,12 @@ use std::{
   convert::TryInto,
   error::Error,
   fmt::{self, Display},
-  str::FromStr,
 };
 use url::Url;
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct RepoBlob {
-  pub owner: String,
-  pub repo: String,
+  pub slug: String,
   pub commit_sha: String,
 
   pub sha: String,
@@ -38,27 +37,28 @@ impl Ord for RepoBlob {
 
 impl PartialEq for RepoBlob {
   fn eq(&self, other: &Self) -> bool {
-    self.owner == other.owner && self.repo == other.repo && self.sha == other.sha
+    self.slug == other.slug && self.sha == other.sha
   }
 }
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, Ord, Eq)]
+
 pub enum RepoIconKind {
-  IconField(Option<RepoBlob>),
+  IconField(RepoBlob),
   UserAvatar,
-  AppIcon,
-  Blob(Option<RepoBlob>),
-  SiteFavicon,
+  AppIcon { homepage: Url },
+  RepoFile(RepoBlob),
+  SiteFavicon { homepage: Url },
   ReadmeImage,
-  SiteLogo,
+  SiteLogo { homepage: Url },
 }
 
-impl From<IconKind> for RepoIconKind {
-  fn from(kind: IconKind) -> Self {
+impl From<(Url, IconKind)> for RepoIconKind {
+  fn from((homepage, kind): (Url, IconKind)) -> Self {
     match kind {
-      IconKind::AppIcon => RepoIconKind::AppIcon,
-      IconKind::SiteLogo => RepoIconKind::SiteLogo,
-      IconKind::SiteFavicon => RepoIconKind::SiteFavicon,
+      IconKind::AppIcon => RepoIconKind::AppIcon { homepage },
+      IconKind::SiteLogo => RepoIconKind::SiteLogo { homepage },
+      IconKind::SiteFavicon => RepoIconKind::SiteFavicon { homepage },
     }
   }
 }
@@ -68,28 +68,86 @@ impl Display for RepoIconKind {
     match self {
       RepoIconKind::IconField(_) => write!(f, "icon_field"),
       RepoIconKind::UserAvatar => write!(f, "user_avatar"),
-      RepoIconKind::AppIcon => write!(f, "app_icon"),
-      RepoIconKind::Blob(_) => write!(f, "repo_file"),
+      RepoIconKind::AppIcon { .. } => write!(f, "app_icon"),
+      RepoIconKind::RepoFile(_) => write!(f, "repo_file"),
+      RepoIconKind::SiteFavicon { .. } => write!(f, "site_favicon"),
       RepoIconKind::ReadmeImage => write!(f, "readme_image"),
-      RepoIconKind::SiteLogo => write!(f, "site_logo"),
-      RepoIconKind::SiteFavicon => write!(f, "site_favicon"),
+      RepoIconKind::SiteLogo { .. } => write!(f, "site_logo"),
     }
   }
 }
 
-impl FromStr for RepoIconKind {
-  type Err = String;
+impl Serialize for RepoIconKind {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut state = serializer.serialize_map(None)?;
 
-  fn from_str(kind: &str) -> Result<Self, Self::Err> {
-    Ok(match kind {
-      "icon_field" => RepoIconKind::IconField(None),
+    state.serialize_entry("kind", &self.to_string())?;
+
+    match self {
+      RepoIconKind::AppIcon { homepage }
+      | RepoIconKind::SiteFavicon { homepage }
+      | RepoIconKind::SiteLogo { homepage } => {
+        state.serialize_entry("homepage", homepage)?;
+      }
+      RepoIconKind::RepoFile(blob) | RepoIconKind::IconField(blob) => {
+        state.serialize_entry("slug", &blob.slug)?;
+        state.serialize_entry("commit_sha", &blob.commit_sha)?;
+        state.serialize_entry("sha", &blob.sha)?;
+        state.serialize_entry("path", &blob.path)?;
+      }
+      _ => {}
+    }
+
+    state.end()
+  }
+}
+
+impl<'de> Deserialize<'de> for RepoIconKind {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    #[derive(Deserialize)]
+    struct RepoIconFields {
+      kind: String,
+      homepage: Option<Url>,
+      slug: Option<String>,
+      commit_sha: Option<String>,
+      sha: Option<String>,
+      path: Option<String>,
+    }
+
+    let fields = RepoIconFields::deserialize(deserializer)?;
+
+    Ok(match fields.kind.as_ref() {
+      "icon_field" => RepoIconKind::IconField(RepoBlob {
+        slug: fields.slug.unwrap(),
+        commit_sha: fields.commit_sha.unwrap(),
+        sha: fields.sha.unwrap(),
+        path: fields.path.unwrap(),
+      }),
       "user_avatar" => RepoIconKind::UserAvatar,
-      "app_icon" => RepoIconKind::AppIcon,
-      "repo_file" => RepoIconKind::Blob(None),
+      "app_icon" => RepoIconKind::AppIcon {
+        homepage: fields.homepage.unwrap(),
+      },
+      "repo_file" => RepoIconKind::RepoFile(RepoBlob {
+        slug: fields.slug.unwrap(),
+        commit_sha: fields.commit_sha.unwrap(),
+        sha: fields.sha.unwrap(),
+        path: fields.path.unwrap(),
+      }),
+      "site_favicon" => RepoIconKind::SiteFavicon {
+        homepage: fields.homepage.unwrap(),
+      },
       "readme_image" => RepoIconKind::ReadmeImage,
-      "site_logo" => RepoIconKind::SiteLogo,
-      "site_favicon" => RepoIconKind::SiteFavicon,
-      _ => return Err("invalid icon kind".to_string()),
+      "site_logo" => RepoIconKind::SiteLogo {
+        homepage: fields.homepage.unwrap(),
+      },
+
+      _ => return Err(de::Error::custom("unknown icon kind".to_string())),
     })
   }
 }
@@ -100,7 +158,7 @@ pub struct RepoIcon {
   pub url: Url,
   pub headers: HashMap<String, String>,
 
-  #[serde(with = "serde_with::rust::display_fromstr")]
+  #[serde(flatten)]
   pub kind: RepoIconKind,
   #[serde(flatten)]
   pub info: IconInfo,
@@ -156,8 +214,8 @@ impl RepoIcon {
 
   pub async fn load_blob(blob: RepoBlob, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
     let url = Url::parse(&format!(
-      "https://api.github.com/repos/{}/{}/git/blobs/{}",
-      blob.owner, blob.repo, blob.sha
+      "https://api.github.com/repos/{}/git/blobs/{}",
+      blob.slug, blob.sha
     ))
     .unwrap();
 
@@ -173,9 +231,9 @@ impl RepoIcon {
       url,
       headers,
       if is_icon_field {
-        RepoIconKind::IconField(Some(blob))
+        RepoIconKind::IconField(blob)
       } else {
-        RepoIconKind::Blob(Some(blob))
+        RepoIconKind::RepoFile(blob)
       },
     )
     .await
@@ -184,12 +242,12 @@ impl RepoIcon {
   pub fn set_repo_private(&mut self, is_private: bool) {
     use RepoIconKind::*;
 
-    if let Blob(Some(blob)) | IconField(Some(blob)) = &mut self.kind {
+    if let RepoFile(blob) | IconField(blob) = &mut self.kind {
       if !is_private {
         self.headers.clear();
         self.url = Url::parse(&format!(
-          "https://raw.githubusercontent.com/{}/{}/{}/{}",
-          blob.owner, blob.repo, blob.commit_sha, blob.path
+          "https://raw.githubusercontent.com/{}/{}/{}",
+          blob.slug, blob.commit_sha, blob.path
         ))
         .unwrap();
       }

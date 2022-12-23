@@ -118,7 +118,9 @@ impl RepoIcons {
       async {
         let mut icons = Icons::new();
 
-        if let Some(homepage) = readme.clone().await?.homepage {
+        let homepage = readme.clone().await?.homepage;
+
+        if let Some(homepage) = &homepage {
           warn_err!(
             icons.load_website(homepage.clone()).await,
             "failed to load website {}",
@@ -132,7 +134,13 @@ impl RepoIcons {
             .await
             .into_iter()
             .filter(|icon| !is_badge_url(&icon.url))
-            .map(|icon| RepoIcon::new(icon.url, icon.kind.into(), icon.info))
+            .map(|icon| {
+              RepoIcon::new(
+                icon.url,
+                (homepage.clone().unwrap(), icon.kind).into(),
+                icon.info,
+              )
+            })
             .collect::<Vec<_>>()
             .try_into()
             .ok(),
@@ -219,7 +227,7 @@ impl RepoIcons {
           }) {
             if let Some(blob_kinds) = blob_kinds {
               for blob_kind in blob_kinds {
-                if matches!(blob_kind, RepoIconKind::Blob(_)) {
+                if matches!(blob_kind, RepoIconKind::RepoFile(_)) {
                   found_best_match = true;
                 }
               }
@@ -262,12 +270,14 @@ impl RepoIcons {
           if let Some(site_icons) = site_icons {
             repo_icons.extend(site_icons.clone());
 
-            if site_icons
+            if site_icons.iter().any(|icon| {
+              matches!(
+                icon.kind,
+                RepoIconKind::AppIcon { .. } | RepoIconKind::SiteFavicon { .. }
+              )
+            }) && previous_loads
               .iter()
-              .any(|icon| matches!(icon.kind, RepoIconKind::AppIcon | RepoIconKind::SiteFavicon))
-              && previous_loads
-                .iter()
-                .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+              .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
               && previous_loads
                 .iter()
                 .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))

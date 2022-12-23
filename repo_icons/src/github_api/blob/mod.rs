@@ -220,8 +220,7 @@ pub async fn get_blobs(
       files
         .into_iter()
         .map(|file| RepoBlob {
-          owner: owner.to_string(),
-          repo: repo.to_string(),
+          slug: format!("{}/{}", owner, repo),
           commit_sha: commit_sha.clone(),
 
           sha: file.sha,

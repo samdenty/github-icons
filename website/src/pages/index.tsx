@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Modal from 'react-modal';
 import { useContextualRouting } from 'next-use-contextual-routing';
 import dynamic from 'next/dynamic';
-import { Suspense, useState } from 'react';
+import { Suspense, startTransition, useState } from 'react';
 import _ from 'lodash';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {

@@ -52,11 +52,11 @@ const Logo = styled.img<{ showBadge?: 1 | 0; contrast: 1 | 0 }>`
   border-radius: 10px;
   opacity: 0.8;
   transition: all 0.2s ease;
-  filter: contrast(${(props) => (props.contrast ? 0.8 : 1)});
+  filter: contrast(${(props) => (props.contrast ? 0.75 : 1)});
 
   ${RepoLink}:hover & {
     opacity: 1;
-    filter: contrast(${(props) => (props.contrast ? 0.8 : 1)}) brightness(1.1);
+    filter: contrast(${(props) => (props.contrast ? 0.75 : 1)}) brightness(1.1);
   }
 `;
 

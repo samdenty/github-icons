@@ -41,8 +41,12 @@ impl PartialEq for RepoBlob {
   }
 }
 
+// NOTE: When you change the order of these, make sure
+// to update the order of the hardcoded if statements
+// for the best_matches option, otherwise you'll get
+// inconsistent results when that option is set to
+// true or false
 #[derive(Debug, Clone, PartialOrd, PartialEq, Ord, Eq)]
-
 pub enum RepoIconKind {
   IconField(RepoBlob),
   UserAvatar,

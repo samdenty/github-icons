@@ -1,6 +1,6 @@
 [package]
 name = "repo_icons"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Sam Denty <sam@samdenty.com>"]
 edition = "2018"
 license = "GPL-3.0"
@@ -40,7 +40,7 @@ cached = "0.23.0"
 log = "0.4.14"
 async-recursion = "1.0.0"
 once_cell = "1.5.2"
-site_icons = "0.4.0"
+site_icons = "0.4.1"
 scraper = "0.13.0"
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"

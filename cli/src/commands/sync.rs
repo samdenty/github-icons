@@ -159,6 +159,7 @@ pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync>
               IconInfo::PNG { .. } => "png",
               IconInfo::JPEG { .. } => "jpg",
               IconInfo::ICO { .. } => "ico",
+              IconInfo::GIF { .. } => "gif",
               IconInfo::SVG => "svg",
             }
           );

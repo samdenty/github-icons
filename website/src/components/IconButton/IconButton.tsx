@@ -44,7 +44,7 @@ export const IconButtonLoading = styled(PulseLoader)`
   }
 `;
 
-const Logo = styled.img<{ showBadge?: 1 | 0 }>`
+const Image = styled.img<{ showBadge?: 1 | 0 }>`
   height: var(--size);
   width: var(--size);
   object-fit: contain;
@@ -52,8 +52,8 @@ const Logo = styled.img<{ showBadge?: 1 | 0 }>`
   opacity: 0.8;
   transition: all 0.2s ease;
 
-  --border-color: #00000091;
-  --border-size: 1.5px;
+  --border-color: #2e2e2e;
+  --border-size: 2px;
   --border: drop-shadow(var(--border-size) 0 0 var(--border-color))
     drop-shadow(0 var(--border-size) 0 var(--border-color))
     drop-shadow(calc(var(--border-size) * -1) 0 0 var(--border-color))
@@ -76,7 +76,7 @@ export const IconButtonIcon = styled.div<{ loading: 1 | 0 }>`
     opacity: ${(props) => (props.loading ? 1 : 0)};
   }
 
-  ${Logo} {
+  ${Image} {
     transform: scale(${(props) => (props.loading ? 0.1 : 1)});
     opacity: ${(props) => (props.loading ? '0 !important' : '')};
   }
@@ -115,7 +115,7 @@ export const IconButton = React.forwardRef(
           as={`/${type !== 'github' ? `${type}/` : ''}${slug}`}
         >
           <IconButtonIcon loading={state === IconState.LOADING ? 1 : 0}>
-            <Logo
+            <Image
               alt={slug}
               loading="lazy"
               as={state === IconState.NO_ICON ? BsQuestionOctagonFill : 'img'}

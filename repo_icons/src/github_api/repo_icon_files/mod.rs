@@ -1,6 +1,6 @@
 mod repo_files;
 
-use crate::RepoBlob;
+use crate::RepoFile;
 use fancy_regex::{escape, Regex};
 use futures::future::join_all;
 use itertools::Itertools;
@@ -194,10 +194,10 @@ async fn get_package_json_icon(
   }
 }
 
-pub async fn get_blobs(
+pub async fn get_repo_icon_files(
   owner: &str,
   repo: &str,
-) -> Result<Option<(bool, Vec1<RepoBlob>)>, Box<dyn Error>> {
+) -> Result<Option<(bool, Vec1<RepoFile>)>, Box<dyn Error>> {
   let (commit_sha, files) = get_repo_files(owner, repo).await?;
 
   let result = if let Some(result) = get_package_json_icon(owner, repo, &commit_sha, &files).await {
@@ -231,7 +231,7 @@ pub async fn get_blobs(
       is_package_json,
       files
         .into_iter()
-        .map(|file| RepoBlob {
+        .map(|file| RepoFile {
           slug: format!("{}/{}", owner, repo),
           commit_sha: commit_sha.clone(),
 

@@ -98,7 +98,7 @@ impl RepoIcons {
       }
       .boxed_local(),
       async {
-        let blob_icons = match github_api::get_blobs(owner, repo).await? {
+        let blob_icons = match github_api::get_repo_icon_files(owner, repo).await? {
           Some((is_icon_field, blobs)) => Some(
             try_join_all(
               blobs

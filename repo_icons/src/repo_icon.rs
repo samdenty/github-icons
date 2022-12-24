@@ -15,7 +15,7 @@ use std::{
 use url::Url;
 
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
-pub struct RepoBlob {
+pub struct RepoFile {
   pub slug: String,
   pub commit_sha: String,
 
@@ -23,19 +23,19 @@ pub struct RepoBlob {
   pub path: String,
 }
 
-impl PartialOrd for RepoBlob {
-  fn partial_cmp(&self, _other: &RepoBlob) -> Option<Ordering> {
+impl PartialOrd for RepoFile {
+  fn partial_cmp(&self, _other: &RepoFile) -> Option<Ordering> {
     None
   }
 }
 
-impl Ord for RepoBlob {
-  fn cmp(&self, _other: &RepoBlob) -> Ordering {
+impl Ord for RepoFile {
+  fn cmp(&self, _other: &RepoFile) -> Ordering {
     Ordering::Equal
   }
 }
 
-impl PartialEq for RepoBlob {
+impl PartialEq for RepoFile {
   fn eq(&self, other: &Self) -> bool {
     self.slug == other.slug && self.sha == other.sha
   }
@@ -48,11 +48,11 @@ impl PartialEq for RepoBlob {
 // true or false
 #[derive(Debug, Clone, PartialOrd, PartialEq, Ord, Eq)]
 pub enum RepoIconKind {
-  IconField(RepoBlob),
+  IconField(RepoFile),
   UserAvatar,
   AppIcon { homepage: Url },
   SiteFavicon { homepage: Url },
-  RepoFile(RepoBlob),
+  RepoFile(RepoFile),
   ReadmeImage,
   SiteLogo { homepage: Url },
 }
@@ -127,7 +127,7 @@ impl<'de> Deserialize<'de> for RepoIconKind {
     let fields = RepoIconFields::deserialize(deserializer)?;
 
     Ok(match fields.kind.as_ref() {
-      "icon_field" => RepoIconKind::IconField(RepoBlob {
+      "icon_field" => RepoIconKind::IconField(RepoFile {
         slug: fields.slug.unwrap(),
         commit_sha: fields.commit_sha.unwrap(),
         sha: fields.sha.unwrap(),
@@ -137,7 +137,7 @@ impl<'de> Deserialize<'de> for RepoIconKind {
       "app_icon" => RepoIconKind::AppIcon {
         homepage: fields.homepage.unwrap(),
       },
-      "repo_file" => RepoIconKind::RepoFile(RepoBlob {
+      "repo_file" => RepoIconKind::RepoFile(RepoFile {
         slug: fields.slug.unwrap(),
         commit_sha: fields.commit_sha.unwrap(),
         sha: fields.sha.unwrap(),
@@ -216,7 +216,7 @@ impl RepoIcon {
       .ok()
   }
 
-  pub async fn load_blob(blob: RepoBlob, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
+  pub async fn load_blob(blob: RepoFile, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
     let url = Url::parse(&format!(
       "https://api.github.com/repos/{}/git/blobs/{}",
       blob.slug, blob.sha

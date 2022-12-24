@@ -10,11 +10,23 @@ use std::error::Error;
 use std::path::Path;
 use vec1::Vec1;
 
+const OWNER_PREFIXES: [&str; 1] = ["get"];
 const OWNER_SUFFIXES: [&str; 6] = ["js", "rs", "io", "land", "pkg", "hq"];
 
 pub(crate) fn owner_name_lowercase(owner: &str) -> String {
-  let owner = owner.to_lowercase();
-  let mut owner = owner.rsplit_once('-').unwrap_or((&owner, "")).0;
+  let mut owner = &owner.to_lowercase()[..];
+
+  for prefix in OWNER_PREFIXES {
+    owner = owner.strip_prefix(prefix).unwrap_or(owner);
+  }
+
+  // find the first non-empty segment
+  for segment in owner.split('-') {
+    if segment.len() > 0 {
+      owner = segment;
+      break;
+    }
+  }
 
   for suffix in OWNER_SUFFIXES {
     owner = owner.strip_suffix(suffix).unwrap_or(owner);

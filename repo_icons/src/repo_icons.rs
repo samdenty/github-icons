@@ -27,7 +27,7 @@ pub struct RepoIcons(Vec1<RepoIcon>);
 #[derive(Clone)]
 enum LoadedKind {
   UserAvatar(Option<RepoIcon>),
-  Blob(Option<Vec1<RepoIcon>>),
+  RepoFile(Option<Vec1<RepoIcon>>),
   ReadmeImage(Option<RepoIcon>),
   Homepage(Option<Vec1<RepoIcon>>),
   PrefixedRepo(Option<Vec1<RepoIcon>>),
@@ -112,7 +112,7 @@ impl RepoIcons {
           None => None,
         };
 
-        Ok(LoadedKind::Blob(blob_icons))
+        Ok(LoadedKind::RepoFile(blob_icons))
       }
       .boxed_local(),
       async {
@@ -188,17 +188,17 @@ impl RepoIcons {
       };
 
       match &loaded {
-        LoadedKind::Blob(blob_icons) => {
-          if let Some(mut blob_icons) = blob_icons.clone() {
-            for blob_icon in &mut blob_icons {
-              blob_icon.set_repo_private(readme.clone().await?.private);
+        LoadedKind::RepoFile(file_icons) => {
+          if let Some(mut file_icons) = file_icons.clone() {
+            for file_icon in &mut file_icons {
+              file_icon.set_repo_private(readme.clone().await?.private);
 
-              if matches!(blob_icon.kind, RepoIconKind::IconField(_)) {
+              if matches!(file_icon.kind, RepoIconKind::IconField(_)) {
                 found_best_match = true;
               }
             }
 
-            repo_icons.extend(blob_icons);
+            repo_icons.extend(file_icons);
 
             if previous_loads
               .iter()
@@ -214,7 +214,7 @@ impl RepoIcons {
 
         LoadedKind::UserAvatar(user_avatar) => {
           if let Some(blob_kinds) = previous_loads.iter().find_map(|loaded| {
-            if let LoadedKind::Blob(blob_icons) = loaded {
+            if let LoadedKind::RepoFile(blob_icons) = loaded {
               Some(blob_icons.as_ref().map(|blob_icons| {
                 blob_icons
                   .iter()
@@ -248,7 +248,7 @@ impl RepoIcons {
               .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
               && previous_loads
                 .iter()
-                .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))
+                .any(|loaded| matches!(loaded, LoadedKind::RepoFile(_)))
               && previous_loads
                 .iter()
                 .any(|loaded| matches!(loaded, LoadedKind::Homepage(_)))
@@ -280,7 +280,7 @@ impl RepoIcons {
               .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
               && previous_loads
                 .iter()
-                .any(|loaded| matches!(loaded, LoadedKind::Blob(_)))
+                .any(|loaded| matches!(loaded, LoadedKind::RepoFile(_)))
             {
               found_best_match = true;
             }

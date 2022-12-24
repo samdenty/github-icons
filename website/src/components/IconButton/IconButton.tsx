@@ -52,9 +52,18 @@ const Logo = styled.img<{ showBadge?: 1 | 0 }>`
   opacity: 0.8;
   transition: all 0.2s ease;
 
+  --border-color: #00000091;
+  --border-size: 1.5px;
+  --border: drop-shadow(var(--border-size) 0 0 var(--border-color))
+    drop-shadow(0 var(--border-size) 0 var(--border-color))
+    drop-shadow(calc(var(--border-size) * -1) 0 0 var(--border-color))
+    drop-shadow(0 calc(var(--border-size) * -1) 0 var(--border-color));
+
+  filter: var(--border);
+
   ${RepoLink}:hover & {
     opacity: 1;
-    filter: brightness(1.1);
+    filter: var(--border) brightness(1.1);
   }
 `;
 

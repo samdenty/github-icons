@@ -35,7 +35,7 @@ export default function App({
       <SessionProvider session={session}>
         <RelayEnvironmentProvider environment={env}>
           <Head>
-            <title>github-icons</title>
+            <title>GitHub / NPM Icons</title>
             <meta
               name="description"
               content="Chrome Extension, API & Mac App/CLI that adds icons to your repos"

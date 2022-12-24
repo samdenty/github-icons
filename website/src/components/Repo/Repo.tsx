@@ -91,7 +91,7 @@ export function Repo({ slug }: RepoProps) {
   return (
     <>
       <Head>
-        <title>{slug} - github-icons</title>
+        <title>{slug} - GitHub Icons</title>
       </Head>
 
       <div>

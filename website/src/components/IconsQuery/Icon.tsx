@@ -48,6 +48,7 @@ const Slug = styled.div`
 const Owner = styled.div`
   opacity: 0.5;
   font-size: 77%;
+  white-space: break-spaces;
 `;
 
 const Name = styled.div`

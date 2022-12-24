@@ -6,7 +6,6 @@ import React, { useState } from 'react';
 import { PulseLoader } from 'react-spinners';
 import { BsQuestionOctagonFill } from 'react-icons/bs';
 import { IconButtonBadge } from './IconButtonBadge';
-import { giveContrastToIcons } from '../../demoIcons';
 
 export interface IconButtonProps
   extends Omit<React.HTMLProps<HTMLAnchorElement>, 'children'> {
@@ -45,18 +44,17 @@ export const IconButtonLoading = styled(PulseLoader)`
   }
 `;
 
-const Logo = styled.img<{ showBadge?: 1 | 0; contrast: 1 | 0 }>`
+const Logo = styled.img<{ showBadge?: 1 | 0 }>`
   height: var(--size);
   width: var(--size);
   object-fit: contain;
   border-radius: 10px;
   opacity: 0.8;
   transition: all 0.2s ease;
-  filter: contrast(${(props) => (props.contrast ? 0.75 : 1)});
 
   ${RepoLink}:hover & {
     opacity: 1;
-    filter: contrast(${(props) => (props.contrast ? 0.75 : 1)}) brightness(1.1);
+    filter: brightness(1.1);
   }
 `;
 
@@ -113,7 +111,6 @@ export const IconButton = React.forwardRef(
               loading="lazy"
               as={state === IconState.NO_ICON ? BsQuestionOctagonFill : 'img'}
               showBadge={showBadge ? 1 : 0}
-              contrast={giveContrastToIcons.includes(slug) ? 1 : 0}
               src={iconUrl}
               ref={
                 state === IconState.NO_ICON

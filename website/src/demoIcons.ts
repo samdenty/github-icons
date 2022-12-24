@@ -1,7 +1,5 @@
 import _ from 'lodash';
 
-export const giveContrastToIcons = ['lodash', 'vercel/next.js', 'socket.io'];
-
 export const demoNpmPackages = [
   'webpack',
   'lodash',

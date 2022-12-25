@@ -12,6 +12,7 @@ const PRETTY_KINDS: Record<Icon['kind'], string> = {
   site_logo: `Logo on repo's homepage`,
   repo_file: `Files within repo`,
   avatar: `Repo owner's Avatar`,
+  framework_icon: `Framework Icon`,
   org_avatar: `Organization's Avatar`,
   user_avatar_fallback: `Repo owner's Avatar (fallback)`,
   readme_image: `Image at top of README`,

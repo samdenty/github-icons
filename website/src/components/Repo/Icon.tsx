@@ -25,6 +25,7 @@ export type Icon = IconInfo & {
     | 'user_avatar_fallback'
     | 'app_icon'
     | 'repo_file'
+    | 'framework_icon'
     | 'readme_image'
     | 'site_logo'
     | 'site_favicon';

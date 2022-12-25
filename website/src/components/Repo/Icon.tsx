@@ -21,7 +21,8 @@ export type Icon = IconInfo & {
   kind:
     | 'icon_field'
     | 'avatar'
-    | 'avatar_fallback'
+    | 'org_avatar'
+    | 'user_avatar_fallback'
     | 'app_icon'
     | 'repo_file'
     | 'readme_image'

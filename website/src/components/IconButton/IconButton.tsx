@@ -48,6 +48,7 @@ const Image = styled.img<{ showBadge?: 1 | 0 }>`
   height: var(--size);
   width: var(--size);
   object-fit: contain;
+  image-rendering: pixelated;
   border-radius: 10px;
   opacity: 0.8;
   transition: all 0.2s ease;

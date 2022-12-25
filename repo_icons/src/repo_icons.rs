@@ -153,9 +153,8 @@ impl RepoIcons {
           .clone()
           .await?
           .load_body()
-          .await?
-          .into_iter()
-          .find(|image| image.in_primary_heading);
+          .await
+          .and_then(|images| images.into_iter().find(|image| image.in_primary_heading));
 
         let icon = match image {
           Some(image) => Some(

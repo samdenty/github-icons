@@ -3,12 +3,13 @@ pub mod readme_image;
 mod repo_redirect;
 
 pub use readme_image::*;
+use vec1::Vec1;
 
 use self::{primary_heading::PrimaryHeading, repo_redirect::is_same_repo};
 use crate::blacklist::is_blacklisted_homepage;
 use scraper::Html;
 use serde::{de, Deserialize};
-use std::error::Error;
+use std::{convert::TryInto, error::Error};
 use url::Url;
 
 #[derive(Clone)]
@@ -99,14 +100,17 @@ impl Readme {
     }
   }
 
-  pub async fn load_body(&self) -> Result<Vec<ReadmeImage>, Box<dyn Error>> {
+  pub async fn load_body(&self) -> Option<Vec1<ReadmeImage>> {
     let body = gh_api_get!("repos/{}/{}/readme", self.owner, self.repo)
       .header("Accept", "application/vnd.github.html")
       .send()
-      .await?
-      .error_for_status()?
+      .await
+      .ok()?
+      .error_for_status()
+      .ok()?
       .text()
-      .await?;
+      .await
+      .ok()?;
 
     let document = Html::parse_document(&body);
 
@@ -142,7 +146,7 @@ impl Readme {
         .collect::<Vec<_>>()
     );
 
-    Ok(images)
+    images.try_into().ok()
   }
 
   /// Check if a given url is a project link.

@@ -5,6 +5,7 @@ use std::error::Error;
 #[derive(Deserialize)]
 struct Repo {
   name: String,
+  fork: bool,
 }
 
 #[derive(Deserialize)]
@@ -27,7 +28,13 @@ async fn get_user_repos_cached(user: String) -> Result<Vec<String>, String> {
     .map_err(|e| format!("{}: {:?}", url, e))?;
 
   match res {
-    Response::Repos(repos) => Ok(repos.into_iter().map(|r| r.name.to_lowercase()).collect()),
+    Response::Repos(repos) => Ok(
+      repos
+        .into_iter()
+        .filter(|repo| !repo.fork)
+        .map(|repo| repo.name.to_lowercase())
+        .collect(),
+    ),
     Response::Message { message } => Err(message),
   }
 }

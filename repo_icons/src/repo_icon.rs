@@ -84,7 +84,7 @@ pub enum RepoIconKind {
     file: RepoFile,
   },
   ReadmeImage,
-  OrgAvatarFallback,
+  OrgAvatar,
   SiteLogo {
     homepage: Url,
   },
@@ -111,7 +111,7 @@ impl Display for RepoIconKind {
       RepoIconKind::IconField { .. } => write!(f, "icon_field"),
       RepoIconKind::Avatar { .. } => write!(f, "avatar"),
       RepoIconKind::UserAvatarFallback => write!(f, "user_avatar_fallback"),
-      RepoIconKind::OrgAvatarFallback => write!(f, "org_avatar_fallback"),
+      RepoIconKind::OrgAvatar => write!(f, "org_avatar"),
       RepoIconKind::AppIcon { .. } => write!(f, "app_icon"),
       RepoIconKind::Framework { .. } => write!(f, "framework_icon"),
       RepoIconKind::RepoFile { .. } => write!(f, "repo_file"),
@@ -146,7 +146,7 @@ impl Serialize for RepoIconKind {
       }
       RepoIconKind::ReadmeImage
       | RepoIconKind::Avatar
-      | RepoIconKind::OrgAvatarFallback
+      | RepoIconKind::OrgAvatar
       | RepoIconKind::UserAvatarFallback => {}
     }
 
@@ -174,7 +174,7 @@ impl<'de> Deserialize<'de> for RepoIconKind {
         file: fields.file.unwrap(),
       },
       "user_avatar_fallback" => RepoIconKind::UserAvatarFallback,
-      "org_avatar_fallback" => RepoIconKind::OrgAvatarFallback,
+      "org_avatar" => RepoIconKind::OrgAvatar,
       "avatar" => RepoIconKind::Avatar {},
       "app_icon" => RepoIconKind::AppIcon {
         homepage: fields.homepage.unwrap(),
@@ -267,7 +267,7 @@ impl RepoIcon {
       avatar_url.clone(),
       if fallback {
         if is_org {
-          RepoIconKind::OrgAvatarFallback
+          RepoIconKind::OrgAvatar
         } else {
           RepoIconKind::UserAvatarFallback
         }

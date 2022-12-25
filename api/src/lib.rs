@@ -162,7 +162,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 
       if matches!(
         repo_icon.kind,
-        RepoIconKind::OrgAvatarFallback | RepoIconKind::UserAvatarFallback
+        RepoIconKind::OrgAvatar | RepoIconKind::UserAvatarFallback
       ) {
         write_to_cache = false;
       }

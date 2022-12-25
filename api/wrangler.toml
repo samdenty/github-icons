@@ -7,7 +7,7 @@ routes = ["github-icons.com/*"]
 # usage_model = "unbound"
 
 kv_namespaces = [
-  { binding = "CACHE", id = "dba88694538545fa8821d6010e1d1e17", preview_id = "61845afb9e4b486aaf7f02453c3620c8" },
+  { binding = "CACHE", id = "8fcf5c98008b42e19aed40dc462750b5", preview_id = "61845afb9e4b486aaf7f02453c3620c8" },
 ]
 
 [build]

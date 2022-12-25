@@ -50,7 +50,7 @@ impl PartialEq for RepoFile {
 #[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub enum RepoIconKind {
   IconField(RepoFile),
-  Avatar { is_org: bool },
+  Avatar,
   AppIcon { homepage: Url },
   SiteFavicon { homepage: Url },
   RepoFile(RepoFile),
@@ -94,7 +94,7 @@ impl Serialize for RepoIconKind {
     state.serialize_entry("kind", &self.to_string())?;
 
     match self {
-      RepoIconKind::Avatar { is_org } | RepoIconKind::AvatarFallback { is_org } => {
+      RepoIconKind::AvatarFallback { is_org } => {
         state.serialize_entry("is_org", is_org)?;
       }
       RepoIconKind::AppIcon { homepage }
@@ -108,7 +108,7 @@ impl Serialize for RepoIconKind {
         state.serialize_entry("sha", &blob.sha)?;
         state.serialize_entry("path", &blob.path)?;
       }
-      RepoIconKind::ReadmeImage => {}
+      RepoIconKind::ReadmeImage | RepoIconKind::Avatar => {}
     }
 
     state.end()
@@ -143,9 +143,7 @@ impl<'de> Deserialize<'de> for RepoIconKind {
       "avatar_fallback" => RepoIconKind::AvatarFallback {
         is_org: fields.is_org.unwrap(),
       },
-      "avatar" => RepoIconKind::Avatar {
-        is_org: fields.is_org.unwrap(),
-      },
+      "avatar" => RepoIconKind::Avatar {},
       "app_icon" => RepoIconKind::AppIcon {
         homepage: fields.homepage.unwrap(),
       },
@@ -237,7 +235,7 @@ impl RepoIcon {
       if fallback {
         RepoIconKind::AvatarFallback { is_org }
       } else {
-        RepoIconKind::Avatar { is_org }
+        RepoIconKind::Avatar {}
       },
     )
     .await

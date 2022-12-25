@@ -15,6 +15,27 @@ use std::{
 };
 use url::Url;
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Framework {
+  Vue,
+  CreateReactApp,
+  Next,
+}
+
+impl From<&RepoFile> for Option<Framework> {
+  fn from(file: &RepoFile) -> Self {
+    Some(match &file.sha[..] {
+      "df36fcfb72584e00488330b560ebcf34a41c64c2" => Framework::Vue,
+      "718d6fea4835ec2d246af9800eddb7ffb276240c" => Framework::Next,
+      "bcd5dfd67cd0361b78123e95c2dd96031f27f743" | "a11777cc471a4344702741ab1c8a588998b1311a" => {
+        Framework::CreateReactApp
+      }
+      _ => return None,
+    })
+  }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct RepoFile {
   pub github: String,
@@ -49,14 +70,29 @@ impl PartialEq for RepoFile {
 // true or false
 #[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub enum RepoIconKind {
-  IconField(RepoFile),
+  IconField {
+    file: RepoFile,
+  },
   Avatar,
-  AppIcon { homepage: Url },
-  SiteFavicon { homepage: Url },
-  RepoFile(RepoFile),
+  AppIcon {
+    homepage: Url,
+  },
+  SiteFavicon {
+    homepage: Url,
+  },
+  RepoFile {
+    file: RepoFile,
+  },
   ReadmeImage,
-  SiteLogo { homepage: Url },
-  AvatarFallback { is_org: bool },
+  OrgAvatarFallback,
+  SiteLogo {
+    homepage: Url,
+  },
+  Framework {
+    file: RepoFile,
+    framework: Framework,
+  },
+  UserAvatarFallback,
 }
 
 impl From<(Url, IconKind)> for RepoIconKind {
@@ -72,11 +108,13 @@ impl From<(Url, IconKind)> for RepoIconKind {
 impl Display for RepoIconKind {
   fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
     match self {
-      RepoIconKind::IconField(_) => write!(f, "icon_field"),
+      RepoIconKind::IconField { .. } => write!(f, "icon_field"),
       RepoIconKind::Avatar { .. } => write!(f, "avatar"),
-      RepoIconKind::AvatarFallback { .. } => write!(f, "avatar_fallback"),
+      RepoIconKind::UserAvatarFallback => write!(f, "user_avatar_fallback"),
+      RepoIconKind::OrgAvatarFallback => write!(f, "org_avatar_fallback"),
       RepoIconKind::AppIcon { .. } => write!(f, "app_icon"),
-      RepoIconKind::RepoFile(_) => write!(f, "repo_file"),
+      RepoIconKind::Framework { .. } => write!(f, "framework_icon"),
+      RepoIconKind::RepoFile { .. } => write!(f, "repo_file"),
       RepoIconKind::SiteFavicon { .. } => write!(f, "site_favicon"),
       RepoIconKind::ReadmeImage => write!(f, "readme_image"),
       RepoIconKind::SiteLogo { .. } => write!(f, "site_logo"),
@@ -94,21 +132,22 @@ impl Serialize for RepoIconKind {
     state.serialize_entry("kind", &self.to_string())?;
 
     match self {
-      RepoIconKind::AvatarFallback { is_org } => {
-        state.serialize_entry("is_org", is_org)?;
-      }
       RepoIconKind::AppIcon { homepage }
       | RepoIconKind::SiteFavicon { homepage }
       | RepoIconKind::SiteLogo { homepage } => {
         state.serialize_entry("homepage", homepage)?;
       }
-      RepoIconKind::RepoFile(blob) | RepoIconKind::IconField(blob) => {
-        state.serialize_entry("slug", &blob.github)?;
-        state.serialize_entry("commit_sha", &blob.commit_sha)?;
-        state.serialize_entry("sha", &blob.sha)?;
-        state.serialize_entry("path", &blob.path)?;
+      RepoIconKind::Framework { framework, file } => {
+        state.serialize_entry("framework", framework)?;
+        state.serialize_entry("file", file)?;
       }
-      RepoIconKind::ReadmeImage | RepoIconKind::Avatar => {}
+      RepoIconKind::RepoFile { file } | RepoIconKind::IconField { file } => {
+        state.serialize_entry("file", file)?;
+      }
+      RepoIconKind::ReadmeImage
+      | RepoIconKind::Avatar
+      | RepoIconKind::OrgAvatarFallback
+      | RepoIconKind::UserAvatarFallback => {}
     }
 
     state.end()
@@ -124,35 +163,29 @@ impl<'de> Deserialize<'de> for RepoIconKind {
     struct RepoIconFields {
       kind: String,
       homepage: Option<Url>,
-      slug: Option<String>,
-      commit_sha: Option<String>,
-      sha: Option<String>,
-      path: Option<String>,
-      is_org: Option<bool>,
+      file: Option<RepoFile>,
+      framework: Option<Framework>,
     }
 
     let fields = RepoIconFields::deserialize(deserializer)?;
 
     Ok(match fields.kind.as_ref() {
-      "icon_field" => RepoIconKind::IconField(RepoFile {
-        github: fields.slug.unwrap(),
-        commit_sha: fields.commit_sha.unwrap(),
-        sha: fields.sha.unwrap(),
-        path: fields.path.unwrap(),
-      }),
-      "avatar_fallback" => RepoIconKind::AvatarFallback {
-        is_org: fields.is_org.unwrap(),
+      "icon_field" => RepoIconKind::IconField {
+        file: fields.file.unwrap(),
       },
+      "user_avatar_fallback" => RepoIconKind::UserAvatarFallback,
+      "org_avatar_fallback" => RepoIconKind::OrgAvatarFallback,
       "avatar" => RepoIconKind::Avatar {},
       "app_icon" => RepoIconKind::AppIcon {
         homepage: fields.homepage.unwrap(),
       },
-      "repo_file" => RepoIconKind::RepoFile(RepoFile {
-        github: fields.slug.unwrap(),
-        commit_sha: fields.commit_sha.unwrap(),
-        sha: fields.sha.unwrap(),
-        path: fields.path.unwrap(),
-      }),
+      "repo_file" => RepoIconKind::RepoFile {
+        file: fields.file.unwrap(),
+      },
+      "framework_icon" => RepoIconKind::Framework {
+        file: fields.file.unwrap(),
+        framework: fields.framework.unwrap(),
+      },
       "site_favicon" => RepoIconKind::SiteFavicon {
         homepage: fields.homepage.unwrap(),
       },
@@ -233,7 +266,11 @@ impl RepoIcon {
     RepoIcon::load(
       avatar_url.clone(),
       if fallback {
-        RepoIconKind::AvatarFallback { is_org }
+        if is_org {
+          RepoIconKind::OrgAvatarFallback
+        } else {
+          RepoIconKind::UserAvatarFallback
+        }
       } else {
         RepoIconKind::Avatar {}
       },
@@ -241,10 +278,10 @@ impl RepoIcon {
     .await
   }
 
-  pub async fn load_blob(blob: RepoFile, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
+  pub async fn load_blob(file: RepoFile, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
     let url = Url::parse(&format!(
       "https://api.github.com/repos/{}/git/blobs/{}",
-      blob.github, blob.sha
+      file.github, file.sha
     ))
     .unwrap();
 
@@ -260,9 +297,13 @@ impl RepoIcon {
       url,
       headers,
       if is_icon_field {
-        RepoIconKind::IconField(blob)
+        RepoIconKind::IconField { file }
       } else {
-        RepoIconKind::RepoFile(blob)
+        if let Some(framework) = (&file).into() {
+          RepoIconKind::Framework { framework, file }
+        } else {
+          RepoIconKind::RepoFile { file }
+        }
       },
     )
     .await
@@ -271,12 +312,12 @@ impl RepoIcon {
   pub fn set_repo_private(&mut self, is_private: bool) {
     use RepoIconKind::*;
 
-    if let RepoFile(blob) | IconField(blob) = &mut self.kind {
+    if let Framework { file, .. } | RepoFile { file } | IconField { file } = &mut self.kind {
       if !is_private {
         self.headers.clear();
         self.url = Url::parse(&format!(
           "https://raw.githubusercontent.com/{}/{}/{}",
-          blob.github, blob.commit_sha, blob.path
+          file.github, file.commit_sha, file.path
         ))
         .unwrap();
       }

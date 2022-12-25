@@ -186,7 +186,7 @@ impl RepoIcons {
             for file_icon in &mut file_icons {
               file_icon.set_repo_private(readme.clone().await?.private);
 
-              if matches!(file_icon.kind, RepoIconKind::IconField(_)) {
+              if matches!(file_icon.kind, RepoIconKind::IconField { .. }) {
                 found_best_match = true;
               }
             }
@@ -224,7 +224,7 @@ impl RepoIcons {
           }) {
             if let Some(blob_kinds) = blob_kinds {
               for blob_kind in blob_kinds {
-                if matches!(blob_kind, RepoIconKind::RepoFile(_)) {
+                if matches!(blob_kind, RepoIconKind::RepoFile { .. }) {
                   found_best_match = true;
                 }
               }

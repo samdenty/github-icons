@@ -160,7 +160,10 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
         Ok(icons) => icons.into_best_match(),
       };
 
-      if matches!(repo_icon.kind, RepoIconKind::AvatarFallback { .. }) {
+      if matches!(
+        repo_icon.kind,
+        RepoIconKind::OrgAvatarFallback | RepoIconKind::UserAvatarFallback
+      ) {
         write_to_cache = false;
       }
 

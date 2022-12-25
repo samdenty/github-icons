@@ -1,16 +1,17 @@
 mod primary_heading;
 pub mod readme_image;
-mod repo_redirect;
 
 pub use readme_image::*;
-use vec1::Vec1;
 
-use self::{primary_heading::PrimaryHeading, repo_redirect::is_same_repo};
+use self::primary_heading::PrimaryHeading;
 use crate::blacklist::is_blacklisted_homepage;
 use scraper::Html;
 use serde::{de, Deserialize};
 use std::{convert::TryInto, error::Error};
 use url::Url;
+use vec1::Vec1;
+
+use super::is_same_repo;
 
 #[derive(Clone)]
 pub struct Readme {
@@ -234,9 +235,7 @@ impl Readme {
   }
 
   async fn is_same_repo_as(&self, owner: &str, repo: &str) -> bool {
-    let user = owner.to_lowercase();
-    let repo = repo.to_lowercase();
-    is_same_repo((&self.owner, &self.repo), (&user, &repo)).await
+    is_same_repo((&self.owner, &self.repo), (owner, repo)).await
   }
 }
 

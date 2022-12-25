@@ -11,9 +11,9 @@ use std::path::Path;
 use vec1::Vec1;
 
 const OWNER_PREFIXES: [&str; 1] = ["get"];
-const OWNER_SUFFIXES: [&str; 6] = ["js", "rs", "io", "land", "pkg", "hq"];
+const OWNER_SUFFIXES: [&str; 7] = ["js", "rs", "io", "land", "pkg", "hq", "app"];
 
-pub(crate) fn owner_name_lowercase(owner: &str) -> String {
+pub(crate) fn stripped_owner_lowercase(owner: &str) -> String {
   let mut owner = &owner.to_lowercase()[..];
 
   for prefix in OWNER_PREFIXES {
@@ -41,7 +41,7 @@ fn is_valid_blob(file: &File) -> bool {
 }
 
 fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
-  let owner = owner_name_lowercase(owner);
+  let owner = stripped_owner_lowercase(owner);
   let repo = repo.to_lowercase();
 
   let fullpath = file.path.to_lowercase();

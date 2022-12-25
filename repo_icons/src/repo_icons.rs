@@ -1,8 +1,6 @@
 use crate::{
   blacklist::{is_badge_url, is_blacklisted_homepage},
-  get_token,
-  github_api::{self, owner_name_lowercase},
-  RepoIcon, RepoIconKind,
+  get_token, github_api, RepoIcon, RepoIconKind,
 };
 use async_recursion::async_recursion;
 use futures::{
@@ -26,7 +24,7 @@ pub struct RepoIcons(Vec1<RepoIcon>);
 
 #[derive(Clone)]
 enum LoadedKind {
-  UserAvatar(Option<RepoIcon>),
+  Avatar(RepoIcon),
   RepoFile(Option<Vec1<RepoIcon>>),
   ReadmeImage(Option<RepoIcon>),
   Homepage(Option<Vec1<RepoIcon>>),
@@ -56,22 +54,13 @@ impl RepoIcons {
 
     let mut futures: Vec<Pin<Box<dyn Future<Output = Result<LoadedKind, Box<dyn Error>>>>>> = vec![
       async {
-        // Check if the repo contains the owner's username, and load the user's avatar
-        let docs = regex!("^(docs|documentation)$");
-        let icon = if repo.to_lowercase().contains(&owner_name_lowercase(owner))
-          || docs.is_match(&repo.to_lowercase()).unwrap()
-        {
-          RepoIcon::load_user_avatar(owner).await
-        } else {
-          None
-        };
-
-        Ok(LoadedKind::UserAvatar(icon))
+        let icon = RepoIcon::load_user_avatar(owner, repo).await?;
+        Ok(LoadedKind::Avatar(icon))
       }
       .boxed_local(),
       // Try and find prefixed repos, and load icons for them on GitHub
       async {
-        let repos = github_api::get_user_repos(owner).await?;
+        let repos = github_api::get_user_repos(owner, repo).await?;
 
         Ok(LoadedKind::PrefixedRepo(
           join_all(
@@ -98,7 +87,11 @@ impl RepoIcons {
       }
       .boxed_local(),
       async {
-        let blob_icons = match github_api::get_repo_icon_files(owner, repo).await? {
+        let blob_icons = match github_api::get_repo_icon_files(owner, repo)
+          .await
+          .ok()
+          .flatten()
+        {
           Some((is_icon_field, blobs)) => Some(
             try_join_all(
               blobs
@@ -118,7 +111,7 @@ impl RepoIcons {
       async {
         let mut icons = Icons::new_with_blacklist(|url| is_blacklisted_homepage(url));
 
-        let homepage = readme.clone().await?.homepage;
+        let homepage = readme.clone().await.ok().and_then(|readme| readme.homepage);
 
         if let Some(homepage) = &homepage {
           warn_err!(
@@ -149,22 +142,23 @@ impl RepoIcons {
       .boxed_local(),
       // Try and extract images from the readme website, or directly in it
       async {
-        let image = readme
-          .clone()
-          .await?
-          .load_body()
-          .await
-          .and_then(|images| images.into_iter().find(|image| image.in_primary_heading));
+        Ok(LoadedKind::ReadmeImage(match readme.clone().await {
+          Ok(readme) => {
+            let image = readme
+              .load_body()
+              .await
+              .and_then(|images| images.into_iter().find(|image| image.in_primary_heading));
 
-        let icon = match image {
-          Some(image) => Some(
-            RepoIcon::load_with_headers(image.src, image.headers, RepoIconKind::ReadmeImage)
-              .await?,
-          ),
-          None => None,
-        };
-
-        Ok(LoadedKind::ReadmeImage(icon))
+            match image {
+              Some(image) => Some(
+                RepoIcon::load_with_headers(image.src, image.headers, RepoIconKind::ReadmeImage)
+                  .await?,
+              ),
+              None => None,
+            }
+          }
+          Err(_) => None,
+        }))
       }
       .boxed_local(),
     ];
@@ -180,7 +174,7 @@ impl RepoIcons {
 
       let loaded = match loaded {
         Err(err) => {
-          error = Err(err);
+          error = Err(format!("{} {:?}", index, err));
           continue;
         }
         Ok(loaded) => loaded,
@@ -201,17 +195,21 @@ impl RepoIcons {
 
             if previous_loads
               .iter()
-              .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+              .any(|loaded| matches!(loaded, LoadedKind::Avatar(_)))
               && previous_loads
                 .iter()
                 .any(|loaded| matches!(loaded, LoadedKind::Homepage(_)))
             {
+              // if we have both the avatar & homepage but haven't
+              // found the best match yet, then the repo file is the
+              // best match
               found_best_match = true;
             }
           }
         }
 
-        LoadedKind::UserAvatar(user_avatar) => {
+        LoadedKind::Avatar(user_avatar) => {
+          // found_best_match for RepoFile
           if let Some(blob_kinds) = previous_loads.iter().find_map(|loaded| {
             if let LoadedKind::RepoFile(blob_icons) = loaded {
               Some(blob_icons.as_ref().map(|blob_icons| {
@@ -235,16 +233,14 @@ impl RepoIcons {
             }
           }
 
-          if let Some(user_avatar) = user_avatar {
-            repo_icons.push(user_avatar.clone());
-          }
+          repo_icons.push(user_avatar.clone());
         }
 
         LoadedKind::ReadmeImage(readme_image) => {
           if let Some(readme_image) = readme_image {
             if previous_loads
               .iter()
-              .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+              .any(|loaded| matches!(loaded, LoadedKind::Avatar(_)))
               && previous_loads
                 .iter()
                 .any(|loaded| matches!(loaded, LoadedKind::RepoFile(_)))
@@ -252,6 +248,8 @@ impl RepoIcons {
                 .iter()
                 .any(|loaded| matches!(loaded, LoadedKind::Homepage(_)))
             {
+              // if we've already got the Avatar, RepoFile & Homepage,
+              // then the ReadmeImage is the best match
               found_best_match = true;
             }
 
@@ -269,6 +267,7 @@ impl RepoIcons {
           if let Some(site_icons) = site_icons {
             repo_icons.extend(site_icons.clone());
 
+            // if it contains AppIcon or SiteFavicon
             if site_icons.iter().any(|icon| {
               matches!(
                 icon.kind,
@@ -276,7 +275,7 @@ impl RepoIcons {
               )
             }) && previous_loads
               .iter()
-              .any(|loaded| matches!(loaded, LoadedKind::UserAvatar(_)))
+              .any(|loaded| matches!(loaded, LoadedKind::Avatar(_)))
               && previous_loads
                 .iter()
                 .any(|loaded| matches!(loaded, LoadedKind::RepoFile(_)))

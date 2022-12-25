@@ -20,12 +20,14 @@ export type Icon = IconInfo & {
 
   kind:
     | 'icon_field'
-    | 'user_avatar'
+    | 'avatar'
+    | 'avatar_fallback'
     | 'app_icon'
     | 'repo_file'
     | 'readme_image'
     | 'site_logo'
     | 'site_favicon';
+  fallback?: boolean;
 };
 
 const SetAsIcon = styled.div`

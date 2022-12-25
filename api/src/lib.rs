@@ -3,8 +3,7 @@ mod npm_github;
 mod serialized_response;
 
 use console_error_panic_hook::set_once;
-use futures::{future::select_all, FutureExt};
-use repo_icons::{IconInfo, Readme, RepoIcon, RepoIcons};
+use repo_icons::{IconInfo, Readme, RepoIconKind, RepoIcons};
 use serde::Serialize;
 use serialized_response::SerializedResponse;
 use worker::*;
@@ -153,43 +152,17 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       let owner = ctx.param("owner").unwrap().trim_start_matches("@");
       let repo = ctx.param("repo").unwrap().as_str();
 
-      let user_avatar = RepoIcon::load_user_avatar(owner).shared();
-
-      let mut futures = vec![
-        async {
-          match RepoIcons::load(owner, repo, true).await {
-            Err(err) => {
-              console_error!("{}", err);
-              None
-            }
-            Ok(icons) => Some(icons.into_best_match()),
-          }
+      let repo_icon = match RepoIcons::load(owner, repo, true).await {
+        Err(err) => {
+          console_error!("{}", err);
+          return Response::error(format!("repo not found: {:?}", err), 404);
         }
-        .boxed_local(),
-        user_avatar.clone().boxed_local(),
-      ];
+        Ok(icons) => icons.into_best_match(),
+      };
 
-      let mut repo_icon = None;
-
-      while !futures.is_empty() {
-        let (icon, index, _) = select_all(&mut futures).await;
-        futures.remove(index);
-
-        if let Some(icon) = icon {
-          repo_icon = Some(icon);
-        }
-      }
-
-      if repo_icon.is_none() {
+      if matches!(repo_icon.kind, RepoIconKind::AvatarFallback { .. }) {
         write_to_cache = false;
-        repo_icon = user_avatar.await;
       }
-
-      if repo_icon.is_none() {
-        return Response::error("repo not found", 404);
-      }
-
-      let repo_icon = repo_icon.unwrap();
 
       let mut headers = Headers::new();
       headers.set("User-Agent", "github-icons-worker")?;

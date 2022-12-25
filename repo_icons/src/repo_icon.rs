@@ -1,3 +1,4 @@
+use crate::github_api::{get_redirected_user, stripped_owner_lowercase};
 use data_url::DataUrl;
 use gh_api::get_token;
 #[cfg(feature = "image")]
@@ -46,15 +47,16 @@ impl PartialEq for RepoFile {
 // for the best_matches option, otherwise you'll get
 // inconsistent results when that option is set to
 // true or false
-#[derive(Debug, Clone, PartialOrd, PartialEq, Ord, Eq)]
+#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub enum RepoIconKind {
   IconField(RepoFile),
-  UserAvatar,
+  Avatar { is_org: bool },
   AppIcon { homepage: Url },
   SiteFavicon { homepage: Url },
   RepoFile(RepoFile),
   ReadmeImage,
   SiteLogo { homepage: Url },
+  AvatarFallback { is_org: bool },
 }
 
 impl From<(Url, IconKind)> for RepoIconKind {
@@ -71,7 +73,8 @@ impl Display for RepoIconKind {
   fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
     match self {
       RepoIconKind::IconField(_) => write!(f, "icon_field"),
-      RepoIconKind::UserAvatar => write!(f, "user_avatar"),
+      RepoIconKind::Avatar { .. } => write!(f, "avatar"),
+      RepoIconKind::AvatarFallback { .. } => write!(f, "avatar_fallback"),
       RepoIconKind::AppIcon { .. } => write!(f, "app_icon"),
       RepoIconKind::RepoFile(_) => write!(f, "repo_file"),
       RepoIconKind::SiteFavicon { .. } => write!(f, "site_favicon"),
@@ -91,6 +94,9 @@ impl Serialize for RepoIconKind {
     state.serialize_entry("kind", &self.to_string())?;
 
     match self {
+      RepoIconKind::Avatar { is_org } | RepoIconKind::AvatarFallback { is_org } => {
+        state.serialize_entry("is_org", is_org)?;
+      }
       RepoIconKind::AppIcon { homepage }
       | RepoIconKind::SiteFavicon { homepage }
       | RepoIconKind::SiteLogo { homepage } => {
@@ -102,7 +108,7 @@ impl Serialize for RepoIconKind {
         state.serialize_entry("sha", &blob.sha)?;
         state.serialize_entry("path", &blob.path)?;
       }
-      _ => {}
+      RepoIconKind::ReadmeImage => {}
     }
 
     state.end()
@@ -122,6 +128,7 @@ impl<'de> Deserialize<'de> for RepoIconKind {
       commit_sha: Option<String>,
       sha: Option<String>,
       path: Option<String>,
+      is_org: Option<bool>,
     }
 
     let fields = RepoIconFields::deserialize(deserializer)?;
@@ -133,7 +140,12 @@ impl<'de> Deserialize<'de> for RepoIconKind {
         sha: fields.sha.unwrap(),
         path: fields.path.unwrap(),
       }),
-      "user_avatar" => RepoIconKind::UserAvatar,
+      "avatar_fallback" => RepoIconKind::AvatarFallback {
+        is_org: fields.is_org.unwrap(),
+      },
+      "avatar" => RepoIconKind::Avatar {
+        is_org: fields.is_org.unwrap(),
+      },
       "app_icon" => RepoIconKind::AppIcon {
         homepage: fields.homepage.unwrap(),
       },
@@ -208,12 +220,27 @@ impl RepoIcon {
     Ok(Self::new_with_headers(url, headers, kind, info))
   }
 
-  pub async fn load_user_avatar(owner: &str) -> Option<Self> {
-    let user_avatar_url: Url = format!("https://github.com/{}.png", owner).parse().unwrap();
+  pub async fn load_user_avatar(owner: &str, repo: &str) -> Result<Self, Box<dyn Error>> {
+    let owner = owner.to_lowercase();
+    let repo = repo.to_lowercase();
 
-    RepoIcon::load(user_avatar_url.clone(), RepoIconKind::UserAvatar)
-      .await
-      .ok()
+    let docs = regex!("^(docs|documentation)$");
+    let fallback =
+      !repo.contains(&stripped_owner_lowercase(&owner)) && !docs.is_match(&repo).unwrap();
+
+    let (user, is_org) = get_redirected_user(owner, repo).await?;
+
+    let avatar_url: Url = format!("https://github.com/{}.png", user).parse().unwrap();
+
+    RepoIcon::load(
+      avatar_url.clone(),
+      if fallback {
+        RepoIconKind::AvatarFallback { is_org }
+      } else {
+        RepoIconKind::Avatar { is_org }
+      },
+    )
+    .await
   }
 
   pub async fn load_blob(blob: RepoFile, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
@@ -273,7 +300,10 @@ impl RepoIcon {
       .get(self.url.clone())
       .headers((&self.headers).try_into()?)
       .send()
-      .await?;
+      .await
+      .map_err(|e| format!("{}: {:?}", self.url, e))?
+      .error_for_status()
+      .map_err(|e| format!("{}: {:?}", self.url, e))?;
 
     Ok(res.bytes().await?.to_vec())
   }

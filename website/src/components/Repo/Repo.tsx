@@ -11,16 +11,13 @@ const PRETTY_KINDS: Record<Icon['kind'], string> = {
   site_favicon: `Favicons from repo's homepage`,
   site_logo: `Logo on repo's homepage`,
   repo_file: `Files within repo`,
-  user_avatar: `Repo owner's Avatar`,
+  avatar: `Repo owner's Avatar`,
+  avatar_fallback: `Repo owner's Avatar (fallback)`,
   readme_image: `Image at top of README`,
 };
 
 function prettyKind(kind: Icon['kind'], kindIndex: number) {
-  const prettyKind = PRETTY_KINDS[kind as Icon['kind']];
-
-  return `${prettyKind}${
-    kind === 'user_avatar' && kindIndex !== 0 ? ' (fallback)' : ''
-  }`;
+  return PRETTY_KINDS[kind];
 }
 
 export interface RepoProps {

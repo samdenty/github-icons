@@ -174,7 +174,7 @@ impl RepoIcons {
 
       let loaded = match loaded {
         Err(err) => {
-          error = Err(format!("{} {:?}", index, err));
+          error = Err(err);
           continue;
         }
         Ok(loaded) => loaded,

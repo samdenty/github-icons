@@ -2619,9 +2619,9 @@ checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
 name = "site_icons"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a3be5f05c2138633e8591c18e20cc426372e03dadce73ff8a60466c408f668e"
+checksum = "64dd25a418d4dd638e860c9ecb26c210fa74467a2fba3a21dc5c8363fb043a02"
 dependencies = [
  "byteorder",
  "clap",

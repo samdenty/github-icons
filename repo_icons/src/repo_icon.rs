@@ -17,7 +17,7 @@ use url::Url;
 
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct RepoFile {
-  pub slug: String,
+  pub github: String,
   pub commit_sha: String,
 
   pub sha: String,
@@ -38,7 +38,7 @@ impl Ord for RepoFile {
 
 impl PartialEq for RepoFile {
   fn eq(&self, other: &Self) -> bool {
-    self.slug == other.slug && self.sha == other.sha
+    self.github == other.github && self.sha == other.sha
   }
 }
 
@@ -103,7 +103,7 @@ impl Serialize for RepoIconKind {
         state.serialize_entry("homepage", homepage)?;
       }
       RepoIconKind::RepoFile(blob) | RepoIconKind::IconField(blob) => {
-        state.serialize_entry("slug", &blob.slug)?;
+        state.serialize_entry("slug", &blob.github)?;
         state.serialize_entry("commit_sha", &blob.commit_sha)?;
         state.serialize_entry("sha", &blob.sha)?;
         state.serialize_entry("path", &blob.path)?;
@@ -135,7 +135,7 @@ impl<'de> Deserialize<'de> for RepoIconKind {
 
     Ok(match fields.kind.as_ref() {
       "icon_field" => RepoIconKind::IconField(RepoFile {
-        slug: fields.slug.unwrap(),
+        github: fields.slug.unwrap(),
         commit_sha: fields.commit_sha.unwrap(),
         sha: fields.sha.unwrap(),
         path: fields.path.unwrap(),
@@ -150,7 +150,7 @@ impl<'de> Deserialize<'de> for RepoIconKind {
         homepage: fields.homepage.unwrap(),
       },
       "repo_file" => RepoIconKind::RepoFile(RepoFile {
-        slug: fields.slug.unwrap(),
+        github: fields.slug.unwrap(),
         commit_sha: fields.commit_sha.unwrap(),
         sha: fields.sha.unwrap(),
         path: fields.path.unwrap(),
@@ -246,7 +246,7 @@ impl RepoIcon {
   pub async fn load_blob(blob: RepoFile, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
     let url = Url::parse(&format!(
       "https://api.github.com/repos/{}/git/blobs/{}",
-      blob.slug, blob.sha
+      blob.github, blob.sha
     ))
     .unwrap();
 
@@ -278,7 +278,7 @@ impl RepoIcon {
         self.headers.clear();
         self.url = Url::parse(&format!(
           "https://raw.githubusercontent.com/{}/{}/{}",
-          blob.slug, blob.commit_sha, blob.path
+          blob.github, blob.commit_sha, blob.path
         ))
         .unwrap();
       }

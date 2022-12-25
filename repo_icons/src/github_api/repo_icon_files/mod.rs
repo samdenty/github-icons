@@ -233,7 +233,7 @@ pub async fn get_repo_icon_files(
       files
         .into_iter()
         .map(|file| RepoFile {
-          slug: format!("{}/{}", owner, repo),
+          github: format!("{}/{}", owner, repo),
           commit_sha: commit_sha.clone(),
 
           sha: file.sha,

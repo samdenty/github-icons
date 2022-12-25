@@ -278,7 +278,7 @@ impl RepoIcon {
     .await
   }
 
-  pub async fn load_blob(file: RepoFile, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
+  pub async fn load_repo_file(file: RepoFile, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {
     let url = Url::parse(&format!(
       "https://api.github.com/repos/{}/git/blobs/{}",
       file.github, file.sha

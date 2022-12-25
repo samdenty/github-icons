@@ -96,7 +96,7 @@ impl RepoIcons {
             try_join_all(
               blobs
                 .into_iter()
-                .map(|blob| RepoIcon::load_blob(blob, is_icon_field)),
+                .map(|blob| RepoIcon::load_repo_file(blob, is_icon_field)),
             )
             .await?
             .try_into()
@@ -191,11 +191,17 @@ impl RepoIcons {
               }
             }
 
+            // this is to ensure it isn't a Framework
+            let has_repo_file = file_icons
+              .iter()
+              .any(|file_icon| matches!(file_icon.kind, RepoIconKind::RepoFile { .. }));
+
             repo_icons.extend(file_icons);
 
-            if previous_loads
-              .iter()
-              .any(|loaded| matches!(loaded, LoadedKind::Avatar(_)))
+            if has_repo_file
+              && previous_loads
+                .iter()
+                .any(|loaded| matches!(loaded, LoadedKind::Avatar(_)))
               && previous_loads
                 .iter()
                 .any(|loaded| matches!(loaded, LoadedKind::Homepage(_)))

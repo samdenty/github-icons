@@ -48,7 +48,6 @@ const Image = styled.img<{ showBadge?: 1 | 0 }>`
   height: var(--size);
   width: var(--size);
   object-fit: contain;
-  image-rendering: pixelated;
   border-radius: 10px;
   opacity: 0.8;
   transition: all 0.2s ease;
@@ -104,6 +103,7 @@ export const IconButton = React.forwardRef(
     const { makeContextualHref } = useContextualRouting();
     const iconUrl = useUrl(type, slug);
     const [state, setState] = useState<IconState>(IconState.LOADING);
+    const [pixelated, setPixelated] = useState(false);
 
     const [owner, repo] = slug.split('/');
 
@@ -122,6 +122,7 @@ export const IconButton = React.forwardRef(
               as={state === IconState.NO_ICON ? BsQuestionOctagonFill : 'img'}
               showBadge={showBadge ? 1 : 0}
               src={iconUrl}
+              style={{ imageRendering: pixelated ? 'pixelated' : undefined }}
               ref={
                 state === IconState.NO_ICON
                   ? undefined
@@ -134,7 +135,13 @@ export const IconButton = React.forwardRef(
                         setState(IconState.NO_ICON);
                       };
 
-                      img.onload = () => setState(IconState.VISIBLE);
+                      img.onload = () => {
+                        setPixelated(
+                          img.naturalHeight < img.height &&
+                            img.naturalWidth < img.width
+                        );
+                        setState(IconState.VISIBLE);
+                      };
 
                       if (img.complete) {
                         setState(IconState.VISIBLE);

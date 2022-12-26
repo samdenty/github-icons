@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { useState } from 'react';
 import { useQuery } from 'react-query';
 
 export type IconInfo =
@@ -130,6 +131,7 @@ export function Icon({
   sizes,
   selected = false,
 }: IconProps) {
+  const [pixelated, setPixelated] = useState(false);
   const hasHeaders = Object.keys(headers).length !== 0;
 
   if (hasHeaders) {
@@ -147,7 +149,21 @@ export function Icon({
 
   return (
     <StyledIcon selected={selected} onClick={() => {}}>
-      <img src={url} />
+      <img
+        src={url}
+        style={{ imageRendering: pixelated ? 'pixelated' : undefined }}
+        ref={(img) => {
+          if (!img) {
+            return;
+          }
+
+          img.onload = () => {
+            setPixelated(
+              img.naturalHeight < img.height && img.naturalWidth < img.width
+            );
+          };
+        }}
+      />
 
       <Resolution>
         {type === 'svg' ? 'SVG' : type === 'ico' ? sizes[0] : size}

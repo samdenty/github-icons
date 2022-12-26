@@ -81,7 +81,7 @@ export function Repo({ slug }: RepoProps) {
   const url = useUrl('github', slug, true);
   const { data } = useQuery<Icon[]>(
     [slug, 'all'],
-    () => fetch(url).then((res) => res.json()),
+    () => fetch(url, { cache: 'reload' }).then((res) => res.json()),
     { cacheTime: 0 }
   );
 

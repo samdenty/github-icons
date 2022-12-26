@@ -22,7 +22,7 @@ static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
     r"shield",
     r"travis-ci",
     r"nodei.co",
-    r"herokucdn.com",
+    r"cdn",
     r"appveyor.com",
     r"david-dm.org",
     r"codeclimate.com",
@@ -37,7 +37,6 @@ static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
     // with paths
     r"^github.com/[^/]+/[^/]+/workflows",
     r"liberapay.com/assets/widgets",
-    r"herokucdn.com",
     r"codesandbox.io/static/img",
     r"developer.stackblitz.com/img",
     r"asciinema.org"

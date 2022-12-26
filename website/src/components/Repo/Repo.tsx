@@ -9,7 +9,7 @@ const PRETTY_KINDS: Record<Icon['kind'], string> = {
   icon_field: `Root package.json "icon" field`,
   app_icon: `App Icons from repo's homepage`,
   site_favicon: `Favicons from repo's homepage`,
-  site_logo: `Autodetected logo on repo's homepage`,
+  site_logo: `Auto-detected logo on repo's homepage`,
   repo_file: `Files within repo`,
   avatar: `Repo owner's Avatar`,
   framework_icon: `Framework Icon`,

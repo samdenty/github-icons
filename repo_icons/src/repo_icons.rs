@@ -110,7 +110,8 @@ impl RepoIcons {
       }
       .boxed_local(),
       async {
-        let mut icons = Icons::new_with_blacklist(|url| is_blacklisted_homepage(url));
+        let mut icons =
+          Icons::new_with_blacklist(|url| is_blacklisted_homepage(url) || is_badge_url(url));
 
         let homepage = readme.clone().await.ok().and_then(|readme| readme.homepage);
 

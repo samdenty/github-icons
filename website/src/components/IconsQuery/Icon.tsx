@@ -46,15 +46,15 @@ const Slug = styled(Textfit)`
   max-height: 60px;
 `;
 
-const Owner = styled.div`
-  opacity: 0.5;
-  font-size: 77%;
-`;
-
 const Name = styled.div`
   ${StyledIconButton}:hover & {
     text-decoration: underline;
   }
+`;
+
+const Owner = styled.div`
+  opacity: 0.5;
+  font-size: 77%;
 `;
 
 export interface IconProps {

@@ -2,6 +2,16 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, convert::TryInto};
 use worker::*;
 
+pub fn serialize_json<B: Serialize>(value: &B) -> Result<Vec<u8>> {
+  match serde_json::to_string_pretty(value) {
+    Ok(json) => Ok(json.into_bytes()),
+    Err(error) => Err(Error::Json((
+      format!("Failed to encode data to json: {:?}", error).into(),
+      404,
+    ))),
+  }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct SerializedResponse {
   status_code: u16,
@@ -34,7 +44,7 @@ impl SerializedResponse {
     serialized_response.try_into()
   }
 
-  pub async fn from(mut response: Response) -> Result<Self> {
+  pub async fn serialize(mut response: Response) -> Result<Self> {
     let status_code = response.status_code();
 
     let mut headers = HashMap::new();

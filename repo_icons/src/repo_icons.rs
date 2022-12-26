@@ -15,6 +15,7 @@ use std::{
   collections::HashMap,
   convert::TryInto,
   error::Error,
+  ops::{Deref, DerefMut},
   pin::Pin,
 };
 use vec1::Vec1;
@@ -455,5 +456,19 @@ impl IntoIterator for RepoIcons {
 
   fn into_iter(self) -> Self::IntoIter {
     self.0.into_iter()
+  }
+}
+
+impl Deref for RepoIcons {
+  type Target = Vec1<RepoIcon>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl DerefMut for RepoIcons {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.0
   }
 }

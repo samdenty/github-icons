@@ -1,11 +1,13 @@
 #![feature(async_closure, let_chains)]
 mod npm_github;
 mod serialized_response;
+mod transform_response;
 
 use console_error_panic_hook::set_once;
 use repo_icons::{IconInfo, Readme, RepoIconKind, RepoIcons};
 use serde::Serialize;
-use serialized_response::SerializedResponse;
+use serialized_response::{serialize_json, SerializedResponse};
+use transform_response::*;
 use worker::*;
 
 fn is_navigate(req: &Request) -> bool {
@@ -68,36 +70,51 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
     .any(|(key, _)| key == "refetch" || key == "force" || key == "refresh")
     || (!json_req && is_navigate(&req));
 
-  let token = url
-    .query_pairs()
-    .find_map(|(key, token)| if key == "token" { Some(token) } else { None });
-  if json_req || token.is_some() {
-    repo_icons::set_token(token);
-  }
+  let token = url.query_pairs().find_map(|(key, token)| {
+    if key == "token" {
+      Some(token.to_string())
+    } else {
+      None
+    }
+  });
 
-  // default to the default token
-  if repo_icons::get_token().is_none() {
-    repo_icons::set_token(env.secret("GITHUB_TOKEN").ok());
-  }
+  repo_icons::set_token(
+    token.as_ref().or(
+      env
+        .secret("GITHUB_TOKEN")
+        .ok()
+        .map(|token| token.to_string())
+        .as_ref(),
+    ),
+  );
 
   let cache = Cache::default();
   let cache_kv = env.kv("CACHE")?;
 
-  // clear the token from the URL
-  if !lowercase_path.ends_with("/all") {
-    url.set_query(None);
-  }
+  url.set_query(None);
   let cache_key = url.to_string();
 
   if !refetch {
-    if let Some(res) = cache.get(&cache_key, false).await? {
+    if let Some(mut res) = cache.get(&cache_key, false).await? {
       console_log!("from HTTP cache");
+
+      if let Some(token) = &token {
+        res = transform_response(true, token, res).await?
+      }
+
       return Ok(res);
     };
 
     if let Some(res) = cache_kv.get(&cache_key).text().await? {
       console_log!("from KV cache");
-      return Ok(SerializedResponse::deserialize(res)?);
+
+      let mut res = SerializedResponse::deserialize(res)?;
+
+      if let Some(token) = &token {
+        res = transform_response(true, token, res).await?
+      }
+
+      return Ok(res);
     };
 
     console_log!("missed cache");
@@ -238,12 +255,17 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 
   {
     let mut response = response.cloned()?;
+
+    if let Some(token) = &token {
+      response = transform_response(false, token, response).await?
+    }
+
     ctx.wait_until(async move {
       if response.status_code() > 400 {
         let _ = cache.delete(&cache_key, false).await;
       } else if response.headers().has("Cache-Control").unwrap() {
         console_log!("caching as {}", cache_key);
-        let serialized_response = SerializedResponse::from(response.cloned().unwrap())
+        let serialized_response = SerializedResponse::serialize(response.cloned().unwrap())
           .await
           .ok();
 
@@ -262,12 +284,10 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 }
 
 fn from_json_pretty<B: Serialize>(value: &B) -> Result<Response> {
-  if let Ok(data) = serde_json::to_string_pretty(value) {
-    let mut headers = Headers::new();
-    headers.set("Content-Type", "application/json")?;
+  let bytes = serialize_json(value)?;
 
-    Response::from_body(ResponseBody::Body(data.into_bytes())).map(|res| res.with_headers(headers))
-  } else {
-    Err(Error::Json(("Failed to encode data to json".into(), 404)))
-  }
+  let mut headers = Headers::new();
+  headers.set("Content-Type", "application/json")?;
+
+  Response::from_body(ResponseBody::Body(bytes)).map(|res| res.with_headers(headers))
 }

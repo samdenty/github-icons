@@ -17,7 +17,6 @@ static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
     r"donate",
     r"support",
     r"sponsor",
-    r"doc",
     r"ukraine",
     r"works with",
     r"shield",
@@ -69,7 +68,7 @@ pub fn is_badge_url(url: &Url) -> bool {
   } else {
     return false;
   };
-  let url = format!("{}{}", domain, url.path());
+  let url = format!("{}{}{}", domain, url.path(), url.query().unwrap_or(""));
 
   is_badge_text(&url)
 }

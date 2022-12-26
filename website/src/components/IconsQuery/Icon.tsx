@@ -5,7 +5,7 @@ import {
   IconButtonIcon,
   IconButtonLoading,
 } from '../IconButton/IconButton';
-import useFitText from 'use-fit-text';
+import { Textfit } from 'react-textfit';
 import { IconType } from '../../lib/useUrl';
 
 const StyledIconButton = styled(IconButton)`
@@ -33,22 +33,22 @@ const StyledIconButtonBadge = styled(IconButtonBadge)`
   margin-right: 4px;
 `;
 
-const Slug = styled.div`
+const Slug = styled(Textfit)`
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   margin-top: 5px;
-  white-space: nowrap;
+  white-space: break-spaces;
   word-break: break-all;
   overflow: hidden;
   width: 100%;
-  font-size: 13px;
+  min-height: 20px;
+  max-height: 60px;
 `;
 
 const Owner = styled.div`
   opacity: 0.5;
   font-size: 77%;
-  white-space: break-spaces;
 `;
 
 const Name = styled.div`
@@ -70,22 +70,10 @@ export function Icon({ type, slug }: IconProps) {
     org = undefined;
   }
 
-  let { fontSize, ref } = useFitText();
-
-  if (parseInt(fontSize) < 80) {
-    fontSize = undefined!;
-  }
-
   return (
     <StyledIconButton type={type} slug={slug}>
-      <Slug>
-        <Name
-          ref={ref}
-          style={{
-            fontSize,
-            whiteSpace: fontSize ? 'pre' : 'break-spaces',
-          }}
-        >
+      <Slug mode="multi" max={13}>
+        <Name>
           <StyledIconButtonBadge />
           {packageName}
         </Name>

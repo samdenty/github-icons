@@ -1,8 +1,9 @@
-import { QueryFunctionContext, useQuery } from 'react-query';
+import { useQuery } from 'react-query';
 import { IconType } from '../../lib/useUrl';
 import styled from '@emotion/styled';
 import { Icon } from './Icon';
 import { demoIcons } from '../../demoIcons';
+import { search } from './search';
 
 export interface IconQuery {
   type: IconType;
@@ -28,16 +29,7 @@ export default function IconsQuery({ query }: IconsQueryProps) {
         return demoIcons;
       }
 
-      const data = await fetch(
-        `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(
-          query
-        )}&size=40`
-      ).then((res) => res.json());
-
-      return data.objects.map((result: any) => ({
-        type: 'npm',
-        slug: result.package.name,
-      }));
+      return search(query);
     },
     {
       initialData: !query ? demoIcons : undefined,

@@ -175,7 +175,7 @@ impl<'de> Deserialize<'de> for RepoIconKind {
       },
       "user_avatar_fallback" => RepoIconKind::UserAvatarFallback,
       "org_avatar" => RepoIconKind::OrgAvatar,
-      "avatar" => RepoIconKind::Avatar {},
+      "avatar" => RepoIconKind::Avatar,
       "app_icon" => RepoIconKind::AppIcon {
         homepage: fields.homepage.unwrap(),
       },

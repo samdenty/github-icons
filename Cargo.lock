@@ -2619,9 +2619,9 @@ checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
 name = "site_icons"
-version = "0.4.4"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4268149901ddaef06b8756df58f83c5c6d4ce674f7c47b0230c9c7d210505cc7"
+checksum = "b2f05c021edfffeb6ef8662096ca83d8dd73d2c5eb69cb02b3a1b77bbf4fde80"
 dependencies = [
  "byteorder",
  "clap",
@@ -2641,6 +2641,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with 2.1.0",
+ "tldextract",
  "tokio",
  "url",
  "vec1",
@@ -2910,6 +2911,20 @@ name = "tinyvec_macros"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
+
+[[package]]
+name = "tldextract"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec03259a0567ad58eed30812bc3e5eda8030f154abc70317ab57b14f00699ca4"
+dependencies = [
+ "idna 0.2.3",
+ "log",
+ "regex",
+ "serde_json",
+ "thiserror",
+ "url",
+]
 
 [[package]]
 name = "tokio"

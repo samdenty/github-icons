@@ -51,14 +51,6 @@ const Image = styled.img<{ showBadge?: 1 | 0 }>`
   border-radius: 10px;
   opacity: 0.8;
   transition: all 0.2s ease;
-
-  --border-color: #2e2e2e;
-  --border-size: 1.5px;
-  --border: drop-shadow(var(--border-size) 0 0 var(--border-color))
-    drop-shadow(0 var(--border-size) 0 var(--border-color))
-    drop-shadow(calc(var(--border-size) * -1) 0 0 var(--border-color))
-    drop-shadow(0 calc(var(--border-size) * -1) 0 var(--border-color));
-
   filter: var(--border);
 
   ${RepoLink}:hover & {

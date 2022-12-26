@@ -81,6 +81,7 @@ const StyledIcon = styled.button<{ selected: boolean }>`
     height: 100%;
     aspect-ratio: 1;
     object-fit: contain;
+    filter: var(--border);
   }
 
   &:empty {

@@ -83,7 +83,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
       weight += 2;
     }
 
-    let app_icon = regex!("(app.*icon)|(icon.*app)");
+    let app_icon = regex!("(app(?!le).*icon)|(icon.*app(?!le))");
     if app_icon.is_match(filename).unwrap() {
       matches_icon = true;
       weight += 2;

@@ -10,7 +10,7 @@ use std::error::Error;
 use std::path::Path;
 use vec1::Vec1;
 
-const OWNER_PREFIXES: [&str; 1] = ["get"];
+const OWNER_PREFIXES: [&str; 2] = ["get", "with"];
 const OWNER_SUFFIXES: [&str; 7] = ["js", "rs", "io", "land", "pkg", "hq", "app"];
 
 pub(crate) fn stripped_owner_lowercase(owner: &str) -> String {

@@ -5,6 +5,7 @@ import { IconType, useUrl } from '../../lib/useUrl';
 import React, { useState } from 'react';
 import { PulseLoader } from 'react-spinners';
 import { BsQuestionOctagonFill } from 'react-icons/bs';
+import isPropValid from '@emotion/is-prop-valid';
 import { IconButtonBadge } from './IconButtonBadge';
 
 export interface IconButtonProps
@@ -44,7 +45,9 @@ export const IconButtonLoading = styled(PulseLoader)`
   }
 `;
 
-const Image = styled.img<{ showBadge?: 1 | 0 }>`
+const Image = styled('img', { shouldForwardProp: isPropValid })<{
+  showBadge?: boolean;
+}>`
   height: var(--size);
   width: var(--size);
   object-fit: contain;
@@ -59,7 +62,9 @@ const Image = styled.img<{ showBadge?: 1 | 0 }>`
   }
 `;
 
-export const IconButtonIcon = styled.div<{ loading: 1 | 0 }>`
+export const IconButtonIcon = styled('div', {
+  shouldForwardProp: (prop) => prop !== 'loading',
+})<{ loading: boolean }>`
   position: relative;
   height: var(--size);
   width: var(--size);
@@ -107,12 +112,12 @@ export const IconButton = React.forwardRef(
           href={makeContextualHref({ owner, repo })}
           as={`/${type !== 'github' ? `${type}/` : ''}${slug}`}
         >
-          <IconButtonIcon loading={state === IconState.LOADING ? 1 : 0}>
+          <IconButtonIcon loading={state === IconState.LOADING}>
             <Image
               alt={slug}
               loading="lazy"
               as={state === IconState.NO_ICON ? BsQuestionOctagonFill : 'img'}
-              showBadge={showBadge ? 1 : 0}
+              showBadge={showBadge}
               src={iconUrl}
               style={{ imageRendering: pixelated ? 'pixelated' : undefined }}
               ref={

@@ -970,11 +970,12 @@ dependencies = [
 
 [[package]]
 name = "gh_api"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bd251bea7484f161fb4d25e94582469eae86b868b6eca75f9b5b049b2f9d4c5"
+checksum = "f11d5579ca164cfc2c58938c54167037377c275aeebe7f60263be75dcf4ab81e"
 dependencies = [
  "reqwest",
+ "reqwest-wasm",
 ]
 
 [[package]]
@@ -2179,6 +2180,7 @@ dependencies = [
  "html5ever",
  "image",
  "itertools",
+ "js-sys",
  "log",
  "maplit",
  "once_cell",
@@ -2193,6 +2195,9 @@ dependencies = [
  "tokio",
  "url",
  "vec1",
+ "wasm-bindgen",
+ "wasm-streams",
+ "web-sys",
 ]
 
 [[package]]
@@ -2272,10 +2277,11 @@ dependencies = [
 
 [[package]]
 name = "reqwest-wasm"
-version = "0.11.15"
+version = "0.11.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edcfece293ee15aa8593168a28d11cd62ebef4fa9f03a035fcb9fc1cf1f1488f"
+checksum = "59fdca8934fccbd5aec3e208bdb5a76107ce8690aa51c6c292c31f21541b52b9"
 dependencies = [
+ "async-compression",
  "base64",
  "bytes",
  "cookie",
@@ -2620,9 +2626,9 @@ checksum = "7bd3e3206899af3f8b12af284fafc038cc1dc2b41d1b89dd17297221c5d225de"
 
 [[package]]
 name = "site_icons"
-version = "0.4.12"
+version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1e396988a77f13a167b3bcd15701e3953988abf0c9a280030f29dec9ae9f653"
+checksum = "19abc18f7affad3e0699cc8ab1ad5cd094d9712a17eac308fcad46edcc79570e"
 dependencies = [
  "byteorder",
  "clap",

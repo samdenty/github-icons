@@ -4,12 +4,12 @@ mod serialized_response;
 mod transform_response;
 
 use console_error_panic_hook::set_once;
-use futures::StreamExt;
 use repo_icons::{Readme, RepoIconKind, RepoIcons};
 use serde::Serialize;
 use serialized_response::{serialize_json, SerializedResponse};
 use transform_response::*;
 use worker::*;
+use worker_sys::Response as EdgeResponse;
 
 fn is_navigate(req: &Request) -> bool {
   // if user navigates to URL directly, then redirect them to www.
@@ -188,12 +188,12 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
         headers.set(header_name, header_value)?;
       }
 
-      let bytes = match repo_icon.data().await {
-        Ok(bytes) => bytes.map(|result| result.map_err(|err| Error::Json((err.to_string(), 404)))),
+      let stream = match repo_icon.js_stream().await {
+        Ok(stream) => stream,
         Err(err) => return Response::error(err.to_string(), 404),
       };
 
-      let mut res = Response::from_stream(bytes)?;
+      let mut res: Response = EdgeResponse::new_with_opt_stream(Some(&stream))?.into();
 
       let headers = res.headers_mut();
       if write_to_cache {

@@ -7,7 +7,10 @@ use futures::{
 use gh_api::get_token;
 #[cfg(feature = "image")]
 use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
+#[cfg(target_arch = "wasm32")]
+use js_sys::Uint8Array;
 use maplit::hashmap;
+use reqwest::Response;
 use serde::{de, ser::SerializeMap, Deserialize, Deserializer, Serialize, Serializer};
 use site_icons::{IconInfo, IconKind};
 use std::{
@@ -19,6 +22,10 @@ use std::{
   iter,
 };
 use url::Url;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
+use web_sys::ReadableStream;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -329,9 +336,7 @@ impl RepoIcon {
     }
   }
 
-  pub async fn data<'a>(
-    &self,
-  ) -> Result<LocalBoxStream<'a, Result<Vec<u8>, reqwest::Error>>, Box<dyn Error>> {
+  async fn response(&self) -> Result<IconResponse, Box<dyn Error>> {
     if self.url.scheme() == "data" {
       let url = self.url.to_string();
       let data = DataUrl::process(&url).map_err(|_| "failed to parse data uri")?;
@@ -339,7 +344,7 @@ impl RepoIcon {
         .decode_to_vec()
         .map_err(|_| "invalid base64 in data uri")?;
 
-      return Ok(stream::iter(iter::once(Ok(body))).boxed_local());
+      return Ok(IconResponse::DataURI(body));
     }
 
     let res = reqwest::Client::new()
@@ -351,13 +356,37 @@ impl RepoIcon {
       .error_for_status()
       .map_err(|e| format!("{}: {:?}", self.url, e))?;
 
-    let stream = res.bytes_stream();
+    Ok(IconResponse::Network(res))
+  }
 
-    Ok(
-      stream
-        .map(|buf| buf.map(|bytes| bytes.to_vec()))
-        .boxed_local(),
-    )
+  #[cfg(target_arch = "wasm32")]
+  pub async fn js_stream(&self) -> Result<ReadableStream, Box<dyn Error>> {
+    Ok(match self.response().await? {
+      IconResponse::DataURI(body) => {
+        let body = Uint8Array::from(&body[..]);
+
+        wasm_streams::ReadableStream::from_stream(stream::iter(iter::once(Ok(body.into()))))
+          .into_raw()
+          .dyn_into()
+          .unwrap()
+      }
+      IconResponse::Network(res) => res.js_stream(),
+    })
+  }
+
+  pub async fn stream<'a>(
+    &self,
+  ) -> Result<LocalBoxStream<'a, Result<Vec<u8>, reqwest::Error>>, Box<dyn Error>> {
+    Ok(match self.response().await? {
+      IconResponse::DataURI(body) => stream::iter(iter::once(Ok(body))).boxed_local(),
+      IconResponse::Network(res) => {
+        let stream = res.bytes_stream();
+
+        stream
+          .map(|buf| buf.map(|bytes| bytes.to_vec()))
+          .boxed_local()
+      }
+    })
   }
 
   #[cfg(feature = "image")]
@@ -380,4 +409,9 @@ impl RepoIcon {
     *self.image.borrow_mut() = Some(image.clone());
     Ok(image)
   }
+}
+
+enum IconResponse {
+  Network(Response),
+  DataURI(Vec<u8>),
 }

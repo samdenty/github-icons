@@ -1,5 +1,9 @@
 use crate::github_api::{get_redirected_user, stripped_owner_lowercase};
 use data_url::DataUrl;
+use futures::{
+  stream::{self, LocalBoxStream},
+  StreamExt,
+};
 use gh_api::get_token;
 #[cfg(feature = "image")]
 use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
@@ -12,6 +16,7 @@ use std::{
   convert::TryInto,
   error::Error,
   fmt::{self, Display},
+  iter,
 };
 use url::Url;
 
@@ -324,7 +329,9 @@ impl RepoIcon {
     }
   }
 
-  pub async fn data(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+  pub async fn data<'a>(
+    &self,
+  ) -> Result<LocalBoxStream<'a, Result<Vec<u8>, reqwest::Error>>, Box<dyn Error>> {
     if self.url.scheme() == "data" {
       let url = self.url.to_string();
       let data = DataUrl::process(&url).map_err(|_| "failed to parse data uri")?;
@@ -332,7 +339,7 @@ impl RepoIcon {
         .decode_to_vec()
         .map_err(|_| "invalid base64 in data uri")?;
 
-      return Ok(body);
+      return Ok(stream::iter(iter::once(Ok(body))).boxed_local());
     }
 
     let res = reqwest::Client::new()
@@ -344,7 +351,13 @@ impl RepoIcon {
       .error_for_status()
       .map_err(|e| format!("{}: {:?}", self.url, e))?;
 
-    Ok(res.bytes().await?.to_vec())
+    let stream = res.bytes_stream();
+
+    Ok(
+      stream
+        .map(|buf| buf.map(|bytes| bytes.to_vec()))
+        .boxed_local(),
+    )
   }
 
   #[cfg(feature = "image")]

@@ -193,9 +193,17 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       let mut res: Response = EdgeResponse::new_with_opt_stream(Some(&stream))?.into();
 
       let headers = res.headers_mut();
+
       if write_to_cache {
         headers.set("Cache-Control", "public, max-age=259200")?;
       }
+
+      headers.set("Kind", &repo_icon.kind.to_string())?;
+
+      if let Some(size) = repo_icon.info.size() {
+        headers.set("Size", &size.to_string())?;
+      }
+
       headers.set("Content-Type", repo_icon.info.mime_type())?;
 
       Ok(res)

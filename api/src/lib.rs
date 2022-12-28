@@ -4,7 +4,7 @@ mod serialized_response;
 mod transform_response;
 
 use console_error_panic_hook::set_once;
-use repo_icons::{Readme, RepoIconKind, RepoIcons};
+use repo_icons::{Readme, RepoIcons};
 use serde::Serialize;
 use serialized_response::{serialize_json, SerializedResponse};
 use transform_response::*;
@@ -174,10 +174,6 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
         Ok(icons) => icons.into_best_match(),
         Err(err) => return Response::error(err, 404),
       };
-
-      if matches!(repo_icon.kind, RepoIconKind::UserAvatarFallback) {
-        write_to_cache = false;
-      }
 
       let mut headers = Headers::new();
       headers.set("User-Agent", "github-icons-worker")?;

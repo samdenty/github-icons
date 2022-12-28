@@ -1,5 +1,5 @@
 #![feature(async_closure, let_chains)]
-mod npm_github;
+mod npm;
 mod serialized_response;
 mod transform_response;
 
@@ -134,19 +134,10 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       org_or_package
     };
 
-    let mut slug = match npm_github::get_slug(&package_name).await {
-      Ok(slug) => slug,
+    let url = match npm::get_redirect_url(req.url()?, &package_name).await {
+      Ok(url) => url,
       Err(err) => return Response::error(err.to_string(), 404),
     };
-
-    // if it starts with a reserved name,
-    // then prefix it with @
-    if slug.starts_with("npm/") {
-      slug = format!("@{}", slug);
-    }
-
-    let mut url = req.url()?;
-    url.set_path(&format!("/{}", slug));
 
     let mut response = modifiable_response(Response::redirect_with_status(url, 301)?)?;
 
@@ -170,12 +161,18 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       let owner = ctx.param("owner").unwrap().trim_start_matches("@");
       let repo = ctx.param("repo").unwrap().as_str();
 
-      let repo_icon = match RepoIcons::load(owner, repo, true).await {
-        Err(err) => {
-          console_error!("{}", err);
-          return Response::error(format!("repo not found: {:?}", err), 404);
+      let result = RepoIcons::load(owner, repo, true).await;
+
+      if let Some(errors) = &result.errors {
+        for error in errors {
+          console_error!("{}", error);
         }
+        write_to_cache = false;
+      }
+
+      let repo_icon = match result.icons {
         Ok(icons) => icons.into_best_match(),
+        Err(err) => return Response::error(err, 404),
       };
 
       if matches!(repo_icon.kind, RepoIconKind::UserAvatarFallback) {
@@ -207,12 +204,9 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       let owner = ctx.param("owner").unwrap().trim_start_matches("@");
       let repo = ctx.param("repo").unwrap().as_str();
 
-      let repo_icons = match RepoIcons::load(owner, repo, false).await {
-        Ok(repo_icons) => repo_icons,
-        Err(err) => return Response::error(err.to_string(), 404),
-      };
+      let result = RepoIcons::load(owner, repo, false).await;
 
-      let mut response = from_json_pretty(&repo_icons)?;
+      let mut response = from_json_pretty(&result)?;
 
       let headers = response.headers_mut();
       headers.set("Cache-Control", "public, max-age=259200")?;

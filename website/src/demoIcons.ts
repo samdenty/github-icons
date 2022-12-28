@@ -31,6 +31,7 @@ export const demoNpmPackages = [
 
 export const demoRepos = [
   'microsoft/vscode',
+  'microsoft/terminal',
   'facebook/react',
   'facebook/create-react-app',
   'vercel/next.js',

@@ -5,6 +5,11 @@ import { useUrl } from '../../lib/useUrl';
 import { Icon } from './Icon';
 import _ from 'lodash';
 
+interface IconsResponse {
+  icons: Icon[] | null;
+  errors: string[] | null;
+}
+
 const PRETTY_KINDS: Record<Icon['kind'], string> = {
   icon_field: `Root package.json "icon" field`,
   app_icon: `App Icons from repo's homepage`,
@@ -79,13 +84,13 @@ export function Repo({ slug }: RepoProps) {
   }: typeof import('react-json-view') = require('react-json-view');
 
   const url = useUrl('github', slug, true);
-  const { data } = useQuery<Icon[]>(
+  const { data } = useQuery<IconsResponse>(
     [slug, 'all'],
     () => fetch(url, { cache: 'reload' }).then((res) => res.json()),
     { cacheTime: 0 }
   );
 
-  const iconByKinds = _.groupBy(data, 'kind');
+  const iconByKinds = _.groupBy(data!.icons, 'kind');
 
   return (
     <>

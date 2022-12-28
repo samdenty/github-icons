@@ -1,5 +1,6 @@
 mod repo_files;
 
+use crate::blacklist::is_badge_text;
 use crate::RepoFile;
 use fancy_regex::{escape, Regex};
 use futures::future::join_all;
@@ -50,7 +51,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
   let mut weight = 0;
   let mut matches_icon = false;
 
-  if filename.contains("issue") || path.contains("setup") {
+  if is_badge_text(&fullpath) || filename.contains("issue") || path.contains("setup") {
     return 0;
   }
 

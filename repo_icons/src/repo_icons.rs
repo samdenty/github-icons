@@ -9,6 +9,7 @@ use futures::{
 };
 use itertools::Itertools;
 use reqwest::IntoUrl;
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use site_icons::Icons;
 use std::{
   cmp::{max, min},
@@ -19,6 +20,46 @@ use std::{
   pin::Pin,
 };
 use vec1::Vec1;
+
+const NO_ICONS_FOUND: &str = "No icons found for repo";
+
+#[derive(Debug)]
+pub struct RepoIconsResult {
+  pub errors: Option<Vec1<String>>,
+  pub icons: Result<RepoIcons, String>,
+}
+
+impl Serialize for RepoIconsResult {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut state = serializer.serialize_struct("RepoIconsResult", 2)?;
+    state.serialize_field("errors", &self.errors)?;
+    state.serialize_field("icons", &self.icons.as_ref().ok())?;
+    state.end()
+  }
+}
+
+impl<'de> Deserialize<'de> for RepoIconsResult {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    #[derive(Deserialize)]
+    struct Fields {
+      errors: Option<Vec1<String>>,
+      icons: Option<RepoIcons>,
+    }
+
+    let Fields { errors, icons } = Fields::deserialize(deserializer)?;
+
+    Ok(RepoIconsResult {
+      errors,
+      icons: icons.ok_or_else(|| NO_ICONS_FOUND.to_string()),
+    })
+  }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RepoIcons(Vec1<RepoIcon>);
@@ -44,11 +85,7 @@ impl RepoIcons {
   /// }
   /// ```
   #[async_recursion(?Send)]
-  pub async fn load(
-    owner: &str,
-    repo: &str,
-    best_matches_only: bool,
-  ) -> Result<Self, Box<dyn Error>> {
+  pub async fn load(owner: &str, repo: &str, best_matches_only: bool) -> RepoIconsResult {
     let mut repo_icons = Vec::new();
 
     let readme = github_api::Readme::load(owner, repo).shared();
@@ -74,6 +111,7 @@ impl RepoIcons {
               .map(async move |repo| {
                 RepoIcons::load(owner, &repo, best_matches_only)
                   .await
+                  .icons
                   .map(|icons| icons.0.into_vec())
                   .unwrap_or(Vec::new())
               }),
@@ -168,7 +206,7 @@ impl RepoIcons {
     let mut previous_loads = Vec::new();
     let mut found_best_match = false;
 
-    let mut error = Ok(());
+    let mut errors = Vec::new();
 
     while !futures.is_empty() {
       let (loaded, index, _) = select_all(&mut futures).await;
@@ -176,7 +214,7 @@ impl RepoIcons {
 
       let loaded = match loaded {
         Err(err) => {
-          error = Err(err);
+          errors.push(err.to_string());
           continue;
         }
         Ok(loaded) => loaded,
@@ -186,7 +224,9 @@ impl RepoIcons {
         LoadedKind::RepoFile(file_icons) => {
           if let Some(mut file_icons) = file_icons.clone() {
             for file_icon in &mut file_icons {
-              file_icon.set_repo_private(readme.clone().await?.private);
+              if let Ok(readme) = readme.clone().await {
+                file_icon.set_repo_private(readme.private);
+              }
 
               if matches!(file_icon.kind, RepoIconKind::IconField { .. }) {
                 found_best_match = true;
@@ -304,18 +344,19 @@ impl RepoIcons {
       }
     }
 
-    error?;
-
     let repo_icons = repo_icons
       .into_iter()
       .unique_by(|icon| icon.url.clone())
       .collect::<Vec<_>>();
 
-    let repo_icons: Vec1<RepoIcon> = repo_icons
+    let icons: Result<Vec1<RepoIcon>, _> = repo_icons
       .try_into()
-      .map_err(|_| "no icons found for repo")?;
+      .map_err(|_| NO_ICONS_FOUND.to_string());
 
-    Ok(RepoIcons(repo_icons))
+    RepoIconsResult {
+      icons: icons.map(|icons| RepoIcons(icons)),
+      errors: errors.try_into().ok(),
+    }
   }
 
   /// Fetch all icons using an API endpoint. Ordered from highest to lowest resolution

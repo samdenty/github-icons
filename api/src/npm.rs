@@ -50,7 +50,7 @@ const NODEJS_BUILTINS: [&str; 41] = [
 pub async fn get_redirect_url(mut url: Url, package_name: &str) -> Result<Url, Box<dyn Error>> {
   if package_name.starts_with("node:") || NODEJS_BUILTINS.contains(&package_name) {
     return Ok(
-      "https://nodejs.org/static/images/logos/nodejs-dark.eps"
+      "https://nodejs.org/static/images/logos/js-green.svg"
         .parse()
         .unwrap(),
     );

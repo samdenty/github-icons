@@ -61,7 +61,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
   }
 
   let exactly_repo_name = Regex::new(&format!(
-    "^{}([-_](logo|icon).*)?([-_]?(\\d+x\\d+|\\d+))?\\.[^.]+$",
+    r"^{}([-_](logo|icon).*)?([-_]?(\d+x\d+|\d+))?\.[^.]+$",
     escape(&repo)
   ))
   .unwrap();
@@ -95,7 +95,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
       matches_icon = true;
       weight += 1;
 
-      let exactly_logo = regex!("^(logo|icon)\\.[^.]+$");
+      let exactly_logo = regex!(r"^(logo|icon)([-_].+)?\.[^.]+$");
       if exactly_logo.is_match(&filename).unwrap() {
         weight += 2;
       }

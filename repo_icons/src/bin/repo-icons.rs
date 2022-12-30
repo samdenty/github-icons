@@ -26,6 +26,8 @@ macro_rules! regex {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+  env_logger::init();
+
   let opts: Opts = Opts::parse();
 
   if opts.debug {

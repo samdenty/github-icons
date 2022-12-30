@@ -1,5 +1,5 @@
 use cached::proc_macro::cached;
-use std::error::Error;
+use std::{error::Error, time::Instant};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -17,45 +17,31 @@ pub struct File {
 }
 
 #[derive(Deserialize)]
-struct Commit {
-  sha: String,
-}
-
-#[derive(Deserialize)]
-#[serde(untagged)]
-enum CommitResponse {
-  Commits(Vec<Commit>),
-  Message { message: String },
-}
-
-#[derive(Deserialize)]
 #[serde(untagged)]
 enum TreesResponse {
-  Trees { tree: Vec<File> },
+  Trees { sha: String, tree: Vec<File> },
   Message { message: String },
 }
 
 #[cached]
-async fn get_repo_files_cached(
-  owner: String,
-  repo: String,
-  tree_sha: String,
-) -> Result<Vec<File>, String> {
-  let url = format!(
-    "repos/{}/{}/git/trees/{}?recursive=1",
-    owner, repo, tree_sha
-  );
+async fn get_repo_files_cached(owner: String, repo: String) -> Result<(String, Vec<File>), String> {
+  let url = format!("repos/{}/{}/git/trees/HEAD?recursive=1", owner, repo);
 
-  let res = gh_api_get!("{}", url)
-    .send()
-    .await
-    .map_err(|e| format!("{}: {:?}", url, e).to_string())?
-    .json::<TreesResponse>()
-    .await
-    .map_err(|e| format!("{}: {:?}", url, e).to_string())?;
+  let start = Instant::now();
+  let res = async {
+    gh_api_get!("{}", url)
+      .send()
+      .await?
+      .json::<TreesResponse>()
+      .await
+  }
+  .await
+  .map_err(|e| format!("{}: {:?}", url, e).to_string());
 
-  match res {
-    TreesResponse::Trees { tree } => Ok(tree),
+  info!("{}: {:?}", url, start.elapsed());
+
+  match res? {
+    TreesResponse::Trees { sha, tree } => Ok((sha, tree)),
     TreesResponse::Message { message } => Err(message),
   }
 }
@@ -64,33 +50,7 @@ pub async fn get_repo_files(
   owner: &str,
   repo: &str,
 ) -> Result<(String, Vec<File>), Box<dyn Error>> {
-  let url = format!("repos/{}/{}/commits?per_page=1", owner, repo);
+  let result = get_repo_files_cached(owner.to_lowercase(), repo.to_lowercase()).await?;
 
-  let res = gh_api_get!("{}", url)
-    .send()
-    .await
-    .map_err(|e| format!("{}: {:?}", url, e))?
-    .json::<CommitResponse>()
-    .await
-    .map_err(|e| format!("{}: {:?}", url, e))?;
-
-  let commits = match res {
-    CommitResponse::Commits(commits) => commits,
-    CommitResponse::Message { message } => return Err(message.into()),
-  };
-
-  let commit_sha = commits
-    .into_iter()
-    .next()
-    .ok_or(format!("no commits found for repo {}/{}!", owner, repo))?
-    .sha;
-
-  let files = get_repo_files_cached(
-    owner.to_lowercase(),
-    repo.to_lowercase(),
-    commit_sha.clone(),
-  )
-  .await?;
-
-  Ok((commit_sha, files))
+  Ok(result)
 }

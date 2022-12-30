@@ -1,6 +1,6 @@
 use super::get_redirected_user;
 use cached::proc_macro::cached;
-use std::error::Error;
+use std::{error::Error, time::Instant};
 
 #[derive(Deserialize)]
 struct Repo {
@@ -19,15 +19,21 @@ enum Response {
 async fn get_user_repos_cached(user: String) -> Result<Vec<String>, String> {
   let url = format!("users/{}/repos?per_page=100", user);
 
-  let res = gh_api_get!("{}", url)
-    .send()
-    .await
-    .map_err(|e| format!("{}: {:?}", url, e))?
-    .json::<Response>()
-    .await
-    .map_err(|e| format!("{}: {:?}", url, e))?;
+  let start = Instant::now();
 
-  match res {
+  let res = async {
+    gh_api_get!("{}", url)
+      .send()
+      .await?
+      .json::<Response>()
+      .await
+  }
+  .await
+  .map_err(|e| format!("{}: {:?}", url, e));
+
+  info!("{}: {:?}", url, start.elapsed());
+
+  match res? {
     Response::Repos(repos) => Ok(
       repos
         .into_iter()

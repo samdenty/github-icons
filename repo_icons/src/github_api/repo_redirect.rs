@@ -1,5 +1,6 @@
 use cached::proc_macro::cached;
 use serde::Deserialize;
+use std::time::Instant;
 
 #[derive(Deserialize)]
 struct User {
@@ -64,16 +65,22 @@ pub async fn get_redirected_user(owner: String, repo: String) -> Result<(String,
   match get_redirected_repo(owner.clone(), repo).await {
     Ok((owner, _, is_org)) => Ok((owner, is_org)),
     Err(_) => {
-      let url = format!("users/{}", owner);
-      let user = gh_api_get!("{}", url)
-        .send()
-        .await
-        .map_err(|e| format!("{}: {:?}", url, e))?
-        .json::<UserResponse>()
-        .await
-        .map_err(|e| format!("{}: {:?}", url, e))?;
+      let start = Instant::now();
 
-      match user {
+      let url = format!("users/{}", owner);
+      let user = async {
+        gh_api_get!("{}", url)
+          .send()
+          .await?
+          .json::<UserResponse>()
+          .await
+      }
+      .await
+      .map_err(|e| format!("{}: {:?}", url, e));
+
+      info!("{}: {:?}", url, start.elapsed());
+
+      match user? {
         UserResponse::Message { message } => Err(message),
         UserResponse::User(user) => Ok((owner, user.r#type == "Organization")),
       }
@@ -87,15 +94,20 @@ pub async fn get_redirected_repo(
   repo: String,
 ) -> Result<(String, String, bool), String> {
   let url = format!("repos/{}/{}", owner, repo);
-  let repo = gh_api_get!("{}", url)
-    .send()
-    .await
-    .map_err(|e| format!("{}: {:?}", url, e))?
-    .json::<RepoResponse>()
-    .await
-    .map_err(|e| format!("{}: {:?}", url, e))?;
+  let start = Instant::now();
+  let repo = async {
+    gh_api_get!("{}", url)
+      .send()
+      .await?
+      .json::<RepoResponse>()
+      .await
+  }
+  .await
+  .map_err(|e| format!("{}: {:?}", url, e));
 
-  match repo {
+  info!("{}: {:?}", url, start.elapsed());
+
+  match repo? {
     RepoResponse::Message { message } => Err(message),
     RepoResponse::Repo { name, owner } => Ok((
       owner.login.to_lowercase(),

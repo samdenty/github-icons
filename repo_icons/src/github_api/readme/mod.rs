@@ -7,7 +7,7 @@ use self::primary_heading::PrimaryHeading;
 use crate::blacklist::is_blacklisted_homepage;
 use scraper::Html;
 use serde::{de, Deserialize};
-use std::{convert::TryInto, error::Error};
+use std::{convert::TryInto, error::Error, time::Instant};
 use url::Url;
 use vec1::Vec1;
 
@@ -47,15 +47,20 @@ impl Readme {
 
     let url = format!("repos/{}/{}", owner, repo);
 
-    let response = gh_api_get!("{}", url)
-      .send()
-      .await
-      .map_err(|e| format!("{}: {:?}", url, e))?
-      .json::<Response>()
-      .await
-      .map_err(|e| format!("{}: {:?}", url, e))?;
+    let start = Instant::now();
+    let response = async {
+      gh_api_get!("{}", url)
+        .send()
+        .await?
+        .json::<Response>()
+        .await
+    }
+    .await
+    .map_err(|e| format!("{}: {:?}", url, e));
 
-    match response {
+    info!("{}: {:?}", url, start.elapsed());
+
+    match response? {
       Response::Repo {
         owner,
         name,
@@ -102,18 +107,25 @@ impl Readme {
   }
 
   pub async fn load_body(&self) -> Option<Vec1<ReadmeImage>> {
-    let body = gh_api_get!("repos/{}/{}/readme", self.owner, self.repo)
-      .header("Accept", "application/vnd.github.html")
-      .send()
-      .await
-      .ok()?
-      .error_for_status()
-      .ok()?
-      .text()
-      .await
-      .ok()?;
+    let url = format!("repos/{}/{}/readme", self.owner, self.repo);
+    let start = Instant::now();
+    let body = async {
+      gh_api_get!("{}", url)
+        .header("Accept", "application/vnd.github.html")
+        .send()
+        .await
+        .ok()?
+        .error_for_status()
+        .ok()?
+        .text()
+        .await
+        .ok()
+    }
+    .await;
 
-    let document = Html::parse_document(&body);
+    info!("{}: {:?}", url, start.elapsed());
+
+    let document = Html::parse_document(&body?);
 
     let primary_heading = &mut PrimaryHeading::new(&document);
 
@@ -138,14 +150,6 @@ impl Readme {
     }
 
     images.sort();
-
-    warn!(
-      "{:#?}",
-      images
-        .iter()
-        .map(|img| (img.src.clone(), img.weight()))
-        .collect::<Vec<_>>()
-    );
 
     images.try_into().ok()
   }

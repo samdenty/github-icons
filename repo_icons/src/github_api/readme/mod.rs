@@ -19,6 +19,7 @@ impl Readme {
   pub async fn load(owner: &str, repo: &str) -> Option<Readme> {
     let url = format!("repos/{}/{}/readme", owner, repo);
     let start = Instant::now();
+
     let body = async {
       gh_api_get!("{}", url)
         .header("Accept", "application/vnd.github.html")

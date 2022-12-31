@@ -32,8 +32,8 @@ enum TreesResponse {
 )]
 pub async fn get_repo_files(owner: &str, repo: &str) -> Result<(String, Vec<File>), String> {
   let url = format!("repos/{}/{}/git/trees/HEAD?recursive=1", owner, repo);
-
   let start = Instant::now();
+
   let res = async {
     gh_api_get!("{}", url)
       .send()

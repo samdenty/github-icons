@@ -60,9 +60,9 @@ pub async fn get_redirected_user(owner: &str, repo: &str) -> Result<(String, boo
   match get_redirected_repo(owner, repo).await {
     Ok((owner, _, is_org)) => Ok((owner, is_org)),
     Err(_) => {
+      let url = format!("users/{}", owner);
       let start = Instant::now();
 
-      let url = format!("users/{}", owner);
       let user = async {
         gh_api_get!("{}", url)
           .send()

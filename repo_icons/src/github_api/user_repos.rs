@@ -25,7 +25,6 @@ enum Response {
 )]
 async fn get_user_repos_cached(user: &str) -> Result<Vec<String>, String> {
   let url = format!("users/{}/repos?per_page=100", user);
-
   let start = Instant::now();
 
   let res = async {

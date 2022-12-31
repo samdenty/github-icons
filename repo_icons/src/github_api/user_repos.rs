@@ -1,5 +1,6 @@
 use super::get_redirected_user;
 use cached::proc_macro::cached;
+use cached::SizedCache;
 use std::{error::Error, time::Instant};
 
 #[derive(Deserialize)]
@@ -15,8 +16,13 @@ enum Response {
   Message { message: String },
 }
 
-#[cached]
-async fn get_user_repos_cached(user: String) -> Result<Vec<String>, String> {
+#[cached(
+  sync_writes = true,
+  type = "SizedCache<String, Result<Vec<String>, String>>",
+  create = "{ SizedCache::with_size(100) }",
+  convert = r#"{ user.to_lowercase() }"#
+)]
+async fn get_user_repos_cached(user: &str) -> Result<Vec<String>, String> {
   let url = format!("users/{}/repos?per_page=100", user);
 
   let start = Instant::now();
@@ -46,7 +52,11 @@ async fn get_user_repos_cached(user: String) -> Result<Vec<String>, String> {
 }
 
 pub async fn get_user_repos(owner: &str, repo: &str) -> Result<Vec<String>, Box<dyn Error>> {
-  let (user, _) = get_redirected_user(owner.to_lowercase(), repo.to_lowercase()).await?;
-
-  get_user_repos_cached(user).await.map_err(|e| e.into())
+  match get_user_repos_cached(owner).await {
+    Ok(repos) => Ok(repos),
+    Err(_) => {
+      let (user, _) = get_redirected_user(owner, repo).await?;
+      get_user_repos_cached(&user).await.map_err(|e| e.into())
+    }
+  }
 }

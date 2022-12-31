@@ -188,7 +188,7 @@ checksum = "5e2afe73808fbaac302e39c9754bfc3c4b4d0f99c9c240b9f4e4efc841ad1b74"
 dependencies = [
  "async-mutex",
  "async-trait",
- "cached_proc_macro",
+ "cached_proc_macro 0.6.2",
  "cached_proc_macro_types",
  "futures",
  "hashbrown 0.9.1",
@@ -196,10 +196,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "cached"
+version = "0.41.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec6d20b3d24b6c74e2c5331d2d3d8d1976a9883c7da179aa851afa4c90d62e36"
+dependencies = [
+ "cached_proc_macro 0.15.0",
+ "cached_proc_macro_types",
+ "hashbrown 0.12.3",
+ "instant",
+ "once_cell",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "cached_proc_macro"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4230b8d9f5db741004bfaef172c5b2dbf0eb94f105204cc6147a220080daaa85"
+dependencies = [
+ "cached_proc_macro_types",
+ "darling 0.13.4",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "cached_proc_macro"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "751f7f4e7a091545e7f6c65bacc404eaee7e87bfb1f9ece234a1caa173dc16f2"
 dependencies = [
  "cached_proc_macro_types",
  "darling 0.13.4",
@@ -1272,6 +1299,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a5bbe824c507c5da5956355e86a746d82e0e1464f65d862cc5e71da70e94b2c"
 dependencies = [
  "cfg-if",
+ "js-sys",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
@@ -2194,7 +2224,7 @@ version = "0.3.3"
 dependencies = [
  "async-recursion",
  "bytes",
- "cached",
+ "cached 0.41.0",
  "clap",
  "data-url",
  "derivative",
@@ -2233,7 +2263,7 @@ checksum = "74cdbabeda7e44783733ba527362083e2d5aff7e8414b1558b1f269925e3cdde"
 dependencies = [
  "async-recursion",
  "bytes",
- "cached",
+ "cached 0.23.0",
  "clap",
  "data-url",
  "derivative",

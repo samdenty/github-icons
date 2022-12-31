@@ -271,7 +271,7 @@ impl RepoIcon {
     let fallback =
       !repo.contains(&stripped_owner_lowercase(&owner)) && !docs.is_match(&repo).unwrap();
 
-    let (user, is_org) = get_redirected_user(owner, repo).await?;
+    let (user, is_org) = get_redirected_user(&owner, &repo).await?;
 
     let avatar_url: Url = format!("https://github.com/{}.png", user).parse().unwrap();
 

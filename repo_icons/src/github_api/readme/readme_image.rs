@@ -1,5 +1,11 @@
-use super::{primary_heading::PrimaryHeading, Readme};
-use crate::blacklist::{is_badge_text, is_badge_url};
+use super::primary_heading::PrimaryHeading;
+use crate::{
+  blacklist::{is_badge_text, is_badge_url},
+  github_api::{
+    get_branch_and_path, is_same_repo,
+    repo::{qualify_repo_raw_url, Repo},
+  },
+};
 use gh_api::get_token;
 use scraper::ElementRef;
 use serde::{Deserialize, Serialize};
@@ -45,16 +51,20 @@ pub struct ReadmeImage {
 
 impl ReadmeImage {
   pub async fn get(
-    readme: &Readme,
+    owner: &str,
+    repo: &str,
     elem_ref: &ElementRef<'_>,
     primary_heading: &mut PrimaryHeading<'_>,
   ) -> Option<Self> {
+    let owner = owner.to_lowercase();
+    let repo = repo.to_lowercase();
+
     let elem = elem_ref.value();
 
     let src = elem
       .attr("data-canonical-src")
       .or(elem.attr("src"))
-      .and_then(|src| readme.qualify_url(src).ok())
+      .and_then(|src| qualify_repo_raw_url(&owner, &repo, src).ok())
       .unwrap();
 
     let alt = elem
@@ -69,7 +79,7 @@ impl ReadmeImage {
     let cdn_src = elem
       .attr("data-canonical-src")
       .and(elem.attr("src"))
-      .and_then(|src| readme.qualify_url(src).ok());
+      .and_then(|src| qualify_repo_raw_url(&owner, &repo, src).ok());
 
     let mut is_align_center = false;
     let mut links_to = None;
@@ -83,7 +93,7 @@ impl ReadmeImage {
       if element.name() == "a" && links_to.is_none() {
         links_to = match element
           .attr("href")
-          .and_then(|href| readme.qualify_url(href).ok())
+          .and_then(|href| qualify_repo_raw_url(&owner, &repo, href).ok())
         {
           Some(href) => {
             // if the img points to the same url as the link
@@ -91,7 +101,7 @@ impl ReadmeImage {
             let mut img_blob_url = src.clone();
             img_blob_url.set_path(&src.path().replacen("/raw/", "/blob/", 1));
             if href != img_blob_url {
-              readme.is_link_to_project(&href).await
+              is_link_to_project(&owner, &repo, &href).await
             } else {
               None
             }
@@ -101,7 +111,7 @@ impl ReadmeImage {
       }
     }
 
-    let branch_and_path = readme.get_branch_and_path(&src).await;
+    let branch_and_path = get_branch_and_path(&owner, &repo, &src).await;
     let keyword_mentions = {
       let mut mentions = HashSet::new();
 
@@ -118,7 +128,7 @@ impl ReadmeImage {
         mentions.insert(KeywordMention::Banner);
       }
 
-      if path.contains(&readme.repo) || alt.contains(&readme.repo) {
+      if path.contains(&repo) || alt.contains(&repo) {
         mentions.insert(KeywordMention::RepoName);
       };
       mentions
@@ -128,7 +138,7 @@ impl ReadmeImage {
 
     let src = cdn_src.unwrap_or({
       if let Some((branch, path)) = &branch_and_path {
-        if readme.private {
+        if let Ok(Repo { private: true, .. }) = Repo::load(&owner, &repo).await {
           headers.insert(
             "Authorization".to_string(),
             format!("Bearer {}", get_token().unwrap()).to_string(),
@@ -137,7 +147,7 @@ impl ReadmeImage {
 
         Url::parse(&format!(
           "https://raw.githubusercontent.com/{}/{}/{}/{}",
-          readme.owner, readme.repo, branch, path
+          owner, repo, branch, path
         ))
         .unwrap()
       } else {
@@ -217,4 +227,51 @@ impl PartialOrd for ReadmeImage {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
     Some(self.cmp(other))
   }
+}
+
+/// Check if a given url is a project link.
+async fn is_link_to_project(owner: &str, repo: &str, url: &Url) -> Option<ProjectLink> {
+  let domain = url.domain()?.to_lowercase();
+
+  // check for github pages
+  let re = regex!(r"^([^.])+\.github\.(com|io)$");
+  if let Some(res) = re.captures(&domain).unwrap() {
+    let user = &res[1];
+
+    // USERNAME.github.io
+    if let Some(repo_res) = re.captures(&domain).unwrap() {
+      if &repo_res[1] == user {
+        return Some(ProjectLink::Website);
+      }
+    }
+
+    // USERNAME.github.io/REPO
+    if let Some(res) = regex!("^/([^/]+)").captures(url.path()).unwrap() {
+      let other_repo = &res[1];
+      if is_same_repo((owner, repo), (user, other_repo)).await {
+        return Some(ProjectLink::Website);
+      }
+    }
+  }
+
+  if let Ok(Repo {
+    homepage: Some(homepage),
+    ..
+  }) = Repo::load(owner, repo).await
+  {
+    if homepage
+      .domain()
+      .map(|d| d.to_lowercase())
+      .map(|d| domain == d)
+      .unwrap_or(false)
+    {
+      return Some(ProjectLink::Website);
+    }
+  }
+
+  if get_branch_and_path(owner, repo, url).await.is_some() {
+    return Some(ProjectLink::Repo);
+  };
+
+  None
 }

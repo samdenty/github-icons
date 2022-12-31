@@ -1,6 +1,8 @@
 use crate::{
   blacklist::{is_badge_url, is_blacklisted_homepage},
-  get_token, github_api, RepoIcon, RepoIconKind,
+  get_token,
+  github_api::{self, Readme, Repo},
+  RepoIcon, RepoIconKind,
 };
 use async_recursion::async_recursion;
 use futures::{
@@ -88,8 +90,6 @@ impl RepoIcons {
   pub async fn load(owner: &str, repo: &str, best_matches_only: bool) -> RepoIconsResult {
     let mut repo_icons = Vec::new();
 
-    let readme = github_api::Readme::load(owner, repo).shared();
-
     let mut futures: Vec<Pin<Box<dyn Future<Output = Result<LoadedKind, Box<dyn Error>>>>>> = vec![
       async {
         let icon = RepoIcon::load_user_avatar(owner, repo).await?;
@@ -151,7 +151,7 @@ impl RepoIcons {
         let mut icons =
           Icons::new_with_blacklist(|url| is_blacklisted_homepage(url) || is_badge_url(url));
 
-        let homepage = readme.clone().await.ok().and_then(|readme| readme.homepage);
+        let Repo { homepage, .. } = Repo::load(owner, repo).await?;
 
         if let Some(homepage) = &homepage {
           warn_err!(
@@ -182,22 +182,16 @@ impl RepoIcons {
       .boxed_local(),
       // Try and extract images from the readme website, or directly in it
       async {
-        Ok(LoadedKind::ReadmeImage(match readme.clone().await {
-          Ok(readme) => {
-            let image = readme
-              .load_body()
-              .await
-              .and_then(|images| images.into_iter().find(|image| image.in_primary_heading));
+        let readme = Readme::load(owner, repo).await;
+        let image =
+          readme.and_then(|images| images.into_iter().find(|image| image.in_primary_heading));
 
-            match image {
-              Some(image) => Some(
-                RepoIcon::load_with_headers(image.src, image.headers, RepoIconKind::ReadmeImage)
-                  .await?,
-              ),
-              None => None,
-            }
-          }
-          Err(_) => None,
+        Ok(LoadedKind::ReadmeImage(match image {
+          Some(image) => Some(
+            RepoIcon::load_with_headers(image.src, image.headers, RepoIconKind::ReadmeImage)
+              .await?,
+          ),
+          None => None,
         }))
       }
       .boxed_local(),
@@ -224,8 +218,8 @@ impl RepoIcons {
         LoadedKind::RepoFile(file_icons) => {
           if let Some(mut file_icons) = file_icons.clone() {
             for file_icon in &mut file_icons {
-              if let Ok(readme) = readme.clone().await {
-                file_icon.set_repo_private(readme.private);
+              if let Ok(Repo { private, .. }) = Repo::load(&owner, &repo).await {
+                file_icon.set_repo_private(private);
               }
 
               if matches!(file_icon.kind, RepoIconKind::IconField { .. }) {

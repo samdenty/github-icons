@@ -2,7 +2,7 @@
 name = "repo_icons"
 version = "0.3.3"
 authors = ["Sam Denty <sam@samdenty.com>"]
-edition = "2018"
+edition = "2021"
 license = "GPL-3.0"
 homepage = "https://github.com/samdenty/github-icons/tree/master/repo_icons"
 repository = "https://github.com/samdenty/github-icons/tree/master/repo_icons"
@@ -22,6 +22,10 @@ wasm-opt = ["-Oz", "--enable-mutable-globals"]
 crate-type = ["cdylib", "rlib"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+cached = { version = "0.41.0", default_features = false, features = [
+  "proc_macro",
+  "wasm",
+] }
 wasm-bindgen = "0.2.83"
 js-sys = "0.3.60"
 web-sys = "0.3.60"
@@ -34,6 +38,7 @@ reqwest = { package = "reqwest-wasm", version = "0.11.16", features = [
 ] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# cached = "0.41.0"
 reqwest = { version = "0.11.12", features = [
   "json",
   "cookies",
@@ -54,7 +59,6 @@ bytes = "1.0.1"
 vec1 = { version = "1.6.0", features = ["serde"] }
 html5ever = "0.26.0"
 url = { version = "2.2.0", features = ["serde"] }
-cached = "0.23.0"
 log = "0.4.14"
 async-recursion = "1.0.0"
 once_cell = "1.5.2"

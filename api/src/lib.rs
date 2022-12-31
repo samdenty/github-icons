@@ -222,11 +222,8 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       let repo = ctx.param("repo").unwrap().as_str();
 
       let images = match Readme::load(owner, repo).await {
-        Ok(readme) => match readme.load_body().await {
-          Some(images) => images,
-          None => return Response::error("repo not found", 404),
-        },
-        Err(err) => return Response::error(err.to_string(), 404),
+        Some(images) => images,
+        None => return Response::error("repo not found", 404),
       };
 
       let mut response = from_json_pretty(&images)?;

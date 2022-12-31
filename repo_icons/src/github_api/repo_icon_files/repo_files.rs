@@ -1,5 +1,6 @@
 use cached::proc_macro::cached;
-use std::{error::Error, time::Instant};
+use cached::SizedCache;
+use std::time::Instant;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -23,8 +24,13 @@ enum TreesResponse {
   Message { message: String },
 }
 
-#[cached]
-async fn get_repo_files_cached(owner: String, repo: String) -> Result<(String, Vec<File>), String> {
+#[cached(
+  sync_writes = true,
+  type = "SizedCache<String, Result<(String, Vec<File>), String>>",
+  create = "{ SizedCache::with_size(100) }",
+  convert = r#"{ format!("{}/{}", owner.to_lowercase(), repo.to_lowercase()) }"#
+)]
+pub async fn get_repo_files(owner: &str, repo: &str) -> Result<(String, Vec<File>), String> {
   let url = format!("repos/{}/{}/git/trees/HEAD?recursive=1", owner, repo);
 
   let start = Instant::now();
@@ -44,13 +50,4 @@ async fn get_repo_files_cached(owner: String, repo: String) -> Result<(String, V
     TreesResponse::Trees { sha, tree } => Ok((sha, tree)),
     TreesResponse::Message { message } => Err(message),
   }
-}
-
-pub async fn get_repo_files(
-  owner: &str,
-  repo: &str,
-) -> Result<(String, Vec<File>), Box<dyn Error>> {
-  let result = get_repo_files_cached(owner.to_lowercase(), repo.to_lowercase()).await?;
-
-  Ok(result)
 }

@@ -1,2 +1,3 @@
 [workspace]
 members = ["repo_icons", "api", "cli"]
+resolver = "2"

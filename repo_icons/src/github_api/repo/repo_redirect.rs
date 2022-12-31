@@ -1,25 +1,14 @@
+use super::repo::{Repo, User};
 use cached::proc_macro::cached;
+use cached::SizedCache;
 use serde::Deserialize;
 use std::time::Instant;
-
-#[derive(Deserialize)]
-struct User {
-  login: String,
-  r#type: String,
-}
 
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum UserResponse {
   Message { message: String },
   User(User),
-}
-
-#[derive(Deserialize)]
-#[serde(untagged)]
-enum RepoResponse {
-  Message { message: String },
-  Repo { name: String, owner: User },
 }
 
 /// check if two repos are the same, following
@@ -39,7 +28,7 @@ pub async fn is_same_repo(repo: (&str, &str), other_repo: (&str, &str)) -> bool 
     return false;
   }
 
-  let other_repo_res = get_redirected_repo(other_repo.0.clone(), other_repo.1.clone())
+  let other_repo_res = get_redirected_repo(&other_repo.0, &other_repo.1)
     .await
     .map(|(owner, repo, _)| (owner, repo));
 
@@ -49,7 +38,7 @@ pub async fn is_same_repo(repo: (&str, &str), other_repo: (&str, &str)) -> bool 
     return true;
   }
 
-  let repo_res = get_redirected_repo(repo.0.clone(), repo.1.clone())
+  let repo_res = get_redirected_repo(&repo.0, &repo.1)
     .await
     .map(|(owner, repo, _)| (owner, repo));
   let repo = repo_res.unwrap_or(repo);
@@ -61,8 +50,14 @@ pub async fn is_same_repo(repo: (&str, &str), other_repo: (&str, &str)) -> bool 
   false
 }
 
-pub async fn get_redirected_user(owner: String, repo: String) -> Result<(String, bool), String> {
-  match get_redirected_repo(owner.clone(), repo).await {
+#[cached(
+  sync_writes = true,
+  type = "SizedCache<String, Result<(String, bool), String>>",
+  create = "{ SizedCache::with_size(100) }",
+  convert = r#"{ format!("{}/{}", owner.to_lowercase(), repo.to_lowercase()) }"#
+)]
+pub async fn get_redirected_user(owner: &str, repo: &str) -> Result<(String, bool), String> {
+  match get_redirected_repo(owner, repo).await {
     Ok((owner, _, is_org)) => Ok((owner, is_org)),
     Err(_) => {
       let start = Instant::now();
@@ -82,37 +77,18 @@ pub async fn get_redirected_user(owner: String, repo: String) -> Result<(String,
 
       match user? {
         UserResponse::Message { message } => Err(message),
-        UserResponse::User(user) => Ok((owner, user.r#type == "Organization")),
+        UserResponse::User(user) => Ok((owner.to_lowercase(), user.r#type == "Organization")),
       }
     }
   }
 }
 
-#[cached]
-pub async fn get_redirected_repo(
-  owner: String,
-  repo: String,
-) -> Result<(String, String, bool), String> {
-  let url = format!("repos/{}/{}", owner, repo);
-  let start = Instant::now();
-  let repo = async {
-    gh_api_get!("{}", url)
-      .send()
-      .await?
-      .json::<RepoResponse>()
-      .await
-  }
-  .await
-  .map_err(|e| format!("{}: {:?}", url, e));
+async fn get_redirected_repo(owner: &str, repo: &str) -> Result<(String, String, bool), String> {
+  let repo = Repo::load(owner, repo).await?;
 
-  info!("{}: {:?}", url, start.elapsed());
-
-  match repo? {
-    RepoResponse::Message { message } => Err(message),
-    RepoResponse::Repo { name, owner } => Ok((
-      owner.login.to_lowercase(),
-      name.to_lowercase(),
-      owner.r#type == "Organization",
-    )),
-  }
+  Ok((
+    repo.owner.login.to_lowercase(),
+    repo.name.to_lowercase(),
+    repo.owner.r#type == "Organization",
+  ))
 }

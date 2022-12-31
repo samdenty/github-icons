@@ -42,7 +42,9 @@ name = "api"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
+ "console_log",
  "futures",
+ "log",
  "regex",
  "repo_icons 0.3.3",
  "serde",
@@ -105,6 +107,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "async_once"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ce4f10ea3abcd6617873bae9f91d1c5332b4a778bd9ce34d0cd517474c1de82"
 
 [[package]]
 name = "atty"
@@ -201,10 +209,14 @@ version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec6d20b3d24b6c74e2c5331d2d3d8d1976a9883c7da179aa851afa4c90d62e36"
 dependencies = [
+ "async-trait",
+ "async_once",
  "cached_proc_macro 0.15.0",
  "cached_proc_macro_types",
+ "futures",
  "hashbrown 0.12.3",
  "instant",
+ "lazy_static",
  "once_cell",
  "thiserror",
  "tokio",
@@ -352,6 +364,16 @@ checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
 dependencies = [
  "cfg-if",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "console_log"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "501a375961cef1a0d44767200e66e4a559283097e91d0730b1d75dfb2f8a1494"
+dependencies = [
+ "log",
+ "web-sys",
 ]
 
 [[package]]
@@ -2234,6 +2256,7 @@ dependencies = [
  "gh_api",
  "html5ever",
  "image",
+ "instant",
  "itertools",
  "js-sys",
  "log",

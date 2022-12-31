@@ -66,7 +66,7 @@ impl<'de> Deserialize<'de> for RepoIconsResult {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RepoIcons(Vec1<RepoIcon>);
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 enum LoadedKind {
   Avatar(RepoIcon),
   RepoFile(Option<Vec1<RepoIcon>>),

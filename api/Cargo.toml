@@ -15,6 +15,8 @@ serde = "1.0"
 futures = "0.3.12"
 repo_icons = { path = "../repo_icons" }
 regex = "1.7.0"
+console_log = "0.2.0"
+log = "0.4.14"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.

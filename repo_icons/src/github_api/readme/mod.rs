@@ -3,12 +3,12 @@ pub mod readme_image;
 
 pub use readme_image::*;
 
+use instant::Instant;
 use primary_heading::PrimaryHeading;
 use scraper::Html;
 use std::{
   convert::TryInto,
   ops::{Deref, DerefMut},
-  time::Instant,
 };
 use vec1::Vec1;
 

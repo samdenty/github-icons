@@ -2,8 +2,8 @@ use super::is_same_repo;
 use crate::blacklist::is_blacklisted_homepage;
 use cached::proc_macro::cached;
 use cached::SizedCache;
+use instant::Instant;
 use serde::{de, Deserialize};
-use std::time::Instant;
 use url::Url;
 
 #[derive(Clone, Deserialize)]

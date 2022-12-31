@@ -1,9 +1,14 @@
 #![feature(async_closure, let_chains)]
+
+#[macro_use]
+extern crate log;
+
 mod npm;
 mod serialized_response;
 mod transform_response;
 
 use console_error_panic_hook::set_once;
+use log::Level;
 use repo_icons::{Readme, RepoIcons};
 use serde::Serialize;
 use serialized_response::{serialize_json, SerializedResponse};
@@ -56,6 +61,8 @@ pub async fn main(req: Request, env: Env, ctx: Context) -> Result<Response> {
 async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
   set_once();
 
+  console_log::init_with_level(Level::Info);
+
   let mut url = req.url()?;
 
   let lowercase_path = url.path().to_lowercase();
@@ -97,7 +104,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 
   if !refetch {
     if let Some(mut res) = cache.get(&cache_key, false).await? {
-      console_log!("from HTTP cache");
+      info!("from HTTP cache");
 
       if let Some(token) = &token {
         res = transform_response(true, token, res).await?
@@ -107,7 +114,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
     };
 
     if let Some(res) = cache_kv.get(&cache_key).text().await? {
-      console_log!("from KV cache");
+      info!("from KV cache");
 
       let mut res = SerializedResponse::deserialize(res)?;
 
@@ -118,9 +125,9 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       return Ok(res);
     };
 
-    console_log!("missed cache");
+    info!("missed cache");
   } else {
-    console_log!("force refetching");
+    info!("force refetching");
   }
 
   let router = Router::new();
@@ -165,7 +172,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 
       if let Some(errors) = &result.errors {
         for error in errors {
-          console_error!("{}", error);
+          error!("{}", error);
         }
         write_to_cache = false;
       }
@@ -248,7 +255,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       if response.status_code() > 400 {
         let _ = cache.delete(&cache_key, false).await;
       } else if response.headers().has("Cache-Control").unwrap() {
-        console_log!("caching as {}", cache_key);
+        info!("caching as {}", cache_key);
         let serialized_response = SerializedResponse::serialize(response.cloned().unwrap())
           .await
           .ok();

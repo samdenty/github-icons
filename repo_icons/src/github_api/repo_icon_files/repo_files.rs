@@ -1,6 +1,6 @@
 use cached::proc_macro::cached;
 use cached::SizedCache;
-use std::time::Instant;
+use instant::Instant;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]

@@ -26,6 +26,7 @@ cached = { version = "0.41.0", default_features = false, features = [
   "proc_macro",
   "wasm",
 ] }
+instant = { version = "0.1", features = ["wasm-bindgen", "inaccurate"] }
 wasm-bindgen = "0.2.83"
 js-sys = "0.3.60"
 web-sys = "0.3.60"
@@ -38,7 +39,8 @@ reqwest = { package = "reqwest-wasm", version = "0.11.16", features = [
 ] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-# cached = "0.41.0"
+instant = "0.1"
+cached = "0.41.0"
 reqwest = { version = "0.11.12", features = [
   "json",
   "cookies",

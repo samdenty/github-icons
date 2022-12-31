@@ -1,8 +1,8 @@
 use super::repo::{Repo, User};
 use cached::proc_macro::cached;
 use cached::SizedCache;
+use instant::Instant;
 use serde::Deserialize;
-use std::time::Instant;
 
 #[derive(Deserialize)]
 #[serde(untagged)]

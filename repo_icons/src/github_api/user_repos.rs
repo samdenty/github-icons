@@ -1,7 +1,8 @@
 use super::get_redirected_user;
 use cached::proc_macro::cached;
 use cached::SizedCache;
-use std::{error::Error, time::Instant};
+use instant::Instant;
+use std::error::Error;
 
 #[derive(Deserialize)]
 struct Repo {

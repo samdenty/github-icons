@@ -284,7 +284,7 @@ impl RepoIcon {
           RepoIconKind::UserAvatarFallback
         }
       } else {
-        RepoIconKind::Avatar {}
+        RepoIconKind::Avatar
       },
     )
     .await

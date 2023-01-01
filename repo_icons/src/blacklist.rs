@@ -44,6 +44,7 @@ static BADGE_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
     r"dev.azure.com",
     r"deps.rs",
     r"docs.rs",
+    r"jitpack.io",
     // with paths
     r"^github.com/[^/]+/[^/]+/workflows",
     r"liberapay.com/assets/widgets",

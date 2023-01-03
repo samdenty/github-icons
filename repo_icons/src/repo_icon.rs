@@ -1,6 +1,7 @@
 use crate::github_api::{get_redirected_user, stripped_owner_lowercase};
 use data_url::DataUrl;
 use futures::{
+  join,
   stream::{self, LocalBoxStream},
   StreamExt,
 };
@@ -10,7 +11,7 @@ use image::{io::Reader as ImageReader, DynamicImage, ImageFormat};
 #[cfg(target_arch = "wasm32")]
 use js_sys::Uint8Array;
 use maplit::hashmap;
-use reqwest::Response;
+use reqwest::{IntoUrl, Response};
 use serde::{de, ser::SerializeMap, Deserialize, Deserializer, Serialize, Serializer};
 use site_icons::{IconInfo, IconKind};
 use std::{
@@ -33,16 +34,20 @@ pub enum Framework {
   Vue,
   CreateReactApp,
   Next,
+  MdBook,
 }
 
 impl From<&RepoFile> for Option<Framework> {
   fn from(file: &RepoFile) -> Self {
     Some(match &file.sha[..] {
-      "df36fcfb72584e00488330b560ebcf34a41c64c2" => Framework::Vue,
+      "df36fcfb72584e00488330b560ebcf34a41c64c2" | "c7b9a43c8cd16d0b434adaf513fcacb340809a11" => {
+        Framework::Vue
+      }
       "718d6fea4835ec2d246af9800eddb7ffb276240c" => Framework::Next,
       "bcd5dfd67cd0361b78123e95c2dd96031f27f743" | "a11777cc471a4344702741ab1c8a588998b1311a" => {
         Framework::CreateReactApp
       }
+      "a5b1aa16c4dcb6c872cb5af799bfc9b5552c7b9e" => Framework::MdBook,
       _ => return None,
     })
   }
@@ -250,15 +255,16 @@ impl RepoIcon {
     }
   }
 
-  pub async fn load(url: Url, kind: RepoIconKind) -> Result<Self, Box<dyn Error>> {
-    Self::load_with_headers(url, HashMap::new(), kind).await
+  pub async fn load<U: IntoUrl>(url: U, kind: RepoIconKind) -> Result<Self, Box<dyn Error>> {
+    Self::load_with_headers(url.into_url()?, HashMap::new(), kind).await
   }
 
-  pub async fn load_with_headers(
-    url: Url,
+  pub async fn load_with_headers<U: IntoUrl>(
+    url: U,
     headers: HashMap<String, String>,
     kind: RepoIconKind,
   ) -> Result<Self, Box<dyn Error>> {
+    let url = url.into_url()?;
     let info = IconInfo::load(url.clone(), (&headers).try_into()?, None).await?;
     Ok(Self::new_with_headers(url, headers, kind, info))
   }
@@ -271,23 +277,33 @@ impl RepoIcon {
     let fallback =
       !repo.contains(&stripped_owner_lowercase(&owner)) && !docs.is_match(&repo).unwrap();
 
-    let (user, is_org) = get_redirected_user(&owner, &repo).await?;
+    let (redirected_user, owner_avatar) = join!(
+      get_redirected_user(&owner, &repo),
+      RepoIcon::load(
+        format!("https://github.com/{}.png", owner),
+        RepoIconKind::Avatar,
+      )
+    );
 
-    let avatar_url: Url = format!("https://github.com/{}.png", user).parse().unwrap();
+    let (user, is_org) = redirected_user?;
 
-    RepoIcon::load(
-      avatar_url.clone(),
-      if fallback {
-        if is_org {
-          RepoIconKind::OrgAvatar
-        } else {
-          RepoIconKind::UserAvatarFallback
-        }
+    let kind = if fallback {
+      if is_org {
+        RepoIconKind::OrgAvatar
       } else {
-        RepoIconKind::Avatar
-      },
-    )
-    .await
+        RepoIconKind::UserAvatarFallback
+      }
+    } else {
+      RepoIconKind::Avatar
+    };
+
+    if user == owner {
+      let mut avatar = owner_avatar?;
+      avatar.kind = kind;
+      return Ok(avatar);
+    }
+
+    RepoIcon::load(format!("https://github.com/{}.png", user), kind).await
   }
 
   pub async fn load_repo_file(file: RepoFile, is_icon_field: bool) -> Result<Self, Box<dyn Error>> {

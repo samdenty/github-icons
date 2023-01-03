@@ -61,7 +61,7 @@ pub async fn main(req: Request, env: Env, ctx: Context) -> Result<Response> {
 async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
   set_once();
 
-  console_log::init_with_level(Level::Info);
+  console_log::init_with_level(Level::Info).unwrap();
 
   let mut url = req.url()?;
 

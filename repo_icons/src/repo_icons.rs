@@ -6,13 +6,13 @@ use crate::{
 };
 use async_recursion::async_recursion;
 use futures::{
-  future::{join_all, select_all, try_join_all},
+  future::{select_all, try_join_all},
   Future, FutureExt,
 };
 use itertools::Itertools;
 use reqwest::IntoUrl;
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
-use site_icons::Icons;
+use site_icons::SiteIcons;
 use std::{
   cmp::{max, min},
   collections::HashMap,
@@ -72,7 +72,6 @@ enum LoadedKind {
   RepoFile(Option<Vec1<RepoIcon>>),
   ReadmeImage(Option<RepoIcon>),
   Homepage(Option<Vec1<RepoIcon>>),
-  PrefixedRepo(Option<Vec1<RepoIcon>>),
 }
 
 impl RepoIcons {
@@ -94,35 +93,6 @@ impl RepoIcons {
       async {
         let icon = RepoIcon::load_user_avatar(owner, repo).await?;
         Ok(LoadedKind::Avatar(icon))
-      }
-      .boxed_local(),
-      // Try and find prefixed repos, and load icons for them on GitHub
-      async {
-        let repos = github_api::get_user_repos(owner, repo).await?;
-
-        Ok(LoadedKind::PrefixedRepo(
-          join_all(
-            repos
-              .into_iter()
-              .filter(|possibly_prefixed_repo| {
-                possibly_prefixed_repo != &repo.to_lowercase()
-                  && repo.to_lowercase().contains(possibly_prefixed_repo)
-              })
-              .map(async move |repo| {
-                RepoIcons::load(owner, &repo, best_matches_only)
-                  .await
-                  .icons
-                  .map(|icons| icons.0.into_vec())
-                  .unwrap_or(Vec::new())
-              }),
-          )
-          .await
-          .into_iter()
-          .flatten()
-          .collect::<Vec<_>>()
-          .try_into()
-          .ok(),
-        ))
       }
       .boxed_local(),
       async {
@@ -149,24 +119,21 @@ impl RepoIcons {
       .boxed_local(),
       async {
         let mut icons =
-          Icons::new_with_blacklist(|url| is_blacklisted_homepage(url) || is_badge_url(url));
+          SiteIcons::new_with_blacklist(|url| is_blacklisted_homepage(url) || is_badge_url(url));
 
         let Repo { homepage, .. } = Repo::load(owner, repo).await?;
 
-        if let Some(homepage) = &homepage {
-          warn_err!(
-            icons.load_website(homepage.clone()).await,
-            "failed to load website {}",
-            homepage
-          );
-        }
+        let entries = match &homepage {
+          Some(homepage) => icons
+            .load_website(homepage.clone(), best_matches_only)
+            .await
+            .unwrap_or(Vec::new()),
+          None => Vec::new(),
+        };
 
         Ok(LoadedKind::Homepage(
-          icons
-            .entries()
-            .await
+          entries
             .into_iter()
-            .filter(|icon| !is_badge_url(&icon.url))
             .map(|icon| {
               RepoIcon::new(
                 icon.url,
@@ -296,12 +263,6 @@ impl RepoIcons {
             }
 
             repo_icons.push(readme_image.clone());
-          }
-        }
-
-        LoadedKind::PrefixedRepo(icons) => {
-          if let Some(icons) = icons {
-            repo_icons.extend(icons.clone());
           }
         }
 

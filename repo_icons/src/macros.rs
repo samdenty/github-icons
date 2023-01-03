@@ -8,11 +8,11 @@ macro_rules! regex {
 macro_rules! selector {
   ($($selector:expr),+ $(,)?) => {{
     static RE: once_cell::sync::OnceCell<scraper::Selector> = once_cell::sync::OnceCell::new();
-    RE.get_or_init(|| scraper::Selector::parse(join!(",", $($selector),+)).unwrap())
+    RE.get_or_init(|| scraper::Selector::parse(join_with!(",", $($selector),+)).unwrap())
   }};
 }
 
-macro_rules! join {
+macro_rules! join_with {
   ($pattern:literal,$first:expr$(, $($rest:expr),*)? $(,)?) => {
     concat!($first$(, $($pattern, $rest),*)?)
   };
@@ -23,11 +23,3 @@ macro_rules! regexes {
       [$(fancy_regex::Regex::new($x).unwrap()),+]
     );
   }
-
-macro_rules! warn_err {
-  ($result:expr, $($arg:tt)*) => {{
-    if let Err(err) = $result {
-      warn!("{} {}", format!($($arg)*), err);
-    }
-  }};
-}

@@ -17,6 +17,7 @@ repo_icons = { path = "../repo_icons" }
 regex = "1.7.0"
 console_log = "0.2.0"
 log = "0.4.14"
+instant = { version = "0.1", features = ["wasm-bindgen", "inaccurate"] }
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.

@@ -160,7 +160,7 @@ pub async fn sync(slug_or_path: &str) -> Result<(), Box<dyn Error + Send + Sync>
               IconInfo::JPEG { .. } => "jpg",
               IconInfo::ICO { .. } => "ico",
               IconInfo::GIF { .. } => "gif",
-              IconInfo::SVG => "svg",
+              IconInfo::SVG { .. } => "svg",
             }
           );
           let icon_path = CACHE_DIR.join(icon_name.clone());

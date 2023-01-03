@@ -44,6 +44,7 @@ dependencies = [
  "console_error_panic_hook",
  "console_log",
  "futures",
+ "instant",
  "log",
  "regex",
  "repo_icons 0.3.3",
@@ -807,6 +808,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "flo_stream"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a7246db09b6a924fb11fedc1e33c34e6d5d0ba3c95a87cd2994f9581cf5a470"
+dependencies = [
+ "futures",
+ "lazy_static",
+ "smallvec",
+]
+
+[[package]]
 name = "float-cmp"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1062,7 +1074,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shellexpand",
- "site_icons 0.5.0",
+ "site_icons 0.6.1",
  "thread_local",
  "tokio",
  "url",
@@ -2269,7 +2281,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with 1.14.0",
- "site_icons 0.5.0",
+ "site_icons 0.6.1",
  "tokio",
  "url",
  "vec1",
@@ -2740,14 +2752,14 @@ dependencies = [
 
 [[package]]
 name = "site_icons"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c2b54efebda4167df7d130e4cd892e0fae739581aaf785b6342f43064e4a06a"
+version = "0.6.1"
 dependencies = [
  "byteorder",
+ "cached 0.41.0",
  "clap",
  "data-url",
  "env_logger",
+ "flo_stream",
  "futures",
  "html5ever",
  "itertools",

@@ -1074,7 +1074,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shellexpand",
- "site_icons 0.6.3",
+ "site_icons 0.6.4",
  "thread_local",
  "tokio",
  "url",
@@ -2281,7 +2281,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with 1.14.0",
- "site_icons 0.6.3",
+ "site_icons 0.6.4",
  "tokio",
  "url",
  "vec1",
@@ -2763,7 +2763,7 @@ dependencies = [
 
 [[package]]
 name = "site_icons"
-version = "0.6.3"
+version = "0.6.4"
 dependencies = [
  "byteorder",
  "cached 0.41.0",

@@ -132,7 +132,7 @@ impl RepoIcons {
                 .load_website(homepage.clone(), best_matches_only)
                 .boxed_local(),
               Delay::new(Duration::from_secs(2))
-                .map(|_| Err("timed out loading homepage".into()))
+                .map(|_| Ok(Vec::new()))
                 .boxed_local(),
             ])
             .await

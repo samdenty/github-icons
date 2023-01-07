@@ -50,7 +50,7 @@ dependencies = [
  "repo_icons 0.3.3",
  "serde",
  "serde_json",
- "worker",
+ "worker-plus",
 ]
 
 [[package]]
@@ -1074,7 +1074,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shellexpand",
- "site_icons 0.6.1",
+ "site_icons 0.6.3",
  "thread_local",
  "tokio",
  "url",
@@ -2281,7 +2281,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with 1.14.0",
- "site_icons 0.6.1",
+ "site_icons 0.6.3",
  "tokio",
  "url",
  "vec1",
@@ -2594,6 +2594,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-wasm-bindgen"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3b4c031cd0d9014307d82b8abf653c0290fbdaeb4c02d00c63cf52f728628bf"
+dependencies = [
+ "js-sys",
+ "serde",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "serde_derive"
 version = "1.0.145"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2752,7 +2763,7 @@ dependencies = [
 
 [[package]]
 name = "site_icons"
-version = "0.6.1"
+version = "0.6.3"
 dependencies = [
  "byteorder",
  "cached 0.41.0",
@@ -3549,33 +3560,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "worker"
-version = "0.0.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "470b840b8417b7a232b6ed0b04dd38f0ad84d5d80f95e5e991d6f1cee6d75893"
-dependencies = [
- "async-trait",
- "chrono",
- "chrono-tz",
- "futures-channel",
- "futures-util",
- "http",
- "js-sys",
- "matchit",
- "pin-project",
- "serde",
- "serde_json",
- "url",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "wasm-streams",
- "web-sys",
- "worker-kv",
- "worker-macros",
- "worker-sys",
-]
-
-[[package]]
 name = "worker-kv"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3590,10 +3574,38 @@ dependencies = [
 ]
 
 [[package]]
-name = "worker-macros"
-version = "0.0.6"
+name = "worker-plus"
+version = "0.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c29ce5a41f5e7e644bc683681b62aed3adac838e01d18eb4e02a4dc30d4ac69"
+checksum = "b0e706b27b795e736d0a853d4da0d583bdfefd57a81b76dff0e40d0eed3edb78"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "chrono-tz",
+ "futures-channel",
+ "futures-util",
+ "http",
+ "js-sys",
+ "matchit",
+ "pin-project",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-streams",
+ "web-sys",
+ "worker-kv",
+ "worker-plus-macros",
+ "worker-plus-sys",
+]
+
+[[package]]
+name = "worker-plus-macros"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "556d6ac9bec19507dae3c11acf8f372653f7890d02688e69d7781bfc01db4cc5"
 dependencies = [
  "async-trait",
  "proc-macro2",
@@ -3602,14 +3614,14 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-macro-support",
- "worker-sys",
+ "worker-plus-sys",
 ]
 
 [[package]]
-name = "worker-sys"
-version = "0.0.6"
+name = "worker-plus-sys"
+version = "0.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "825732b9b6360d6b1f5f614248317826cebf4878e36f61ccc71ca9dd53de8b41"
+checksum = "64d7d3acca385ca4fa64eb1228b2c7264c4b053d2f88be55585dafce922edcd7"
 dependencies = [
  "cfg-if",
  "js-sys",

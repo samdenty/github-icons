@@ -1,4 +1,4 @@
-use crate::serialized_response::serialize_json;
+use crate::serialize_json;
 use repo_icons::RepoIcons;
 use worker::*;
 

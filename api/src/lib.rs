@@ -1,17 +1,15 @@
 #![feature(async_closure, let_chains)]
-
 #[macro_use]
 extern crate log;
 
 mod npm;
-mod serialized_response;
 mod transform_response;
 
 use console_error_panic_hook::set_once;
 use log::Level;
 use repo_icons::{Readme, RepoIcons};
 use serde::Serialize;
-use serialized_response::{serialize_json, SerializedResponse};
+use std::collections::HashMap;
 use transform_response::*;
 use worker::*;
 use worker_sys::Response as EdgeResponse;
@@ -97,13 +95,14 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
   );
 
   let cache = Cache::default();
-  let cache_kv = env.kv("CACHE")?;
+  let cache_bucket = env.bucket("CACHE")?;
 
   url.set_query(None);
-  let cache_key = url.to_string();
+  let cache_key = url.path()[1..].to_string();
+  let http_cache_key = url.to_string();
 
   if !refetch {
-    if let Some(mut res) = cache.get(&cache_key, false).await? {
+    if let Some(mut res) = cache.get(&http_cache_key, false).await? {
       info!("from HTTP cache");
 
       if let Some(token) = &token {
@@ -113,10 +112,36 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       return Ok(res);
     };
 
-    if let Some(res) = cache_kv.get(&cache_key).text().await? {
-      info!("from KV cache");
+    if let Some(cache_res) = cache_bucket.get(&cache_key).execute().await? {
+      info!("from R2 cache");
 
-      let mut res = SerializedResponse::deserialize(res)?;
+      let mut headers = Headers::new();
+      let mut status_code = None;
+
+      let metadata = cache_res.http_metadata();
+
+      if let Some(content_type) = metadata.content_type {
+        headers.set("Content-Type", &content_type)?;
+      }
+
+      if let Some(cache_control) = metadata.cache_control {
+        headers.set("Cache-Control", &cache_control)?;
+      }
+
+      for (key, value) in &cache_res.custom_metadata()? {
+        if key == "status-code" {
+          status_code = Some(value.parse().unwrap());
+        } else {
+          headers.set(key, value)?;
+        }
+      }
+
+      let mut res = match cache_res.body() {
+        Some(body) => Response::from_bytes(body.bytes().await?)?,
+        None => Response::from_body(ResponseBody::Empty)?,
+      }
+      .with_status(status_code.unwrap())
+      .with_headers(headers);
 
       if let Some(token) = &token {
         res = transform_response(true, token, res).await?
@@ -253,20 +278,38 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 
     ctx.wait_until(async move {
       if response.status_code() > 400 {
-        let _ = cache.delete(&cache_key, false).await;
+        let _ = cache.delete(&http_cache_key, false).await;
       } else if response.headers().has("Cache-Control").unwrap() {
         info!("caching as {}", cache_key);
-        let serialized_response = SerializedResponse::serialize(response.cloned().unwrap())
-          .await
-          .ok();
 
-        if let Some(put) = serialized_response
-          .and_then(|serialized_response| cache_kv.put(&cache_key, serialized_response).ok())
-        {
-          let _ = put.execute().await;
-        }
+        let mut metadata = response.headers().into_iter().collect::<HashMap<_, _>>();
 
-        let _ = cache.put(cache_key, response).await;
+        metadata.insert(
+          "status-code".to_string(),
+          response.status_code().to_string(),
+        );
+
+        let content_type = metadata.remove("content-type");
+        let cache_control = metadata.remove("cache-control");
+
+        let _ = cache_bucket
+          .put(
+            &cache_key,
+            response.cloned().unwrap().bytes().await.unwrap(),
+          )
+          .http_metadata(HttpMetadata {
+            content_type,
+            cache_control,
+            content_language: None,
+            content_disposition: None,
+            content_encoding: None,
+            cache_expiry: None,
+          })
+          .custom_metdata(metadata)
+          .execute()
+          .await;
+
+        let _ = cache.put(http_cache_key, response).await;
       }
     });
   }
@@ -281,4 +324,14 @@ fn from_json_pretty<B: Serialize>(value: &B) -> Result<Response> {
   headers.set("Content-Type", "application/json")?;
 
   Response::from_body(ResponseBody::Body(bytes)).map(|res| res.with_headers(headers))
+}
+
+pub fn serialize_json<B: Serialize>(value: &B) -> Result<Vec<u8>> {
+  match serde_json::to_string_pretty(value) {
+    Ok(json) => Ok(json.into_bytes()),
+    Err(error) => Err(Error::Json((
+      format!("Failed to encode data to json: {:?}", error).into(),
+      404,
+    ))),
+  }
 }

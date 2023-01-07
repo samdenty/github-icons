@@ -9,6 +9,8 @@ use futures::{
   future::{select_all, try_join_all},
   Future, FutureExt,
 };
+use futures_timer::Delay;
+use instant::Duration;
 use itertools::Itertools;
 use reqwest::IntoUrl;
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
@@ -124,10 +126,18 @@ impl RepoIcons {
         let Repo { homepage, .. } = Repo::load(owner, repo).await?;
 
         let entries = match &homepage {
-          Some(homepage) => icons
-            .load_website(homepage.clone(), best_matches_only)
+          Some(homepage) => {
+            select_all(vec![
+              icons
+                .load_website(homepage.clone(), best_matches_only)
+                .boxed_local(),
+              Delay::new(Duration::from_secs(2))
+                .map(|_| Err("timed out loading homepage".into()))
+                .boxed_local(),
+            ])
             .await
-            .unwrap_or(Vec::new()),
+            .0?
+          }
           None => Vec::new(),
         };
 

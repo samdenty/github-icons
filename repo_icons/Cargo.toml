@@ -22,6 +22,7 @@ wasm-opt = ["-Oz", "--enable-mutable-globals"]
 crate-type = ["cdylib", "rlib"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+futures-timer = { version = "3.0.2", features = ["wasm-bindgen"] }
 cached = { version = "0.41.0", default_features = false, features = [
   "proc_macro",
   "wasm",
@@ -39,6 +40,7 @@ reqwest = { package = "reqwest-wasm", version = "0.11.16", features = [
 ] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+futures-timer = "3.0.2"
 instant = "0.1"
 cached = "0.41.0"
 reqwest = { version = "0.11.12", features = [

@@ -6,8 +6,13 @@ import { useContextualRouting } from 'next-use-contextual-routing';
 import dynamic from 'next/dynamic';
 import { Suspense, startTransition, useState } from 'react';
 import _ from 'lodash';
+import styled from '@emotion/styled';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
+  ssr: false,
+});
+
+const Search = dynamic(() => import('../components/Search'), {
   ssr: false,
 });
 
@@ -17,6 +22,17 @@ const IconsQuery = dynamic(
     ssr: false,
   }
 );
+
+const Header = styled.header`
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const Main = styled.main`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
 
 Modal.setAppElement('#__next');
 
@@ -47,15 +63,7 @@ export default function Home({}: HomeProps) {
         )}
       </Modal>
 
-      <main>
-        <input
-          value={query}
-          placeholder="Enter a NPM package / GitHub repo"
-          onChange={(e) => {
-            setQuery(e.target.value);
-          }}
-        ></input>
-
+      <Header>
         {session ? (
           <>
             Signed in as {session.accessToken} <br />
@@ -68,11 +76,15 @@ export default function Home({}: HomeProps) {
             <button onClick={() => signIn('github')}>Sign in</button>
           </>
         )}
+      </Header>
+
+      <Main>
+        <Search query={query} onQuery={setQuery} />
 
         <Suspense fallback="loading">
           <IconsQuery query={query} />
         </Suspense>
-      </main>
+      </Main>
     </>
   );
 }

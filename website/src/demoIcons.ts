@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-export const demoNpmPackages = [
+export const demoNpmPackages = _.shuffle([
   'webpack',
   'lodash',
   'chalk',
@@ -27,9 +27,9 @@ export const demoNpmPackages = [
   'emotion',
   'styled-components',
   'node-fetch',
-];
+]);
 
-export const demoRepos = [
+export const demoRepos = _.shuffle([
   'microsoft/vscode',
   'microsoft/terminal',
   'facebook/react',
@@ -60,9 +60,9 @@ export const demoRepos = [
   'ant-design/ant-design',
   'hashicorp/terraform',
   'php/php-src',
-];
+]);
 
 export const demoIcons = [
-  ..._.shuffle(demoNpmPackages.map((slug) => ({ type: 'npm' as const, slug }))),
-  ..._.shuffle(demoRepos.map((slug) => ({ type: 'github' as const, slug }))),
+  ...demoNpmPackages.map((slug) => ({ type: 'npm' as const, slug })),
+  ...demoRepos.map((slug) => ({ type: 'github' as const, slug })),
 ];

@@ -25,6 +25,7 @@ export interface SearchProps {
 export default function Search({ onQuery, query }: SearchProps) {
   return (
     <StyledSearch
+      autoFocus
       placeholder={`Search for NPM packages and GitHub repos (i.e. ${demoNpmPackages
         .slice(0, 3)
         .join(', ')}...)`}

@@ -1,24 +1,23 @@
 [package]
-name = "api"
-version = "0.1.0"
 authors = ["Sam Denty <sam@samdenty.com>"]
 edition = "2021"
+name = "api"
+version = "0.1.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-worker = { package = "worker-plus", version = "0.0.14" }
 console_error_panic_hook = "0.1.1"
-serde_json = "1.0"
-serde = "1.0"
-futures = "0.3.12"
-repo_icons = { path = "../repo_icons" }
-regex = "1.7.0"
 console_log = "0.2.0"
+futures = "0.3.12"
+instant = {version = "0.1", features = ["wasm-bindgen", "inaccurate"]}
 log = "0.4.14"
-instant = { version = "0.1", features = ["wasm-bindgen", "inaccurate"] }
+regex = "1.7.0"
+repo_icons = {path = "../repo_icons"}
+serde = "1.0"
+serde_json = "1.0"
+worker = {package = "worker-plus", version = "0.0.14"}
 
-[profile.release]
-# Tell `rustc` to optimize for small code size.
-opt-level = "s"
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

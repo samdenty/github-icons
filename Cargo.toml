@@ -1,3 +1,8 @@
 [workspace]
 members = ["repo_icons", "api", "cli"]
 resolver = "2"
+
+[profile.release]
+debug = true
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"

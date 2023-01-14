@@ -70,7 +70,7 @@ fn get_weight(owner: &str, repo: &str, file: &File) -> u8 {
   }
 
   let ignore_paths = regex!(
-    "(e2e|fixtures|demo|deps|dependencies|workspaces?|examples?|third[-_]party|manual|extensions|themes|tests?)/"
+    "(e2e|fixtures|demo|deps|dependencies|workspaces?|examples?|third[-_]party|manual|extensions|icons|themes|tests?)/"
   );
   if !ignore_paths.is_match(&fullpath).unwrap() {
     if filename.contains(&owner) {

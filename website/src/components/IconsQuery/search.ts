@@ -57,8 +57,6 @@ export async function search(query: string, limit = 60): Promise<IconQuery[]> {
 }
 
 async function searchNPM(query: string, limit: number): Promise<IconQuery[]> {
-  const noop = new Promise(() => {});
-
   try {
     return await racePromises([
       fetch(

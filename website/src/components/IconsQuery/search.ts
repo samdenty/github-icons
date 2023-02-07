@@ -1,6 +1,14 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { IconQuery } from './IconsQuery';
 
+interface NPMSResults {
+  results: {
+    package: {
+      name: string;
+    };
+  }[];
+}
+
 interface NPMResults {
   objects: {
     package: {
@@ -49,16 +57,38 @@ export async function search(query: string, limit = 60): Promise<IconQuery[]> {
 }
 
 async function searchNPM(query: string, limit: number): Promise<IconQuery[]> {
-  const results: NPMResults = await fetch(
-    `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(
-      query
-    )}&size=${Math.round(limit)}`
-  ).then((res) => res.json());
+  const noop = new Promise(() => {});
 
-  return results.objects.map((result) => ({
-    type: 'npm' as const,
-    slug: result.package.name,
-  }));
+  try {
+    return await racePromises([
+      fetch(
+        `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(
+          query
+        )}&size=${Math.round(limit)}`
+      )
+        .then((res) => res.json())
+        .then(({ objects }: NPMResults) => {
+          return objects.map((object) => ({
+            type: 'npm' as const,
+            slug: object.package.name,
+          }));
+        }),
+      fetch(
+        `https://api.npms.io/v2/search?q=${encodeURIComponent(
+          query
+        )}&size=${Math.round(limit)}`
+      )
+        .then((res) => res.json())
+        .then(({ results }: NPMSResults) => {
+          return results.map((result) => ({
+            type: 'npm' as const,
+            slug: result.package.name,
+          }));
+        }),
+    ]);
+  } catch (e) {
+    return [];
+  }
 }
 
 async function searchGithub(
@@ -102,4 +132,20 @@ async function searchGithub(
       return { type: 'github' as const, slug };
     })
     .filter(Boolean);
+}
+
+function racePromises<T>(promises: Promise<T>[]) {
+  let count = 0;
+
+  return new Promise<T>((resolve, reject) => {
+    for (const promise of promises) {
+      promise.then(resolve, (err) => {
+        count++;
+
+        if (count === promises.length) {
+          reject(err);
+        }
+      });
+    }
+  });
 }

@@ -4,22 +4,24 @@ import { IconButton } from './IconButton/IconButton';
 import styled from '@emotion/styled';
 
 const PinnedReposQuery = graphql`
-  query UserRepos_pinnedReposQuery {
-    viewer {
-      pinnedItems(first: 6, types: REPOSITORY) {
-        nodes {
-          ... on Repository {
-            nameWithOwner
-            isPrivate
-            description
-            primaryLanguage {
-              name
-              color
+  query UserRepos_pinnedReposQuery($user: String!) {
+    repositoryOwner(login: $user) {
+      ... on ProfileOwner {
+        pinnedItems(first: 6) {
+          nodes {
+            ... on Repository {
+              nameWithOwner
+              isPrivate
+              description
+              primaryLanguage {
+                name
+                color
+              }
+              stargazers {
+                totalCount
+              }
+              forkCount
             }
-            stargazers {
-              totalCount
-            }
-            forkCount
           }
         }
       }
@@ -30,7 +32,6 @@ const PinnedReposQuery = graphql`
 const StyledUserRepos = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(3, 1fr);
   grid-gap: 8px;
 `;
 
@@ -100,45 +101,52 @@ const Stars = styled.div``;
 
 const Forks = styled.div``;
 
-export default function UserRepos({}) {
-  const query = useLazyLoadQuery<UserRepos_pinnedReposQuery>(
-    PinnedReposQuery,
-    {}
-  );
+export interface UserReposProps {
+  user: string;
+}
+
+export default function UserRepos({ user }: UserReposProps) {
+  const query = useLazyLoadQuery<UserRepos_pinnedReposQuery>(PinnedReposQuery, {
+    user,
+  });
 
   return (
     <StyledUserRepos>
-      {query.viewer.pinnedItems.nodes?.map((repo) => (
-        <StyledRepoButton
-          key={repo!.nameWithOwner}
-          type="github"
-          slug={repo!.nameWithOwner!}
-        >
-          <Content>
-            <Name>
-              <Slug>{repo!.nameWithOwner!}</Slug>
-              <Badge>Public</Badge>
-            </Name>
-            {repo!.description && (
-              <Description>{repo!.description}</Description>
-            )}
-            <Info>
-              {repo!.primaryLanguage && (
-                <Language>
-                  <LanguageColor></LanguageColor>
-                  {repo!.primaryLanguage.name}
-                </Language>
-              )}
+      {query.repositoryOwner
+        ? query.repositoryOwner.pinnedItems?.nodes?.map((repo) => (
+            <StyledRepoButton
+              key={repo!.nameWithOwner}
+              type="github"
+              slug={repo!.nameWithOwner!}
+            >
+              <Content>
+                <Name>
+                  <Slug>{repo!.nameWithOwner!}</Slug>
+                  <Badge>Public</Badge>
+                </Name>
+                {repo!.description && (
+                  <Description>{repo!.description}</Description>
+                )}
+                <Info>
+                  {repo!.primaryLanguage && (
+                    <Language>
+                      <LanguageColor></LanguageColor>
+                      {repo!.primaryLanguage.name}
+                    </Language>
+                  )}
 
-              {repo!.stargazers && <Stars>{repo!.stargazers.totalCount}</Stars>}
+                  {repo!.stargazers && (
+                    <Stars>{repo!.stargazers.totalCount}</Stars>
+                  )}
 
-              {repo!.forkCount !== undefined && (
-                <Forks>{repo!.forkCount}</Forks>
-              )}
-            </Info>
-          </Content>
-        </StyledRepoButton>
-      ))}
+                  {repo!.forkCount !== undefined && (
+                    <Forks>{repo!.forkCount}</Forks>
+                  )}
+                </Info>
+              </Content>
+            </StyledRepoButton>
+          ))
+        : 'User not found'}
     </StyledUserRepos>
   );
 }

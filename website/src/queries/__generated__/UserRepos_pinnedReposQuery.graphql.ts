@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<91e258f322dc1f1353744c3f1a268fba>>
+ * @generated SignedSource<<8af4c48ed11ec5b3059afa90e41550af>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,10 +9,12 @@
 // @ts-nocheck
 
 import { ConcreteRequest, Query } from 'relay-runtime';
-export type UserRepos_pinnedReposQuery$variables = {};
+export type UserRepos_pinnedReposQuery$variables = {
+  user: string;
+};
 export type UserRepos_pinnedReposQuery$data = {
-  readonly viewer: {
-    readonly pinnedItems: {
+  readonly repositoryOwner: {
+    readonly pinnedItems?: {
       readonly nodes: ReadonlyArray<{
         readonly description?: string | null;
         readonly forkCount?: number;
@@ -27,7 +29,7 @@ export type UserRepos_pinnedReposQuery$data = {
         };
       } | null> | null;
     };
-  };
+  } | null;
 };
 export type UserRepos_pinnedReposQuery = {
   response: UserRepos_pinnedReposQuery$data;
@@ -37,52 +39,61 @@ export type UserRepos_pinnedReposQuery = {
 const node: ConcreteRequest = (function(){
 var v0 = [
   {
+    "defaultValue": null,
+    "kind": "LocalArgument",
+    "name": "user"
+  }
+],
+v1 = [
+  {
+    "kind": "Variable",
+    "name": "login",
+    "variableName": "user"
+  }
+],
+v2 = [
+  {
     "kind": "Literal",
     "name": "first",
     "value": 6
-  },
-  {
-    "kind": "Literal",
-    "name": "types",
-    "value": "REPOSITORY"
   }
 ],
-v1 = {
+v3 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "nameWithOwner",
   "storageKey": null
 },
-v2 = {
+v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "isPrivate",
   "storageKey": null
 },
-v3 = {
+v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "description",
   "storageKey": null
 },
-v4 = {
+v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "name",
   "storageKey": null
 },
-v5 = {
+v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "color",
   "storageKey": null
 },
-v6 = {
+v8 = {
   "alias": null,
   "args": null,
   "concreteType": "StargazerConnection",
@@ -100,14 +111,21 @@ v6 = {
   ],
   "storageKey": null
 },
-v7 = {
+v9 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "forkCount",
   "storageKey": null
 },
-v8 = {
+v10 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "__typename",
+  "storageKey": null
+},
+v11 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
@@ -116,65 +134,72 @@ v8 = {
 };
 return {
   "fragment": {
-    "argumentDefinitions": [],
+    "argumentDefinitions": (v0/*: any*/),
     "kind": "Fragment",
     "metadata": null,
     "name": "UserRepos_pinnedReposQuery",
     "selections": [
       {
         "alias": null,
-        "args": null,
-        "concreteType": "User",
+        "args": (v1/*: any*/),
+        "concreteType": null,
         "kind": "LinkedField",
-        "name": "viewer",
+        "name": "repositoryOwner",
         "plural": false,
         "selections": [
           {
-            "alias": null,
-            "args": (v0/*: any*/),
-            "concreteType": "PinnableItemConnection",
-            "kind": "LinkedField",
-            "name": "pinnedItems",
-            "plural": false,
+            "kind": "InlineFragment",
             "selections": [
               {
                 "alias": null,
-                "args": null,
-                "concreteType": null,
+                "args": (v2/*: any*/),
+                "concreteType": "PinnableItemConnection",
                 "kind": "LinkedField",
-                "name": "nodes",
-                "plural": true,
+                "name": "pinnedItems",
+                "plural": false,
                 "selections": [
                   {
-                    "kind": "InlineFragment",
+                    "alias": null,
+                    "args": null,
+                    "concreteType": null,
+                    "kind": "LinkedField",
+                    "name": "nodes",
+                    "plural": true,
                     "selections": [
-                      (v1/*: any*/),
-                      (v2/*: any*/),
-                      (v3/*: any*/),
                       {
-                        "alias": null,
-                        "args": null,
-                        "concreteType": "Language",
-                        "kind": "LinkedField",
-                        "name": "primaryLanguage",
-                        "plural": false,
+                        "kind": "InlineFragment",
                         "selections": [
+                          (v3/*: any*/),
                           (v4/*: any*/),
-                          (v5/*: any*/)
+                          (v5/*: any*/),
+                          {
+                            "alias": null,
+                            "args": null,
+                            "concreteType": "Language",
+                            "kind": "LinkedField",
+                            "name": "primaryLanguage",
+                            "plural": false,
+                            "selections": [
+                              (v6/*: any*/),
+                              (v7/*: any*/)
+                            ],
+                            "storageKey": null
+                          },
+                          (v8/*: any*/),
+                          (v9/*: any*/)
                         ],
-                        "storageKey": null
-                      },
-                      (v6/*: any*/),
-                      (v7/*: any*/)
+                        "type": "Repository",
+                        "abstractKey": null
+                      }
                     ],
-                    "type": "Repository",
-                    "abstractKey": null
+                    "storageKey": null
                   }
                 ],
-                "storageKey": null
+                "storageKey": "pinnedItems(first:6)"
               }
             ],
-            "storageKey": "pinnedItems(first:6,types:\"REPOSITORY\")"
+            "type": "ProfileOwner",
+            "abstractKey": "__isProfileOwner"
           }
         ],
         "storageKey": null
@@ -185,98 +210,100 @@ return {
   },
   "kind": "Request",
   "operation": {
-    "argumentDefinitions": [],
+    "argumentDefinitions": (v0/*: any*/),
     "kind": "Operation",
     "name": "UserRepos_pinnedReposQuery",
     "selections": [
       {
         "alias": null,
-        "args": null,
-        "concreteType": "User",
+        "args": (v1/*: any*/),
+        "concreteType": null,
         "kind": "LinkedField",
-        "name": "viewer",
+        "name": "repositoryOwner",
         "plural": false,
         "selections": [
+          (v10/*: any*/),
           {
-            "alias": null,
-            "args": (v0/*: any*/),
-            "concreteType": "PinnableItemConnection",
-            "kind": "LinkedField",
-            "name": "pinnedItems",
-            "plural": false,
+            "kind": "InlineFragment",
             "selections": [
               {
                 "alias": null,
-                "args": null,
-                "concreteType": null,
+                "args": (v2/*: any*/),
+                "concreteType": "PinnableItemConnection",
                 "kind": "LinkedField",
-                "name": "nodes",
-                "plural": true,
+                "name": "pinnedItems",
+                "plural": false,
                 "selections": [
                   {
                     "alias": null,
                     "args": null,
-                    "kind": "ScalarField",
-                    "name": "__typename",
-                    "storageKey": null
-                  },
-                  {
-                    "kind": "InlineFragment",
+                    "concreteType": null,
+                    "kind": "LinkedField",
+                    "name": "nodes",
+                    "plural": true,
                     "selections": [
-                      (v1/*: any*/),
-                      (v2/*: any*/),
-                      (v3/*: any*/),
+                      (v10/*: any*/),
                       {
-                        "alias": null,
-                        "args": null,
-                        "concreteType": "Language",
-                        "kind": "LinkedField",
-                        "name": "primaryLanguage",
-                        "plural": false,
+                        "kind": "InlineFragment",
                         "selections": [
+                          (v3/*: any*/),
                           (v4/*: any*/),
                           (v5/*: any*/),
-                          (v8/*: any*/)
+                          {
+                            "alias": null,
+                            "args": null,
+                            "concreteType": "Language",
+                            "kind": "LinkedField",
+                            "name": "primaryLanguage",
+                            "plural": false,
+                            "selections": [
+                              (v6/*: any*/),
+                              (v7/*: any*/),
+                              (v11/*: any*/)
+                            ],
+                            "storageKey": null
+                          },
+                          (v8/*: any*/),
+                          (v9/*: any*/)
                         ],
-                        "storageKey": null
+                        "type": "Repository",
+                        "abstractKey": null
                       },
-                      (v6/*: any*/),
-                      (v7/*: any*/)
+                      {
+                        "kind": "InlineFragment",
+                        "selections": [
+                          (v11/*: any*/)
+                        ],
+                        "type": "Node",
+                        "abstractKey": "__isNode"
+                      }
                     ],
-                    "type": "Repository",
-                    "abstractKey": null
-                  },
-                  {
-                    "kind": "InlineFragment",
-                    "selections": [
-                      (v8/*: any*/)
-                    ],
-                    "type": "Node",
-                    "abstractKey": "__isNode"
+                    "storageKey": null
                   }
                 ],
-                "storageKey": null
+                "storageKey": "pinnedItems(first:6)"
               }
             ],
-            "storageKey": "pinnedItems(first:6,types:\"REPOSITORY\")"
+            "type": "ProfileOwner",
+            "abstractKey": "__isProfileOwner"
           },
-          (v8/*: any*/)
+          (v11/*: any*/)
         ],
         "storageKey": null
       }
     ]
   },
   "params": {
-    "cacheID": "b7cbc42c0cf2519623503143cd1eb2f6",
+    "cacheID": "609ea4a6a55f026ea1a487b1e22c6542",
     "id": null,
     "metadata": {},
     "name": "UserRepos_pinnedReposQuery",
     "operationKind": "query",
-    "text": "query UserRepos_pinnedReposQuery {\n  viewer {\n    pinnedItems(first: 6, types: REPOSITORY) {\n      nodes {\n        __typename\n        ... on Repository {\n          nameWithOwner\n          isPrivate\n          description\n          primaryLanguage {\n            name\n            color\n            id\n          }\n          stargazers {\n            totalCount\n          }\n          forkCount\n        }\n        ... on Node {\n          __isNode: __typename\n          id\n        }\n      }\n    }\n    id\n  }\n}\n"
+    "text": "query UserRepos_pinnedReposQuery(\n  $user: String!\n) {\n  repositoryOwner(login: $user) {\n    __typename\n    ... on ProfileOwner {\n      __isProfileOwner: __typename\n      pinnedItems(first: 6) {\n        nodes {\n          __typename\n          ... on Repository {\n            nameWithOwner\n            isPrivate\n            description\n            primaryLanguage {\n              name\n              color\n              id\n            }\n            stargazers {\n              totalCount\n            }\n            forkCount\n          }\n          ... on Node {\n            __isNode: __typename\n            id\n          }\n        }\n      }\n    }\n    id\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "7fe50c6469206c5b061aa8a08467dd8b";
+(node as any).hash = "5f41c80c1dbc8fa92d8b7960eccc4a18";
 
 export default node;

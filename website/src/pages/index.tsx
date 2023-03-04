@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { Suspense, startTransition, useState } from 'react';
 import _ from 'lodash';
 import styled from '@emotion/styled';
+import { demoNpmPackages } from '../demoIcons';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,
@@ -79,7 +80,13 @@ export default function Home({}: HomeProps) {
       </Header>
 
       <Main>
-        <Search query={query} onQuery={setQuery} />
+        <Search
+          query={query}
+          onQuery={setQuery}
+          placeholder={`Search for NPM packages and GitHub repos (i.e. ${demoNpmPackages
+            .slice(0, 3)
+            .join(', ')}...)`}
+        />
 
         <Suspense fallback="loading">
           <IconsQuery query={query} />

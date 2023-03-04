@@ -20,15 +20,14 @@ const StyledSearch = styled.input`
 export interface SearchProps {
   onQuery(query: string): void;
   query: string;
+  placeholder?: string;
 }
 
-export default function Search({ onQuery, query }: SearchProps) {
+export default function Search({ onQuery, query, placeholder }: SearchProps) {
   return (
     <StyledSearch
       autoFocus
-      placeholder={`Search for NPM packages and GitHub repos (i.e. ${demoNpmPackages
-        .slice(0, 3)
-        .join(', ')}...)`}
+      placeholder={placeholder}
       value={query}
       onChange={(e) => {
         onQuery(e.target.value);

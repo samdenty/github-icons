@@ -4,11 +4,11 @@ import { Repo } from '../../components/Repo/Repo';
 
 export default function RepoPage() {
   const router = useRouter();
-  const { owner, repo } = router.query;
+  const { user, repo } = router.query;
 
   if (!repo) {
     return null;
   }
 
-  return <Repo slug={`${owner}/${repo}`} />;
+  return <Repo slug={`${user}/${repo}`} />;
 }

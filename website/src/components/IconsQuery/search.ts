@@ -22,13 +22,20 @@ interface SourceGraphResult {
   repoStars: number;
 }
 
-export async function search(query: string, limit = 60): Promise<IconQuery[]> {
+interface GithubResults {
+  items: { full_name: string }[];
+}
+
+export async function search(
+  query: string,
+  { limit = 60, strict }: { limit?: number; strict?: boolean }
+): Promise<IconQuery[]> {
   if (query.startsWith('@')) {
     return searchNPM(query, limit);
   }
 
   if (query.includes('/')) {
-    return searchGithub(query, limit);
+    return searchGithub(query, limit, strict);
   }
 
   const npmResults = await searchNPM(query, limit / 2);
@@ -91,45 +98,72 @@ async function searchNPM(query: string, limit: number): Promise<IconQuery[]> {
 
 async function searchGithub(
   query: string,
-  limit: number
+  limit: number,
+  strict = false
 ): Promise<IconQuery[]> {
-  const sourcegraphQuery = [
-    'repo:github.com',
-    `repo:${query}`,
-    'fork:yes',
-    'archived:yes',
-    'select:repo',
-    'timeout:2s',
-  ].join(' ');
+  const [, user, usersRepoQuery] = /^([^\/]+)\/(.*)/.exec(query) || [];
 
-  const results = await new Promise<SourceGraphResult[]>((resolve) =>
-    fetchEventSource(
-      `https://sourcegraph.com/.api/search/stream?display=${Math.round(
-        limit
-      )}&q=${encodeURIComponent(sourcegraphQuery)}`,
-      {
-        onmessage({ data, event }) {
-          if (event === 'matches') {
-            resolve(JSON.parse(data));
-          } else if (event === 'done') {
-            resolve([]);
-          }
-        },
-      }
-    )
-  );
+  async function searchGithubAPI() {
+    const results: GithubResults = await fetch(
+      `https://api.github.com/search/repositories?q=${encodeURIComponent(
+        query + (strict && user ? ` user:${user}` : '')
+      )}&per_page=${Math.round(limit)}`
+    ).then((res) => res.json());
 
-  return results
-    .map(({ repository }) => {
-      const [, slug] = /^github\.com\/([^\/]+\/[^\/]+)$/.exec(repository) ?? [];
+    return results.items.map((item) => item.full_name);
+  }
 
-      if (!slug) {
-        return undefined!;
-      }
+  async function searchSourcegraph() {
+    const sourcegraphQuery = [
+      'repo:github.com',
+      `repo:${
+        strict && user ? `github.com/${user}/.*${usersRepoQuery}` : query
+      }`,
+      'fork:yes',
+      'archived:yes',
+      'select:repo',
+      'timeout:2s',
+    ].join(' ');
 
-      return { type: 'github' as const, slug };
-    })
-    .filter(Boolean);
+    const results = await new Promise<SourceGraphResult[]>((resolve) =>
+      fetchEventSource(
+        `https://sourcegraph.com/.api/search/stream?display=${Math.round(
+          limit
+        )}&q=${encodeURIComponent(sourcegraphQuery)}`,
+        {
+          onmessage({ data, event }) {
+            if (event === 'matches') {
+              resolve(JSON.parse(data));
+            } else if (event === 'done') {
+              resolve([]);
+            }
+          },
+        }
+      )
+    );
+
+    return results
+      .map(({ repository }) => {
+        const [, slug] =
+          /^github\.com\/([^\/]+\/[^\/]+)$/.exec(repository) ?? [];
+        return slug;
+      })
+      .filter(Boolean);
+  }
+
+  const [github, sourcegraph] = await Promise.all([
+    searchGithubAPI().catch(() => []),
+    searchSourcegraph().catch(() => []),
+  ]);
+
+  return [
+    ...new Set(
+      [...new Array(limit)]
+        .map((_, i) => [sourcegraph[i], github[i]])
+        .flat()
+        .filter(Boolean)
+    ),
+  ].map((slug) => ({ type: 'github' as const, slug }));
 }
 
 function racePromises<T>(promises: Promise<T>[]) {

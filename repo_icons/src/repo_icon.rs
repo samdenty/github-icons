@@ -40,14 +40,18 @@ pub enum Framework {
 impl From<&RepoFile> for Option<Framework> {
   fn from(file: &RepoFile) -> Self {
     Some(match &file.sha[..] {
-      "df36fcfb72584e00488330b560ebcf34a41c64c2" | "c7b9a43c8cd16d0b434adaf513fcacb340809a11" => {
-        Framework::Vue
-      }
+      "df36fcfb72584e00488330b560ebcf34a41c64c2"
+      | "c7b9a43c8cd16d0b434adaf513fcacb340809a11"
+      | "f3d2503fc2a44b5053b0837ebea6e87a2d339a43" => Framework::Vue,
+
       "718d6fea4835ec2d246af9800eddb7ffb276240c" => Framework::Next,
+
       "bcd5dfd67cd0361b78123e95c2dd96031f27f743" | "a11777cc471a4344702741ab1c8a588998b1311a" => {
         Framework::CreateReactApp
       }
+
       "a5b1aa16c4dcb6c872cb5af799bfc9b5552c7b9e" => Framework::MdBook,
+
       _ => return None,
     })
   }

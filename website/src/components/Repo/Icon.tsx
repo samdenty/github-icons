@@ -44,8 +44,8 @@ const SetAsIcon = styled.div`
   color: #ffffffdb;
   padding: 4px;
   font-weight: 500;
-  font-size: 13px;
-  line-height: 15px;
+  font-size: 8px;
+  line-height: 13px;
   white-space: nowrap;
 `;
 
@@ -66,10 +66,12 @@ const StyledIcon = styled.button<{ selected: boolean }>`
 
   &:hover,
   &:focus-visible {
-    background: #4dff6e1a;
+    background: #113818ed;
     border-color: #37c852;
-    padding: ${(props) => (props.selected ? '' : '5px 17px 40px')};
+    padding: ${(props) => (props.selected ? '' : '5px 17px 22px')};
     color: ${(props) => (props.selected ? '#2cff54e6' : '#c8ffd3e6')};
+    transform: scale(1.8);
+    z-index: 1000;
 
     ${SetAsIcon} {
       display: ${(props) => (props.selected ? 'none' : 'block')};
@@ -169,11 +171,7 @@ export function Icon({
         {type === 'svg' ? 'SVG' : type === 'ico' ? sizes[0] : size}
       </Resolution>
 
-      <SetAsIcon>
-        Set as icon
-        <br />
-        in PR
-      </SetAsIcon>
+      <SetAsIcon>Set as icon in PR</SetAsIcon>
     </StyledIcon>
   );
 }

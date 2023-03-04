@@ -10,10 +10,6 @@ export interface IconQuery {
   slug: string;
 }
 
-export interface IconsQueryProps {
-  query: string;
-}
-
 const StyledIconsQuery = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
@@ -21,15 +17,20 @@ const StyledIconsQuery = styled.div`
   width: 100%;
 `;
 
-export default function IconsQuery({ query }: IconsQueryProps) {
+export interface IconsQueryProps {
+  query: string;
+  strict?: boolean;
+}
+
+export default function IconsQuery({ query, strict = false }: IconsQueryProps) {
   const { data } = useQuery(
-    ['search', query],
+    ['search', query, strict],
     async (): Promise<IconQuery[]> => {
       if (!query) {
         return demoIcons;
       }
 
-      return search(query);
+      return search(query, { strict });
     },
     {
       initialData: !query ? demoIcons : undefined,

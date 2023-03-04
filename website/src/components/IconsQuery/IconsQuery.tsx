@@ -31,20 +31,19 @@ export default function IconsQuery({ query, strict = false }: IconsQueryProps) {
     ['search', query, strict, !!session.data?.accessToken],
     async (): Promise<IconQuery[]> => {
       if (!query) {
-        return demoIcons;
+        return undefined!;
       }
 
       return search(query, { strict, githubToken: session.data?.accessToken });
     },
     {
-      initialData: !query ? demoIcons : undefined,
-      staleTime: !query ? Infinity : /* 1 hour */ 1000 * 60 * 60,
+      staleTime: /* 1 hour */ 1000 * 60 * 60,
     }
   );
 
   return (
     <StyledIconsQuery>
-      {data!.map((iconQuery) => (
+      {(!query ? demoIcons : data!).map((iconQuery) => (
         <Icon key={JSON.stringify(iconQuery)} {...iconQuery} />
       ))}
     </StyledIconsQuery>

@@ -24,7 +24,7 @@ export function useQuery() {
       delete router.query.query;
     }
 
-    router.push(router);
+    router.replace(router);
   }, [query]);
 
   return [query, setQuery] as const;

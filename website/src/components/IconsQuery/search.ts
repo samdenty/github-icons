@@ -26,41 +26,32 @@ interface GithubResults {
   items: { full_name: string }[];
 }
 
+export interface SearchOptions extends GithubSearchOptions {
+  limit?: number;
+}
+
 export async function search(
   query: string,
-  { limit = 60, strict }: { limit?: number; strict?: boolean }
+  { limit = 60, strict, githubToken }: SearchOptions
 ): Promise<IconQuery[]> {
   if (query.startsWith('@')) {
     return searchNPM(query, limit);
   }
 
   if (query.includes('/')) {
-    return searchGithub(query, limit, strict);
+    return searchGithub(query, limit, { strict, githubToken });
   }
 
   const npmResults = await searchNPM(query, limit / 2);
-  const githubResults = await searchGithub(query, limit / 2);
+  const githubResults = await searchGithub(query, limit / 2, {
+    strict,
+    githubToken,
+  });
 
-  const length =
-    npmResults.length > githubResults.length
-      ? npmResults.length
-      : githubResults.length;
-
-  const results = [];
-
-  for (let i = 0; i < length; i++) {
-    const githubResult = githubResults[i];
-    if (githubResult) {
-      results.push(githubResult);
-    }
-
-    const npmResult = npmResults[i];
-    if (npmResult) {
-      results.push(npmResult);
-    }
-  }
-
-  return results;
+  return [...new Array(Math.max(npmResults.length, githubResults.length))]
+    .map((_, i) => [githubResults[i], npmResults[i]])
+    .flat()
+    .filter(Boolean);
 }
 
 async function searchNPM(query: string, limit: number): Promise<IconQuery[]> {
@@ -96,10 +87,15 @@ async function searchNPM(query: string, limit: number): Promise<IconQuery[]> {
   }
 }
 
+interface GithubSearchOptions {
+  strict?: boolean;
+  githubToken?: string;
+}
+
 async function searchGithub(
   query: string,
   limit: number,
-  strict = false
+  { strict = false, githubToken }: GithubSearchOptions
 ): Promise<IconQuery[]> {
   const [, user, usersRepoQuery] = /^([^\/]+)\/(.*)/.exec(query) || [];
 
@@ -107,7 +103,12 @@ async function searchGithub(
     const results: GithubResults = await fetch(
       `https://api.github.com/search/repositories?q=${encodeURIComponent(
         query + (strict && user ? ` user:${user}` : '')
-      )}&per_page=${Math.round(limit)}`
+      )}&per_page=${Math.round(limit)}`,
+      {
+        headers: {
+          ...(githubToken ? { Authorization: `bearer ${githubToken}` } : {}),
+        },
+      }
     ).then((res) => res.json());
 
     return results.items.map((item) => item.full_name);

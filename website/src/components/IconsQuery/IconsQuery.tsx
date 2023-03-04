@@ -4,6 +4,7 @@ import styled from '@emotion/styled';
 import { Icon } from './Icon';
 import { demoIcons } from '../../demoIcons';
 import { search } from './search';
+import { useSession } from 'next-auth/react';
 
 export interface IconQuery {
   type: IconType;
@@ -15,6 +16,7 @@ const StyledIconsQuery = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   grid-gap: 18px;
   width: 100%;
+  place-items: center;
 `;
 
 export interface IconsQueryProps {
@@ -23,17 +25,20 @@ export interface IconsQueryProps {
 }
 
 export default function IconsQuery({ query, strict = false }: IconsQueryProps) {
+  const session = useSession();
+
   const { data } = useQuery(
-    ['search', query, strict],
+    ['search', query, strict, !!session.data?.accessToken],
     async (): Promise<IconQuery[]> => {
       if (!query) {
         return demoIcons;
       }
 
-      return search(query, { strict });
+      return search(query, { strict, githubToken: session.data?.accessToken });
     },
     {
       initialData: !query ? demoIcons : undefined,
+      staleTime: Infinity,
     }
   );
 

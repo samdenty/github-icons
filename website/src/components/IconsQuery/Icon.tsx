@@ -11,6 +11,7 @@ import { IconType } from '../../lib/useUrl';
 const StyledIconButton = styled(IconButton)`
   flex-direction: column;
   text-align: center;
+  max-width: fit-content;
   --size: 80px;
 
   ${IconButtonIcon} {

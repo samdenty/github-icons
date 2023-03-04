@@ -51,11 +51,12 @@ const Slug = styled(Textfit)`
   max-height: 60px;
 
   ${StyledIconButton}:hover & {
-    transform: translateY(35px);
+    transform: translateY(30px);
     z-index: 10000;
     font-size: 13px;
     background: rgba(0, 0, 0, 0.6);
     box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.8);
+    justify-content: center;
   }
 `;
 

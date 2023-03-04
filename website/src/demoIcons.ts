@@ -46,6 +46,8 @@ export const demoRepos = _.shuffle([
   'jquery/jquery',
   'gatsbyjs/gatsby',
   'airbnb/javascript',
+  'denoland/deno',
+  'testing-library/react-testing-library',
   'golang/go',
   'grafana/grafana',
   'Homebrew/brew',

@@ -2,6 +2,7 @@ import { useRouter } from 'next/router';
 import UserRepos from '../../components/UserRepos';
 import { Suspense, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useQuery } from '../../lib/useQuery';
 
 const Search = dynamic(() => import('../../components/Search'), {
   ssr: false,
@@ -17,7 +18,7 @@ const IconsQuery = dynamic(
 export default function UserPage() {
   const router = useRouter();
   const { user } = router.query;
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useQuery();
 
   if (typeof user !== 'string') {
     return null;

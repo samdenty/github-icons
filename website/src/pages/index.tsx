@@ -4,10 +4,11 @@ import { useRouter } from 'next/router';
 import Modal from 'react-modal';
 import { useContextualRouting } from 'next-use-contextual-routing';
 import dynamic from 'next/dynamic';
-import { Suspense, startTransition, useState } from 'react';
+import { Suspense } from 'react';
 import _ from 'lodash';
 import styled from '@emotion/styled';
 import { demoNpmPackages } from '../demoIcons';
+import { useQuery } from '../lib/useQuery';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,
@@ -44,7 +45,7 @@ export default function Home({}: HomeProps) {
   const router = useRouter();
   const { returnHref } = useContextualRouting();
 
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useQuery();
 
   return (
     <>

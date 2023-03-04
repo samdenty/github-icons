@@ -16,7 +16,7 @@ const StyledIconsQuery = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   grid-gap: 18px;
   width: 100%;
-  place-items: center;
+  justify-items: center;
 `;
 
 export interface IconsQueryProps {

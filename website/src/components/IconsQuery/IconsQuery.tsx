@@ -30,15 +30,11 @@ export default function IconsQuery({ query, strict = false }: IconsQueryProps) {
   const { data } = useQuery(
     ['search', query, strict, !!session.data?.accessToken],
     async (): Promise<IconQuery[]> => {
-      if (!query) {
-        return demoIcons;
-      }
-
       return search(query, { strict, githubToken: session.data?.accessToken });
     },
     {
       initialData: !query ? demoIcons : undefined,
-      staleTime: !query ? 0 : /* 1 hour */ 1000 * 60 * 60,
+      staleTime: !query ? Infinity : /* 1 hour */ 1000 * 60 * 60,
     }
   );
 

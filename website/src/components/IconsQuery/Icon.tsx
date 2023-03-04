@@ -48,6 +48,14 @@ const Slug = styled(Textfit)`
   width: 100%;
   min-height: 20px;
   max-height: 60px;
+
+  ${StyledIconButton}:hover & {
+    transform: translateY(35px);
+    z-index: 10000;
+    font-size: 13px;
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.8);
+  }
 `;
 
 const Name = styled.div`

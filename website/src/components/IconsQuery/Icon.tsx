@@ -26,7 +26,7 @@ const StyledIconButton = styled(IconButton)`
     z-index: 10000;
     background: rgba(0, 0, 0, 0.8);
     border-radius: 20px;
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 8px 2px black;
   }
 `;
 

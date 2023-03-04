@@ -72,6 +72,7 @@ const StyledIcon = styled.button<{ selected: boolean }>`
     color: ${(props) => (props.selected ? '#2cff54e6' : '#c8ffd3e6')};
     transform: scale(1.8);
     z-index: 1000;
+    box-shadow: 0 0 8px 1px black;
 
     ${SetAsIcon} {
       display: ${(props) => (props.selected ? 'none' : 'block')};

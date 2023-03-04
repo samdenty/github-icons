@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import Head from 'next/head';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useUrl } from '../../lib/useUrl';
 import { Icon } from './Icon';
 import _ from 'lodash';

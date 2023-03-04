@@ -14,7 +14,6 @@ export const demoNpmPackages = _.shuffle([
   'jquery',
   'eslint',
   'dotenv',
-  'typescript',
   '@angular/core',
   'redux',
   'gulp',
@@ -27,6 +26,7 @@ export const demoNpmPackages = _.shuffle([
   'emotion',
   'styled-components',
   'node-fetch',
+  '@webcontainer/api',
 ]);
 
 export const demoRepos = _.shuffle([

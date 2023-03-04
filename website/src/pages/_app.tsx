@@ -7,7 +7,9 @@ import { Session } from 'next-auth';
 import { RelayEnvironmentProvider } from 'react-relay/hooks';
 import { getInitialPreloadedQuery, getRelayProps } from 'relay-nextjs/app';
 import { getClientEnvironment } from '../lib/clientEnvironment';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 
 const clientEnv = getClientEnvironment();
 const initialPreloadedQuery = getInitialPreloadedQuery({
@@ -22,6 +24,17 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+if (typeof window !== 'undefined') {
+  const localStoragePersister = createSyncStoragePersister({
+    storage: window.localStorage,
+  });
+
+  persistQueryClient({
+    queryClient,
+    persister: localStoragePersister,
+  });
+}
 
 export default function App({
   Component,

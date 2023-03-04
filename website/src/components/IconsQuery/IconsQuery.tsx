@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { IconType } from '../../lib/useUrl';
 import styled from '@emotion/styled';
 import { Icon } from './Icon';
@@ -38,7 +38,7 @@ export default function IconsQuery({ query, strict = false }: IconsQueryProps) {
     },
     {
       initialData: !query ? demoIcons : undefined,
-      staleTime: Infinity,
+      staleTime: !query ? 0 : /* 1 hour */ 1000 * 60 * 60,
     }
   );
 

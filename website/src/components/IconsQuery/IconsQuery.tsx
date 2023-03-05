@@ -26,7 +26,7 @@ export interface IconsQueryProps {
 }
 
 export default function IconsQuery({ query, strict = false }: IconsQueryProps) {
-  [query] = useDebounce(query, 450);
+  [query] = useDebounce(query, 300);
   const session = useSession();
 
   const { data } = useQuery(

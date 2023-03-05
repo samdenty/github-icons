@@ -115,7 +115,7 @@ export const IconButton = React.forwardRef(
               loading="lazy"
               as={state === IconState.NO_ICON ? BsQuestionOctagonFill : 'img'}
               showBadge={showBadge}
-              src={iconUrl}
+              src={iconUrl.href}
               style={{ imageRendering: pixelated ? 'pixelated' : undefined }}
               ref={
                 state === IconState.NO_ICON

@@ -1,9 +1,11 @@
 import styled from '@emotion/styled';
 import Head from 'next/head';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { IconType, useUrl } from '../../lib/useUrl';
 import { Icon } from './Icon';
 import _ from 'lodash';
+import { TfiReload } from 'react-icons/tfi';
+import React from 'react';
 
 interface IconsResponse {
   icons: Icon[] | null;
@@ -84,12 +86,36 @@ export function AllIcons({ type, slug }: RepoProps) {
     default: ReactJson,
   }: typeof import('react-json-view') = require('react-json-view');
 
-  const url = useUrl(type, slug, true);
-  const { data } = useQuery<IconsResponse>(
+  const allUrl = useUrl(type, slug, true);
+
+  const refetchRef = React.useRef(false);
+  const [isRefetching, setIsRefetching] = React.useState(false);
+
+  const { data, refetch: _refetch } = useQuery<IconsResponse>(
     [slug, 'all'],
-    () => fetch(url, { cache: 'reload' }).then((res) => res.json()),
-    { cacheTime: 0 }
+    () => {
+      const url = new URL(allUrl);
+
+      if (refetchRef.current) {
+        refetchRef.current = false;
+        url.searchParams.set('refetch', '1');
+      }
+
+      return fetch(url, { cache: 'reload' }).then((res) => res.json());
+    },
+    {
+      cacheTime: 0,
+      refetchOnWindowFocus: false,
+    }
   );
+
+  function refetch() {
+    setIsRefetching(true);
+    refetchRef.current = true;
+    _refetch().finally(() => {
+      setIsRefetching(false);
+    });
+  }
 
   const iconByKinds = _.groupBy(data!.icons, 'kind');
 
@@ -101,7 +127,11 @@ export function AllIcons({ type, slug }: RepoProps) {
         </title>
       </Head>
 
-      <div>
+      <button onClick={refetch}>
+        Refetch icons <TfiReload />
+      </button>
+
+      <div style={{ opacity: isRefetching ? 0.5 : 1 }}>
         {data && (
           <>
             <h2>Auto-Detected repo icons</h2>

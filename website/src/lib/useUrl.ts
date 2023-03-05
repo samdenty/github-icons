@@ -24,5 +24,5 @@ export function useUrl(type: IconType, slug: string, all = false) {
     includeToken && data?.accessToken ? `?token=${data.accessToken}` : ''
   }`;
 
-  return url;
+  return new URL(url);
 }

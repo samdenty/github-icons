@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 
 export function useQuery() {
   const router = useRouter();

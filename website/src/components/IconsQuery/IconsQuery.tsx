@@ -5,6 +5,7 @@ import { Icon } from './Icon';
 import { demoIcons } from '../../demoIcons';
 import { search } from './search';
 import { useSession } from 'next-auth/react';
+import { useDebounce } from 'use-debounce';
 
 export interface IconQuery {
   type: IconType;
@@ -25,6 +26,7 @@ export interface IconsQueryProps {
 }
 
 export default function IconsQuery({ query, strict = false }: IconsQueryProps) {
+  [query] = useDebounce(query, 450);
   const session = useSession();
 
   const { data } = useQuery(

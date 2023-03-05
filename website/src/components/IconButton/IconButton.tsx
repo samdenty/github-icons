@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-import { useContextualRouting } from 'next-use-contextual-routing';
 import Link from 'next/link';
 import { IconType, useUrl } from '../../lib/useUrl';
 import React, { useState } from 'react';
@@ -97,7 +96,6 @@ enum IconState {
 
 export const IconButton = React.forwardRef(
   ({ slug, showBadge, type, children, ...props }: IconButtonProps, ref) => {
-    const { makeContextualHref } = useContextualRouting();
     const iconUrl = useUrl(type, slug);
     const [state, setState] = useState<IconState>(IconState.LOADING);
     const [pixelated, setPixelated] = useState(false);
@@ -109,8 +107,7 @@ export const IconButton = React.forwardRef(
         <RepoLink
           ref={ref}
           {...(props as any)}
-          href={makeContextualHref({ owner, repo })}
-          as={`/${type !== 'github' ? `${type}/` : ''}${slug}`}
+          href={`/${type !== 'github' ? `${type}/` : ''}${slug}`}
         >
           <IconButtonIcon loading={state === IconState.LOADING}>
             <Image

@@ -48,7 +48,11 @@ const NODEJS_BUILTINS: [&str; 41] = [
   "zlib",
 ];
 
-pub async fn get_redirect_url(mut url: Url, package_name: &str) -> Result<Url, Box<dyn Error>> {
+pub async fn get_redirect_url(
+  mut url: Url,
+  package_name: &str,
+  all: bool,
+) -> Result<Url, Box<dyn Error>> {
   if package_name.starts_with("node:") || NODEJS_BUILTINS.contains(&package_name) {
     return Ok(
       "https://nodejs.org/static/images/logos/js-green.svg"
@@ -65,7 +69,7 @@ pub async fn get_redirect_url(mut url: Url, package_name: &str) -> Result<Url, B
     slug = format!("@{}", slug);
   }
 
-  url.set_path(&format!("/{}", slug));
+  url.set_path(&format!("/{}{}", slug, if all { "/all" } else { "" }));
 
   Ok(url)
 }

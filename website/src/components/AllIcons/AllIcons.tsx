@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import Head from 'next/head';
 import { useQuery } from '@tanstack/react-query';
-import { useUrl } from '../../lib/useUrl';
+import { IconType, useUrl } from '../../lib/useUrl';
 import { Icon } from './Icon';
 import _ from 'lodash';
 
@@ -28,6 +28,7 @@ function prettyKind(kind: Icon['kind'], kindIndex: number) {
 }
 
 export interface RepoProps {
+  type: IconType;
   slug: string;
 }
 
@@ -72,7 +73,7 @@ const Icons = styled.div`
   grid-gap: 8px;
 `;
 
-export function Repo({ slug }: RepoProps) {
+export function AllIcons({ type, slug }: RepoProps) {
   slug = slug.toLowerCase();
 
   if (SSR) {
@@ -83,7 +84,7 @@ export function Repo({ slug }: RepoProps) {
     default: ReactJson,
   }: typeof import('react-json-view') = require('react-json-view');
 
-  const url = useUrl('github', slug, true);
+  const url = useUrl(type, slug, true);
   const { data } = useQuery<IconsResponse>(
     [slug, 'all'],
     () => fetch(url, { cache: 'reload' }).then((res) => res.json()),
@@ -95,7 +96,9 @@ export function Repo({ slug }: RepoProps) {
   return (
     <>
       <Head>
-        <title>{slug} - GitHub Icons</title>
+        <title>
+          {slug} - {type === 'github' ? 'GitHub' : 'NPM'} Icons
+        </title>
       </Head>
 
       <div>

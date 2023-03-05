@@ -166,7 +166,10 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       org_or_package
     };
 
-    let url = match npm::get_redirect_url(req.url()?, &package_name).await {
+    let url = req.url()?;
+    let is_all = url.path().ends_with("/all") && !package_name.ends_with("/all");
+
+    let url = match npm::get_redirect_url(url, &package_name, is_all).await {
       Ok(url) => url,
       Err(err) => return Response::error(err.to_string(), 404),
     };
@@ -182,6 +185,8 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 
   let mut response = router
     .get("/", move |req, _| redirect_to_www(&req, true))
+    .get_async("/npm/:org_or_package/:package/all", npm_handler)
+    .get_async("/npm/:org_or_package/all", npm_handler)
     .get_async("/npm/:org_or_package/:package", npm_handler)
     .get_async("/npm/:org_or_package", npm_handler)
     .get_async("/:owner/:repo", async move |req, ctx| {

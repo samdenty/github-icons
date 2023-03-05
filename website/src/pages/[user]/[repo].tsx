@@ -1,6 +1,5 @@
-import Modal from 'react-modal';
 import { useRouter } from 'next/router';
-import { Repo } from '../../components/Repo/Repo';
+import { AllIcons } from '../../components/AllIcons/AllIcons';
 
 export default function RepoPage() {
   const router = useRouter();
@@ -10,5 +9,5 @@ export default function RepoPage() {
     return null;
   }
 
-  return <Repo slug={`${user}/${repo}`} />;
+  return <AllIcons type="github" slug={`${user}/${repo}`} />;
 }

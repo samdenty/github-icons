@@ -1,5 +1,5 @@
 account_id = "3abe6f685dab548d1e22cb0f977a9e18"
-compatibility_date = "2022-10-09"
+compatibility_date = "2022-11-30"
 main = "build/worker/shim.mjs"
 name = "github-icons"
 routes = ["github-icons.com/*"]

@@ -46,9 +46,9 @@ impl From<&RepoFile> for Option<Framework> {
 
       "718d6fea4835ec2d246af9800eddb7ffb276240c" => Framework::Next,
 
-      "bcd5dfd67cd0361b78123e95c2dd96031f27f743" | "a11777cc471a4344702741ab1c8a588998b1311a" => {
-        Framework::CreateReactApp
-      }
+      "bcd5dfd67cd0361b78123e95c2dd96031f27f743"
+      | "a11777cc471a4344702741ab1c8a588998b1311a"
+      | "5c125de5d897c1ff5692a656485b3216123dcd89" => Framework::CreateReactApp,
 
       "a5b1aa16c4dcb6c872cb5af799bfc9b5552c7b9e" => Framework::MdBook,
 

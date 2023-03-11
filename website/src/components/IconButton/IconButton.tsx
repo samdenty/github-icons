@@ -131,6 +131,9 @@ export const IconButton = React.forwardRef(
                       }
 
                       img.onerror = () => {
+                        // sometimes the API can incorrectly return 502
+                        // until this is fixed, retry 7 times which normally
+                        // works
                         if (retryCount >= 7) {
                           setState(IconState.NO_ICON);
                         } else {

@@ -86,7 +86,7 @@ export default function Search({ onQuery, query, placeholder }: SearchProps) {
           }}
         >
           <BsGithub />
-          Sign In with GitHub to search (without rate-limiting)
+          Sign In with GitHub to search (to prevent rate-limiting)
         </SignIn>
       )}
     </StyledSearch>

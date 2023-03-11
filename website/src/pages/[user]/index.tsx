@@ -68,7 +68,7 @@ export default function UserPage() {
         <Search
           query={query}
           onQuery={setQuery}
-          placeholder={`Search @${user}'s GitHub repos icons`}
+          placeholder={`Search @${user}'s GitHub repo icons`}
         />
 
         <Suspense fallback="loading">

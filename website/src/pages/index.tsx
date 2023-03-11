@@ -1,11 +1,14 @@
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import _ from 'lodash';
 import styled from '@emotion/styled';
 import { demoNpmPackages } from '../demoIcons';
 import { useQuery } from '../lib/useQuery';
+
+const UserRepos = dynamic(() => import('../components/UserRepos'), {
+  ssr: false,
+});
 
 const Search = dynamic(() => import('../components/Search'), {
   ssr: false,
@@ -42,7 +45,6 @@ export default function Home({}: HomeProps) {
           <>
             Signed in as {session.accessToken} <br />
             <button onClick={() => signOut()}>Sign out</button>
-            <Suspense fallback="loading">{/* <UserRepos /> */}</Suspense>
           </>
         ) : (
           <>
@@ -53,6 +55,12 @@ export default function Home({}: HomeProps) {
       </Header>
 
       <Main>
+        {session && (
+          <Suspense fallback="loading">
+            <UserRepos user={session.user.id} />
+          </Suspense>
+        )}
+
         <Search
           query={query}
           onQuery={setQuery}

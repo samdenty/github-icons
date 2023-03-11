@@ -31,11 +31,15 @@ const PinnedReposQuery = graphql`
   }
 `;
 
-const StyledUserRepos = styled.div`
+const StyledUserRepos = styled.div<{ full: boolean }>`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(${(props) => (props.full ? 3 : 6)}, 1fr);
   grid-gap: 8px;
   margin-bottom: 25px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 
   @media (max-width: 600px) {
     grid-template-columns: repeat(2, 1fr);
@@ -118,56 +122,63 @@ const Forks = styled.div``;
 
 export interface UserReposProps {
   user: string;
+  full?: boolean;
 }
 
-export default function UserRepos({ user }: UserReposProps) {
+export default function UserRepos({ user, full = false }: UserReposProps) {
   const query = useLazyLoadQuery<UserRepos_pinnedReposQuery>(PinnedReposQuery, {
     user,
   });
 
+  if (!query.repositoryOwner) {
+    return <>User not found</>;
+  }
+
+  if (!query.repositoryOwner.pinnedItems?.nodes?.length) {
+    return null;
+  }
+
   return (
-    <StyledUserRepos>
-      {query.repositoryOwner
-        ? query.repositoryOwner.pinnedItems?.nodes?.map((repo) => (
-            <StyledRepoButton
-              key={repo!.nameWithOwner}
-              type="github"
-              slug={repo!.nameWithOwner!}
-            >
-              <Content>
-                <Name>
-                  <Slug>{repo!.nameWithOwner!}</Slug>
-                  <Badge>Public</Badge>
-                </Name>
-                {repo!.description && (
-                  <Description>{repo!.description}</Description>
-                )}
-                <Info>
-                  {repo!.primaryLanguage && (
-                    <Language>
-                      <LanguageColor color={repo!.primaryLanguage.color!} />
-                      {repo!.primaryLanguage.name}
-                    </Language>
-                  )}
+    <StyledUserRepos full={full}>
+      {query.repositoryOwner.pinnedItems.nodes.map((repo) => (
+        <StyledRepoButton
+          key={repo!.nameWithOwner}
+          type="github"
+          slug={repo!.nameWithOwner!}
+        >
+          <Content>
+            <Name>
+              <Slug>{repo!.nameWithOwner!}</Slug>
+              {full && <Badge>Public</Badge>}
+            </Name>
+            {full && repo!.description && (
+              <Description>{repo!.description}</Description>
+            )}
+            <Info>
+              {repo!.primaryLanguage && (
+                <Language>
+                  <LanguageColor color={repo!.primaryLanguage.color!} />
+                  {repo!.primaryLanguage.name}
+                </Language>
+              )}
 
-                  {repo!.stargazers && (
-                    <Stars>
-                      <AiOutlineStar />
-                      {repo!.stargazers.totalCount}
-                    </Stars>
-                  )}
+              {repo!.stargazers && (
+                <Stars>
+                  <AiOutlineStar />
+                  {repo!.stargazers.totalCount}
+                </Stars>
+              )}
 
-                  {repo!.forkCount !== undefined && (
-                    <Forks>
-                      <GoRepoForked />
-                      {repo!.forkCount}
-                    </Forks>
-                  )}
-                </Info>
-              </Content>
-            </StyledRepoButton>
-          ))
-        : 'User not found'}
+              {full && repo!.forkCount !== undefined && (
+                <Forks>
+                  <GoRepoForked />
+                  {repo!.forkCount}
+                </Forks>
+              )}
+            </Info>
+          </Content>
+        </StyledRepoButton>
+      ))}
     </StyledUserRepos>
   );
 }

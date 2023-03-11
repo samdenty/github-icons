@@ -22,6 +22,14 @@ export const authOptions: NextAuthOptions = {
           scope: 'repo',
         },
       },
+      profile(profile) {
+        return {
+          id: profile.login,
+          email: profile.email,
+          name: profile.name,
+          image: profile.avatar_url,
+        };
+      },
     }),
   ],
   jwt: process.env.NODE_ENV === 'development' ? plainTextJWT : undefined,
@@ -33,6 +41,8 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
+      session.user.id = token.sub!;
+
       return {
         ...session,
         accessToken: token.accessToken,

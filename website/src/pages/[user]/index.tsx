@@ -59,12 +59,12 @@ export default function UserPage() {
       </Profile>
 
       <Content>
-        {session && <UserRepos user={user} />}
+        {session && <UserRepos user={user} full />}
 
         <Search
           query={query}
           onQuery={setQuery}
-          placeholder={`Search @${user}'s GitHub repos`}
+          placeholder={`Search @${user}'s GitHub repos icons`}
         />
 
         <Suspense fallback="loading">

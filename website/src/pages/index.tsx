@@ -24,7 +24,7 @@ const IconsQuery = dynamic(
 
 const ProfileSidebar = styled.div`
   width: 250px;
-  margin-left: 50px;
+  margin-left: 15px;
 `;
 
 const StyledUserRepos = styled(UserRepos)`
@@ -33,7 +33,7 @@ const StyledUserRepos = styled(UserRepos)`
 
 const Main = styled.main`
   display: flex;
-  padding: 50px 50px 0;
+  padding: 50px 50px 0px 15px;
   height: 100%;
   width: 100%;
 `;

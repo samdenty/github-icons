@@ -19,7 +19,7 @@ const StyledIconsQuery = styled.div`
   width: 100%;
   justify-items: center;
   overflow: scroll;
-  padding: 35px 0;
+  padding: 35px;
   scroll-snap-type: y mandatory;
 `;
 

@@ -55,13 +55,18 @@ const SearchProfile = styled(Link)`
   display: flex;
   justify-content: center;
   align-items: center;
-  background: red;
+  background: #23282c;
   height: 50px;
   border-radius: 6px;
   margin-bottom: 20px;
+  transition: opacity 0.1s ease;
+
+  &:hover {
+    background: #2f363c;
+  }
 
   > * {
-    margin-right: 4px;
+    margin-right: 10px;
     height: 24px;
     width: 24px;
   }

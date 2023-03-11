@@ -22,11 +22,14 @@ const Main = styled.div`
   width: 100%;
   height: 100%;
   justify-content: center;
+  padding: 0 50px;
 `;
 
 const Profile = styled.div`
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  margin-right: 50px;
 `;
 
 const Avatar = styled.img`
@@ -37,6 +40,7 @@ const Avatar = styled.img`
 
 const Content = styled.div`
   display: flex;
+  flex-grow: 1;
   flex-direction: column;
   align-items: center;
   padding-top: 50px;

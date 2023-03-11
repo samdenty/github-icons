@@ -31,11 +31,12 @@ const PinnedReposQuery = graphql`
   }
 `;
 
-const StyledUserRepos = styled.div<{ full: boolean }>`
+const StyledUserRepos = styled.div`
   display: grid;
-  grid-template-columns: repeat(${(props) => (props.full ? 3 : 6)}, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   grid-gap: 8px;
   margin-bottom: 25px;
+  height: fit-content;
 
   @media (max-width: 900px) {
     grid-template-columns: repeat(3, 1fr);
@@ -125,7 +126,11 @@ export interface UserReposProps {
   full?: boolean;
 }
 
-export default function UserRepos({ user, full = false }: UserReposProps) {
+export default function UserRepos({
+  user,
+  full = false,
+  ...props
+}: UserReposProps) {
   const query = useLazyLoadQuery<UserRepos_pinnedReposQuery>(PinnedReposQuery, {
     user,
   });
@@ -139,7 +144,7 @@ export default function UserRepos({ user, full = false }: UserReposProps) {
   }
 
   return (
-    <StyledUserRepos full={full}>
+    <StyledUserRepos {...props}>
       {query.repositoryOwner.pinnedItems.nodes.map((repo) => (
         <StyledRepoButton
           key={repo!.nameWithOwner}

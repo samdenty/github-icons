@@ -2,3 +2,5 @@ bin/
 pkg/
 wasm-pack.log
 worker/generated/
+.mf/
+node_modules/

@@ -12,6 +12,8 @@ const StyledIconButton = styled(IconButton)`
   flex-direction: column;
   text-align: center;
   max-width: fit-content;
+  scroll-snap-align: start;
+  scroll-margin-top: 35px;
   --size: 80px;
 
   ${IconButtonIcon} {

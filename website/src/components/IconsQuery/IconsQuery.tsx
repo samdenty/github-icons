@@ -18,6 +18,9 @@ const StyledIconsQuery = styled.div`
   grid-gap: 18px;
   width: 100%;
   justify-items: center;
+  overflow: scroll;
+  padding: 35px 0;
+  scroll-snap-type: y mandatory;
 `;
 
 export interface IconsQueryProps {

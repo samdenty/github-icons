@@ -7,10 +7,6 @@ import styled from '@emotion/styled';
 import { demoNpmPackages } from '../demoIcons';
 import { useQuery } from '../lib/useQuery';
 
-const UserRepos = dynamic(() => import('../components/UserRepos'), {
-  ssr: false,
-});
-
 const Search = dynamic(() => import('../components/Search'), {
   ssr: false,
 });

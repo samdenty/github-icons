@@ -2,6 +2,8 @@ import { UserRepos_pinnedReposQuery } from '../queries/__generated__/UserRepos_p
 import { graphql, useLazyLoadQuery } from 'react-relay';
 import { IconButton } from './IconButton/IconButton';
 import styled from '@emotion/styled';
+import { AiOutlineStar } from 'react-icons/ai';
+import { GoRepoForked } from 'react-icons/go';
 
 const PinnedReposQuery = graphql`
   query UserRepos_pinnedReposQuery($user: String!) {
@@ -31,30 +33,35 @@ const PinnedReposQuery = graphql`
 
 const StyledUserRepos = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   grid-gap: 8px;
+  margin-bottom: 25px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const StyledRepoButton = styled(IconButton)`
   --size: 54px;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 16px;
+  padding: 8px 16px;
+  font-size: 12px;
 `;
 
 const Content = styled.div`
   display: flex;
   flex-direction: column;
   margin-left: 20px;
+  height: 100%;
 
   > *:not(:last-child) {
     margin-bottom: 8px;
   }
 `;
 
-const Name = styled.div`
-  display: flex;
-`;
+const Name = styled.div``;
 
 const Slug = styled.span`
   color: #58a6ff;
@@ -72,16 +79,22 @@ const Badge = styled.span`
   padding: 0.12em 0.5em;
   border-radius: 2em;
   font-weight: 500;
-  line-height: 18px;
 `;
 
-const Description = styled.p``;
+const Description = styled.p`
+  flex-grow: 1;
+`;
 
 const Info = styled.div`
   display: flex;
 
   > * {
-    flex-grow: 1;
+    display: flex;
+    align-items: center;
+
+    > :first-of-type {
+      margin-right: 4px;
+    }
 
     &:not(:last-child) {
       margin-right: 16px;
@@ -91,10 +104,12 @@ const Info = styled.div`
 
 const Language = styled.div``;
 
-const LanguageColor = styled.div`
+const LanguageColor = styled.div<{ color?: string }>`
   border-radius: 50%;
   width: 12px;
   height: 12px;
+  background: ${(props) => props.color};
+  display: ${(props) => (props.color ? 'block' : 'none')};
 `;
 
 const Stars = styled.div``;
@@ -130,17 +145,23 @@ export default function UserRepos({ user }: UserReposProps) {
                 <Info>
                   {repo!.primaryLanguage && (
                     <Language>
-                      <LanguageColor></LanguageColor>
+                      <LanguageColor color={repo!.primaryLanguage.color!} />
                       {repo!.primaryLanguage.name}
                     </Language>
                   )}
 
                   {repo!.stargazers && (
-                    <Stars>{repo!.stargazers.totalCount}</Stars>
+                    <Stars>
+                      <AiOutlineStar />
+                      {repo!.stargazers.totalCount}
+                    </Stars>
                   )}
 
                   {repo!.forkCount !== undefined && (
-                    <Forks>{repo!.forkCount}</Forks>
+                    <Forks>
+                      <GoRepoForked />
+                      {repo!.forkCount}
+                    </Forks>
                   )}
                 </Info>
               </Content>

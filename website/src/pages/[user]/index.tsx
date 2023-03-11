@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router';
 import UserRepos from '../../components/UserRepos';
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { useQuery } from '../../lib/useQuery';
+import styled from '@emotion/styled';
+import { useSession } from 'next-auth/react';
 
 const Search = dynamic(() => import('../../components/Search'), {
   ssr: false,
@@ -15,28 +17,60 @@ const IconsQuery = dynamic(
   }
 );
 
+const Main = styled.div`
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+`;
+
+const Profile = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Avatar = styled.img`
+  border-radius: 50%;
+  height: 256px;
+  width: 256px;
+`;
+
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 50px;
+`;
+
 export default function UserPage() {
   const router = useRouter();
   const { user } = router.query;
   const [query, setQuery] = useQuery();
+  const { data: session } = useSession();
 
   if (typeof user !== 'string') {
     return null;
   }
 
   return (
-    <>
-      <UserRepos user={user} />
+    <Main>
+      <Profile>
+        <Avatar src={`https://github.com/${user}.png`} />
+      </Profile>
 
-      <Search
-        query={query}
-        onQuery={setQuery}
-        placeholder={`Search @${user}'s GitHub repos`}
-      />
+      <Content>
+        {session && <UserRepos user={user} />}
 
-      <Suspense fallback="loading">
-        <IconsQuery query={`${user}/${query}`} strict />
-      </Suspense>
-    </>
+        <Search
+          query={query}
+          onQuery={setQuery}
+          placeholder={`Search @${user}'s GitHub repos`}
+        />
+
+        <Suspense fallback="loading">
+          <IconsQuery query={`${user}/${query}`} strict />
+        </Suspense>
+      </Content>
+    </Main>
   );
 }

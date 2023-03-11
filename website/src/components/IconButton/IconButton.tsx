@@ -97,6 +97,11 @@ enum IconState {
 export const IconButton = React.forwardRef(
   ({ slug, showBadge, type, children, ...props }: IconButtonProps, ref) => {
     const iconUrl = useUrl(type, slug);
+    const [retryCount, setRetryCount] = useState(0);
+    if (retryCount) {
+      iconUrl.searchParams.set('attempt', `${retryCount}`);
+    }
+
     const [state, setState] = useState<IconState>(IconState.LOADING);
     const [pixelated, setPixelated] = useState(false);
 
@@ -126,7 +131,11 @@ export const IconButton = React.forwardRef(
                       }
 
                       img.onerror = () => {
-                        setState(IconState.NO_ICON);
+                        if (retryCount >= 7) {
+                          setState(IconState.NO_ICON);
+                        } else {
+                          setRetryCount(retryCount + 1);
+                        }
                       };
 
                       img.onload = () => {

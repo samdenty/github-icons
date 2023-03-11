@@ -23,24 +23,20 @@ const IconsQuery = dynamic(
   }
 );
 
-const StyledUserRepos = styled.div`
+const ProfileSidebar = styled.div`
   width: 250px;
   margin-left: 50px;
-  margin-top: 50px;
 
   > * {
     grid-template-columns: repeat(1, 1fr) !important;
   }
 `;
 
-const Header = styled.header`
-  display: flex;
-  justify-content: flex-end;
-`;
-
 const Main = styled.main`
   display: flex;
-  padding: 0 50px;
+  padding: 50px 50px 0;
+  height: 100%;
+  width: 100%;
 `;
 
 const Content = styled.div`
@@ -79,49 +75,33 @@ export default function Home({}: HomeProps) {
   const [query, setQuery] = useQuery();
 
   return (
-    <>
-      <Header>
-        {session ? (
-          <>
-            Signed in as {session.accessToken} <br />
-            <button onClick={() => signOut()}>Sign out</button>
-          </>
-        ) : (
-          <>
-            Not signed in <br />
-            <button onClick={() => signIn('github')}>Sign in</button>
-          </>
-        )}
-      </Header>
+    <Main>
+      <Content>
+        <Search
+          query={query}
+          onQuery={setQuery}
+          placeholder={`Search for NPM packages and GitHub repos (i.e. ${demoNpmPackages
+            .slice(0, 3)
+            .join(', ')}...)`}
+        />
 
-      <Main>
-        <Content>
-          <Search
-            query={query}
-            onQuery={setQuery}
-            placeholder={`Search for NPM packages and GitHub repos (i.e. ${demoNpmPackages
-              .slice(0, 3)
-              .join(', ')}...)`}
-          />
+        <Suspense fallback="loading">
+          <IconsQuery query={query} />
+        </Suspense>
+      </Content>
+
+      {session && (
+        <ProfileSidebar>
+          <SearchProfile href={`/${session.user.id}`}>
+            <CgProfile />
+            Go to @{session.user.id}'s icons
+          </SearchProfile>
 
           <Suspense fallback="loading">
-            <IconsQuery query={query} />
+            <UserRepos user={session.user.id} />
           </Suspense>
-        </Content>
-
-        {session && (
-          <StyledUserRepos>
-            <SearchProfile href={`/${session.user.id}`}>
-              <CgProfile />
-              Go to @{session.user.id}'s icons
-            </SearchProfile>
-
-            <Suspense fallback="loading">
-              <UserRepos user={session.user.id} />
-            </Suspense>
-          </StyledUserRepos>
-        )}
-      </Main>
-    </>
+        </ProfileSidebar>
+      )}
+    </Main>
   );
 }

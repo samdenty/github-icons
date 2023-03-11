@@ -46,7 +46,7 @@ const Content = styled.div`
 `;
 
 const Organzations = styled.div`
-  background: #23282c;
+  background: #ffffff33;
   color: #ffffff8c;
   font-size: 12px;
   border-radius: 6px;

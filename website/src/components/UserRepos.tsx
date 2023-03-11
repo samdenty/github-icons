@@ -7,7 +7,7 @@ const PinnedReposQuery = graphql`
   query UserRepos_pinnedReposQuery($user: String!) {
     repositoryOwner(login: $user) {
       ... on ProfileOwner {
-        pinnedItems(first: 6) {
+        pinnedItems(first: 6, types: [REPOSITORY]) {
           nodes {
             ... on Repository {
               nameWithOwner

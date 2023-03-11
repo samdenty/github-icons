@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<8af4c48ed11ec5b3059afa90e41550af>>
+ * @generated SignedSource<<3949870f48764397a72020c9c408adbf>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -56,6 +56,13 @@ v2 = [
     "kind": "Literal",
     "name": "first",
     "value": 6
+  },
+  {
+    "kind": "Literal",
+    "name": "types",
+    "value": [
+      "REPOSITORY"
+    ]
   }
 ],
 v3 = {
@@ -195,7 +202,7 @@ return {
                     "storageKey": null
                   }
                 ],
-                "storageKey": "pinnedItems(first:6)"
+                "storageKey": "pinnedItems(first:6,types:[\"REPOSITORY\"])"
               }
             ],
             "type": "ProfileOwner",
@@ -281,7 +288,7 @@ return {
                     "storageKey": null
                   }
                 ],
-                "storageKey": "pinnedItems(first:6)"
+                "storageKey": "pinnedItems(first:6,types:[\"REPOSITORY\"])"
               }
             ],
             "type": "ProfileOwner",
@@ -294,16 +301,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "609ea4a6a55f026ea1a487b1e22c6542",
+    "cacheID": "3fa4edfed8b8818c53a65ad0aaaec175",
     "id": null,
     "metadata": {},
     "name": "UserRepos_pinnedReposQuery",
     "operationKind": "query",
-    "text": "query UserRepos_pinnedReposQuery(\n  $user: String!\n) {\n  repositoryOwner(login: $user) {\n    __typename\n    ... on ProfileOwner {\n      __isProfileOwner: __typename\n      pinnedItems(first: 6) {\n        nodes {\n          __typename\n          ... on Repository {\n            nameWithOwner\n            isPrivate\n            description\n            primaryLanguage {\n              name\n              color\n              id\n            }\n            stargazers {\n              totalCount\n            }\n            forkCount\n          }\n          ... on Node {\n            __isNode: __typename\n            id\n          }\n        }\n      }\n    }\n    id\n  }\n}\n"
+    "text": "query UserRepos_pinnedReposQuery(\n  $user: String!\n) {\n  repositoryOwner(login: $user) {\n    __typename\n    ... on ProfileOwner {\n      __isProfileOwner: __typename\n      pinnedItems(first: 6, types: [REPOSITORY]) {\n        nodes {\n          __typename\n          ... on Repository {\n            nameWithOwner\n            isPrivate\n            description\n            primaryLanguage {\n              name\n              color\n              id\n            }\n            stargazers {\n              totalCount\n            }\n            forkCount\n          }\n          ... on Node {\n            __isNode: __typename\n            id\n          }\n        }\n      }\n    }\n    id\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "5f41c80c1dbc8fa92d8b7960eccc4a18";
+(node as any).hash = "fa20133b463d3ca21426905883ce990a";
 
 export default node;

@@ -1,12 +1,11 @@
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import _ from 'lodash';
 import styled from '@emotion/styled';
 import { demoNpmPackages } from '../demoIcons';
 import { useQuery } from '../lib/useQuery';
-import Link from 'next/link';
-import { CgProfile } from 'react-icons/cg';
+import { UserOrgs } from '../components/UserOrgs';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,
@@ -26,10 +25,10 @@ const IconsQuery = dynamic(
 const ProfileSidebar = styled.div`
   width: 250px;
   margin-left: 50px;
+`;
 
-  > * {
-    grid-template-columns: repeat(1, 1fr) !important;
-  }
+const StyledUserRepos = styled(UserRepos)`
+  grid-template-columns: repeat(1, 1fr) !important;
 `;
 
 const Main = styled.main`
@@ -46,25 +45,17 @@ const Content = styled.div`
   align-items: center;
 `;
 
-const SearchProfile = styled(Link)`
-  border: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+const Organzations = styled.div`
   background: #23282c;
-  height: 50px;
+  color: #ffffff8c;
+  font-size: 12px;
   border-radius: 6px;
+  padding: 12px;
+  text-align: center;
   margin-bottom: 20px;
-  transition: opacity 0.1s ease;
-
-  &:hover {
-    background: #2f363c;
-  }
 
   > * {
-    margin-right: 10px;
-    height: 24px;
-    width: 24px;
+    margin-top: 12px;
   }
 `;
 
@@ -92,13 +83,13 @@ export default function Home({}: HomeProps) {
 
       {session && (
         <ProfileSidebar>
-          <SearchProfile href={`/${session.user.id}`}>
-            <CgProfile />
-            Go to @{session.user.id}'s icons
-          </SearchProfile>
+          <Organzations>
+            Click to show the icons for:
+            <UserOrgs />
+          </Organzations>
 
           <Suspense fallback="loading">
-            <UserRepos user={session.user.id} />
+            <StyledUserRepos user={session.user.id} />
           </Suspense>
         </ProfileSidebar>
       )}

@@ -17,6 +17,7 @@ regex = "1.7.0"
 repo_icons = {path = "../repo_icons"}
 serde = "1.0"
 serde_json = "1.0"
+sha2 = "0.10.6"
 worker = {package = "worker-plus", version = "0.0.14"}
 
 [package.metadata.wasm-pack.profile.release]

@@ -172,7 +172,7 @@ export function Icon({
         {type === 'svg' ? 'SVG' : type === 'ico' ? sizes[0] : size}
       </Resolution>
 
-      <SetAsIcon>Set as icon in PR</SetAsIcon>
+      {/* <SetAsIcon>Set as icon in PR</SetAsIcon> */}
     </StyledIcon>
   );
 }

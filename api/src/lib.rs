@@ -7,8 +7,9 @@ mod transform_response;
 
 use console_error_panic_hook::set_once;
 use log::Level;
-use repo_icons::{Readme, RepoIcons};
+use repo_icons::{gh_api_get, Readme, RepoIcons};
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use transform_response::*;
 use worker::*;
@@ -46,6 +47,17 @@ fn modifiable_response(response: Response) -> Result<Response> {
   )
 }
 
+fn generate_token(token: &str) -> String {
+  let mut hasher = Sha256::new();
+
+  hasher.update("github-icons");
+  hasher.update(token);
+
+  let result = hasher.finalize();
+
+  format!("ghi_{}", &format!("{:x}", result)[..36])
+}
+
 #[event(fetch)]
 pub async fn main(req: Request, env: Env, ctx: Context) -> Result<Response> {
   let mut response = modifiable_response(request(req, env, ctx).await?)?;
@@ -76,13 +88,21 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
     .any(|(key, _)| key == "refetch" || key == "force" || key == "refresh")
     || (!json_req && is_navigate(&req));
 
-  let token = url.query_pairs().find_map(|(key, token)| {
+  let mut token = url.query_pairs().find_map(|(key, token)| {
     if key == "token" {
       Some(token.to_string())
     } else {
       None
     }
   });
+
+  match token {
+    Some(icons_token) if icons_token.starts_with("ghi_") => {
+      let tokens = env.kv("TOKENS")?;
+      token = tokens.get(&icons_token).text().await?;
+    }
+    _ => {}
+  }
 
   repo_icons::set_token(
     token.as_ref().or(
@@ -101,63 +121,69 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
   let cache_key = url.path()[1..].to_string();
   let http_cache_key = url.to_string();
 
-  if !refetch {
-    if let Some(mut res) = cache.get(&http_cache_key, false).await? {
-      info!("from HTTP cache");
+  if req.method() == Method::Get {
+    if !refetch {
+      if let Some(mut res) = cache.get(&http_cache_key, false).await? {
+        info!("from HTTP cache");
 
-      if let Some(token) = &token {
-        res = transform_response(true, token, res).await?
-      }
-
-      return Ok(res);
-    };
-
-    if let Some(cache_res) = cache_bucket.get(&cache_key).execute().await? {
-      info!("from R2 cache");
-
-      let mut headers = Headers::new();
-      let mut status_code = None;
-
-      let metadata = cache_res.http_metadata();
-
-      if let Some(content_type) = metadata.content_type {
-        headers.set("Content-Type", &content_type)?;
-      }
-
-      if let Some(cache_control) = metadata.cache_control {
-        headers.set("Cache-Control", &cache_control)?;
-      }
-
-      for (key, value) in &cache_res.custom_metadata()? {
-        if key == "status-code" {
-          status_code = Some(value.parse().unwrap());
-        } else {
-          headers.set(key, value)?;
+        if let Some(token) = &token {
+          res = transform_response(true, token, res).await?
         }
-      }
 
-      let mut res = match cache_res.body() {
-        Some(body) => Response::from_bytes(body.bytes().await?)?,
-        None => Response::from_body(ResponseBody::Empty)?,
-      }
-      .with_status(status_code.unwrap())
-      .with_headers(headers);
+        return Ok(res);
+      };
 
-      if let Some(token) = &token {
-        res = transform_response(true, token, res).await?
-      }
+      if let Some(cache_res) = cache_bucket.get(&cache_key).execute().await? {
+        info!("from R2 cache");
 
-      return Ok(res);
-    };
+        let mut headers = Headers::new();
+        let mut status_code = None;
 
-    info!("missed cache");
-  } else {
-    info!("force refetching");
+        let metadata = cache_res.http_metadata();
+
+        if let Some(content_type) = metadata.content_type {
+          headers.set("Content-Type", &content_type)?;
+        }
+
+        if let Some(cache_control) = metadata.cache_control {
+          headers.set("Cache-Control", &cache_control)?;
+        }
+
+        for (key, value) in &cache_res.custom_metadata()? {
+          if key == "status-code" {
+            status_code = Some(value.parse().unwrap());
+          } else {
+            headers.set(key, value)?;
+          }
+        }
+
+        let mut res = match cache_res.body() {
+          Some(body) => Response::from_bytes(body.bytes().await?)?,
+          None => Response::from_body(ResponseBody::Empty)?,
+        }
+        .with_status(status_code.unwrap())
+        .with_headers(headers);
+
+        if let Some(token) = &token {
+          res = transform_response(true, token, res).await?
+        }
+
+        return Ok(res);
+      };
+
+      info!("missed cache");
+    } else {
+      info!("force refetching");
+    }
   }
 
   let router = Router::new();
 
   let npm_handler = async move |req: Request, ctx: RouteContext<()>| {
+    if is_navigate(&req) {
+      return redirect_to_www(&req, false);
+    }
+
     let org_or_package = ctx.param("org_or_package").unwrap().clone();
 
     let package_name = if let Some(package) = ctx.param("package") {
@@ -185,6 +211,36 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
 
   let mut response = router
     .get("/", move |req, _| redirect_to_www(&req, true))
+    .get("/:owner", move |req, _| redirect_to_www(&req, true))
+    .post_async("/token-exchange", async move |req, ctx| {
+      let tokens = ctx.kv("TOKENS")?;
+      let url = req.url()?;
+
+      let github_token =
+        match url
+          .query_pairs()
+          .find_map(|(name, token)| if name == "token" { Some(token) } else { None })
+        {
+          Some(token) => token,
+          _ => return Response::error("missing token", 401),
+        };
+
+      if github_token.starts_with("ghi_")
+        || gh_api_get!("user")
+          .send()
+          .await
+          .and_then(|res| res.error_for_status())
+          .is_err()
+      {
+        return Response::error("invalid token", 401);
+      };
+
+      let token = generate_token(&github_token);
+
+      tokens.put(&token, &github_token)?.execute().await?;
+
+      return Response::from_bytes(token.as_bytes().to_vec());
+    })
     .get_async("/npm/:org_or_package/:package/all", npm_handler)
     .get_async("/npm/:org_or_package/all", npm_handler)
     .get_async("/npm/:org_or_package/:package", npm_handler)
@@ -274,7 +330,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
     .run(req.clone()?, env)
     .await?;
 
-  {
+  if req.method() == Method::Get {
     let mut response = response.cloned()?;
 
     if let Some(token) = &token {

@@ -6,6 +6,10 @@ routes = ["github-icons.com/*"]
 usage_model = "unbound"
 workers_dev = false
 
+[[kv_namespaces]]
+binding = "TOKENS"
+id = "e6f72a9cfb3340cba8d9a53ddbd77031"
+
 [[r2_buckets]]
 binding = "CACHE"
 bucket_name = "cache"

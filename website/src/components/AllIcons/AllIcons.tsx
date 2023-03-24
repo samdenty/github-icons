@@ -75,6 +75,8 @@ const Icons = styled.div`
   grid-gap: 8px;
 `;
 
+const Main = styled.main``;
+
 export function AllIcons({ type, slug }: RepoProps) {
   slug = slug.toLowerCase();
 
@@ -120,7 +122,7 @@ export function AllIcons({ type, slug }: RepoProps) {
   const iconByKinds = _.groupBy(data!.icons, 'kind');
 
   return (
-    <>
+    <Main>
       <Head>
         <title>
           {slug} - {type === 'github' ? 'GitHub' : 'NPM'} Icons
@@ -154,10 +156,11 @@ export function AllIcons({ type, slug }: RepoProps) {
                 </KindGroup>
               )
             )}
+
             <ReactJson src={data} name={false} theme="summerfruit" />
           </>
         )}
       </div>
-    </>
+    </Main>
   );
 }

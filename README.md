@@ -2,15 +2,13 @@
   <img src="./cli/logo.png" width="150">
 </h1>
 
-## API & Website
-
 [![Open in Codeflow](https://developer.stackblitz.com/img/open_in_codeflow.svg)](https://pr.new/samdenty/github-icons)
 
 [![Website demo](assets/api-demo.gif)](https://github-icons.com)
 
-To use the API, generate a token by signing into the website first (click the search bar). A token is required we use the GitHub API, and that is rate limited.
+## API Usage
 
-### API Usage
+To use the API, generate a token by signing into the website first (click the search bar). A token is required we use the GitHub API, and that is rate limited.
 
 Consider [sponsoring the project](https://github.com/sponsors/samdenty) as it costs to run the API.
 

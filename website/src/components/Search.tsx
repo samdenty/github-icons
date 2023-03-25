@@ -80,6 +80,7 @@ export default function Search({ onQuery, query, placeholder }: SearchProps) {
         }}
         autoComplete="off"
         autoCorrect="off"
+        autoCapitalize="off"
         spellCheck={false}
       />
       {!session && (

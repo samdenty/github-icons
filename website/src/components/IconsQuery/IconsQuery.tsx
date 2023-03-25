@@ -33,7 +33,7 @@ export default function IconsQuery({ query, strict = false }: IconsQueryProps) {
   const session = useSession();
 
   const { data } = useQuery(
-    ['search', query, strict, !!session.data?.accessToken],
+    ['search', query.toLowerCase(), strict, !!session.data?.accessToken],
     async (): Promise<IconQuery[]> => {
       if (!query) {
         return null!;

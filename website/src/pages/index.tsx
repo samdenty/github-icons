@@ -71,7 +71,7 @@ const Organizations = styled.div`
 const Code = styled.code`
   background: #ffffff33;
   color: #ffffff8c;
-  font-size: 11px;
+  font-size: 11.5px;
   border-radius: 6px;
   padding: 12px;
   margin-top: 12px;

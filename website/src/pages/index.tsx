@@ -134,6 +134,12 @@ const CodeTitle = styled.h5`
   }
 `;
 
+const Star = styled.a`
+  position: fixed;
+  top: 15px;
+  right: 50px;
+`;
+
 interface HomeProps {}
 
 export default function Home({}: HomeProps) {
@@ -159,6 +165,12 @@ export default function Home({}: HomeProps) {
 
   return (
     <Main>
+      <Star href="https://github.com/samdenty/github-icons" target="_blank">
+        <img
+          alt="GitHub"
+          src="https://img.shields.io/github/stars/samdenty/github-icons?style=social&label=Star"
+        />
+      </Star>
       {userToken ? (
         <UsageSidebar>
           Your publicly shareable API token:

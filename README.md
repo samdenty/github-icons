@@ -2,7 +2,32 @@
   <img src="./cli/logo.png" width="150">
 </h1>
 
-## [Download the app](https://github.com/samdenty/github-icons/releases/latest)
+## API & Website
+
+[![Open in Codeflow](https://developer.stackblitz.com/img/open_in_codeflow.svg)](https://pr.new/samdenty/github-icons)
+
+[![Website demo](assets/api-demo.gif)](https://github-icons.com)
+
+To use the API, make sure to sign into the website first (by clicking search bar). This will generate a token that you can use to make requests to the API. A token is required as the API uses the GitHub API, and that is rate limited.
+
+### Usage
+
+````bash
+# GitHub Repo icon API:
+GET https://github-icons.com/[user]/[repo]?token=[token]
+# NPM Package icon API:
+GET https://github-icons.com/npm/[package]?token=[token]
+
+
+# List all icons for a repo:
+GET https://github-icons.com/[user]/[repo]/all?token=[token]
+# List all icons for a package:
+GET https://github-icons.com/npm/[package]/all?token=[token]
+```
+
+## Mac APP
+
+### [Download the app](https://github.com/samdenty/github-icons/releases/latest)
 
 Automatically adds project logos to your locally cloned GitHub repos. [Youtube Video](https://www.youtube.com/watch?v=jrO3qSEpAFU)
 
@@ -37,6 +62,6 @@ cd github-icons
 cargo run -- sync
 # or with github token (for private repos)
 cargo run -- sync --token INSERT_TOKEN
-```
+````
 
 [![Banner](./banner.gif)](https://samddenty.gumroad.com/l/git-icons)

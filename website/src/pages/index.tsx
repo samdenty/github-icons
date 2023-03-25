@@ -92,6 +92,7 @@ const Copy = styled.button``;
 const ListIcons = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center;
   opacity: 0.5;
 
   &:hover {

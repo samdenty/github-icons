@@ -8,16 +8,17 @@
 
 [![Website demo](assets/api-demo.gif)](https://github-icons.com)
 
-To use the API, make sure to sign into the website first (by clicking search bar). This will generate a token that you can use to make requests to the API. A token is required as the API uses the GitHub API, and that is rate limited.
+To use the API, generate a token by signing into the website first (click the search bar). A token is required we use the GitHub API, and that is rate limited.
 
 ### Usage
 
-````bash
+Consider [sponsoring the project](https://github.com/sponsors/samdenty) as it costs to run the API.
+
+```bash
 # GitHub Repo icon API:
 GET https://github-icons.com/[user]/[repo]?token=[token]
 # NPM Package icon API:
 GET https://github-icons.com/npm/[package]?token=[token]
-
 
 # List all icons for a repo:
 GET https://github-icons.com/[user]/[repo]/all?token=[token]
@@ -62,6 +63,6 @@ cd github-icons
 cargo run -- sync
 # or with github token (for private repos)
 cargo run -- sync --token INSERT_TOKEN
-````
+```
 
 [![Banner](./banner.gif)](https://samddenty.gumroad.com/l/git-icons)

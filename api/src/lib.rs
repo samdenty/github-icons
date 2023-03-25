@@ -1,4 +1,4 @@
-#![feature(async_closure, let_chains)]
+#![feature(async_closure, let_chains, is_some_and)]
 #[macro_use]
 extern crate log;
 
@@ -126,9 +126,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       if let Some(mut res) = cache.get(&http_cache_key, false).await? {
         info!("from HTTP cache");
 
-        if let Some(token) = &token {
-          res = transform_response(true, token, res).await?
-        }
+        res = transform_response(Transform::Deserialize, token.as_ref(), &req, res).await?;
 
         return Ok(res);
       };
@@ -157,16 +155,18 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
           }
         }
 
-        let mut res = match cache_res.body() {
-          Some(body) => Response::from_bytes(body.bytes().await?)?,
-          None => Response::from_body(ResponseBody::Empty)?,
-        }
-        .with_status(status_code.unwrap())
-        .with_headers(headers);
-
-        if let Some(token) = &token {
-          res = transform_response(true, token, res).await?
-        }
+        let res = transform_response(
+          Transform::Deserialize,
+          token.as_ref(),
+          &req,
+          match cache_res.body() {
+            Some(body) => Response::from_bytes(body.bytes().await?)?,
+            None => Response::from_body(ResponseBody::Empty)?,
+          }
+          .with_status(status_code.unwrap())
+          .with_headers(headers),
+        )
+        .await?;
 
         return Ok(res);
       };
@@ -331,11 +331,13 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
     .await?;
 
   if req.method() == Method::Get {
-    let mut response = response.cloned()?;
-
-    if let Some(token) = &token {
-      response = transform_response(false, token, response).await?
-    }
+    let mut response = transform_response(
+      Transform::Serialize,
+      token.as_ref(),
+      &req,
+      response.cloned()?,
+    )
+    .await?;
 
     ctx.wait_until(async move {
       if response.status_code() > 400 {
@@ -361,10 +363,7 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
           .http_metadata(HttpMetadata {
             content_type,
             cache_control,
-            content_language: None,
-            content_disposition: None,
-            content_encoding: None,
-            cache_expiry: None,
+            ..HttpMetadata::default()
           })
           .custom_metdata(metadata)
           .execute()

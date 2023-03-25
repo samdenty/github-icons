@@ -7,6 +7,8 @@ import { demoNpmPackages } from '../demoIcons';
 import { useQuery } from '../lib/useQuery';
 import { UserOrgs } from '../components/UserOrgs';
 import copy from 'copy-to-clipboard';
+import { BsGithub } from 'react-icons/bs';
+import { ImNpm } from 'react-icons/im';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,
@@ -94,9 +96,24 @@ const ListIcons = styled.div`
   flex-direction: column;
   align-items: center;
   opacity: 0.5;
+  transition: opacity 0.2s ease;
 
   &:hover {
     opacity: 1;
+  }
+`;
+
+const CodeTitle = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #ffffffc0;
+
+  > * {
+    height: 20px;
+    width: 20px;
+    margin-right: 5px;
   }
 `;
 
@@ -139,14 +156,20 @@ export default function Home({}: HomeProps) {
             </Copy>
           </Token>
           <br />
-          <span style={{ color: '#89da9b' }}>GitHub Repo icon API:</span>
+          <CodeTitle>
+            <BsGithub />
+            GitHub Repo icon API:
+          </CodeTitle>
           <Code>
             https://github-icons.com/
             <span style={{ color: '#3acc5a' }}>[user]</span>/
             <span style={{ color: '#3acc5a' }}>[repo]</span>?token=
             <span style={{ color: '#ab8d57' }}>{userToken}</span>
           </Code>
-          <span style={{ color: '#e18a8a' }}>NPM Package icon API:</span>
+          <CodeTitle>
+            <ImNpm />
+            NPM Package icon API:
+          </CodeTitle>
           <Code>
             https://github-icons.com/
             <span style={{ color: '#e4e5e4' }}>npm</span>/
@@ -155,7 +178,10 @@ export default function Home({}: HomeProps) {
           </Code>
           <ListIcons>
             <br />
-            List all icons for a repo:
+            <CodeTitle>
+              <BsGithub />
+              List all icons for a repo:
+            </CodeTitle>
             <Code>
               https://github-icons.com/
               <span style={{ color: '#3acc5a' }}>[user]</span>/
@@ -163,7 +189,10 @@ export default function Home({}: HomeProps) {
               <span style={{ color: '#e4e5e4' }}>all</span>?token=
               <span style={{ color: '#ab8d57' }}>{userToken}</span>
             </Code>
-            List all icons for a package:
+            <CodeTitle>
+              <ImNpm />
+              List all icons for a package:
+            </CodeTitle>
             <Code>
               https://github-icons.com/
               <span style={{ color: '#e4e5e4' }}>npm</span>/

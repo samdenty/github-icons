@@ -10,7 +10,7 @@
 
 To use the API, generate a token by signing into the website first (click the search bar). A token is required we use the GitHub API, and that is rate limited.
 
-### Usage
+### API Usage
 
 Consider [sponsoring the project](https://github.com/sponsors/samdenty) as it costs to run the API.
 

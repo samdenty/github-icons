@@ -10,7 +10,7 @@ const StyledSearch = styled.div`
   width: 750px;
   margin-bottom: 15px;
 
-  @media (max-width: 850px) {
+  @media (max-width: 1320px) {
     width: 80%;
   }
 `;

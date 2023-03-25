@@ -18,6 +18,7 @@ body {
     Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 #__next {

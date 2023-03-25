@@ -31,11 +31,23 @@ const UsageSidebar = styled.div`
   width: 250px;
   margin-right: 15px;
   align-items: center;
+  flex-shrink: 0;
+  overflow-y: scroll;
+
+  @media (max-width: 1100px) {
+    display: none;
+  }
 `;
 
 const ProfileSidebar = styled.div`
   width: 250px;
   margin-left: 15px;
+  overflow-y: scroll;
+  flex-shrink: 0;
+
+  @media (max-width: 750px) {
+    display: none;
+  }
 `;
 
 const StyledUserRepos = styled(UserRepos)`
@@ -47,6 +59,10 @@ const Main = styled.main`
   padding: 50px 50px 0px 15px;
   height: 100%;
   width: 100%;
+
+  @media (max-width: 750px) {
+    padding-right: 15px;
+  }
 `;
 
 const Content = styled.div`

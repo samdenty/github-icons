@@ -34,11 +34,12 @@ class Document extends NextDocument<DocumentProps> {
 
     return (
       <Html>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1"
+        />
+
         <Head>
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1, maximum-scale=1"
-          />
           <relayDocument.Script />
         </Head>
         <body>

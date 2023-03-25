@@ -1,13 +1,6 @@
-const relay = require('./relay.config');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  compiler: {
-    emotion: true,
-    relay,
-  },
 
   webpack: (config, { isServer, webpack }) => {
     if (!isServer) {

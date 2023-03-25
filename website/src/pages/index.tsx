@@ -232,7 +232,7 @@ export default function Home({}: HomeProps) {
           </ListIcons>
         </UsageSidebar>
       ) : (
-        <UsageSidebar>loading</UsageSidebar>
+        session && <UsageSidebar>loading</UsageSidebar>
       )}
       <Content>
         <Search

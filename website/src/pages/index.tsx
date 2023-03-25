@@ -138,14 +138,14 @@ export default function Home({}: HomeProps) {
             </Copy>
           </Token>
           <br />
-          <span style={{ color: '#89da9b' }}>GitHub Repo Image API:</span>
+          <span style={{ color: '#89da9b' }}>GitHub Repo icon API:</span>
           <Code>
             https://github-icons.com/
             <span style={{ color: '#3acc5a' }}>[user]</span>/
             <span style={{ color: '#3acc5a' }}>[repo]</span>?token=
             <span style={{ color: '#ab8d57' }}>{userToken}</span>
           </Code>
-          <span style={{ color: '#e18a8a' }}>NPM Package Image API:</span>
+          <span style={{ color: '#e18a8a' }}>NPM Package icon API:</span>
           <Code>
             https://github-icons.com/
             <span style={{ color: '#e4e5e4' }}>npm</span>/

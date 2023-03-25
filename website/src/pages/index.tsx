@@ -1,11 +1,12 @@
 import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import _ from 'lodash';
 import styled from '@emotion/styled';
 import { demoNpmPackages } from '../demoIcons';
 import { useQuery } from '../lib/useQuery';
 import { UserOrgs } from '../components/UserOrgs';
+import copy from 'copy-to-clipboard';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,
@@ -21,6 +22,14 @@ const IconsQuery = dynamic(
     ssr: false,
   }
 );
+
+const UsageSidebar = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  margin-right: 15px;
+  align-items: center;
+`;
 
 const ProfileSidebar = styled.div`
   width: 250px;
@@ -45,7 +54,7 @@ const Content = styled.div`
   align-items: center;
 `;
 
-const Organzations = styled.div`
+const Organizations = styled.div`
   background: #ffffff33;
   color: #ffffff8c;
   font-size: 12px;
@@ -59,14 +68,111 @@ const Organzations = styled.div`
   }
 `;
 
+const Code = styled.code`
+  background: #ffffff33;
+  color: #ffffff8c;
+  font-size: 11px;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
+  margin-bottom: 20px;
+  width: 100%;
+  word-break: break-all;
+`;
+
+const Token = styled(Code)`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: orange;
+`;
+
+const Copy = styled.button``;
+
+const ListIcons = styled.div`
+  display: flex;
+  flex-direction: column;
+  opacity: 0.5;
+
+  &:hover {
+    opacity: 1;
+  }
+`;
+
 interface HomeProps {}
 
 export default function Home({}: HomeProps) {
   const { data: session } = useSession();
   const [query, setQuery] = useQuery();
+  const [userToken, setUserToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session) {
+      fetch(
+        `https://github-icons.com/token-exchange?token=${session?.accessToken}`,
+        {
+          method: 'POST',
+        }
+      ).then(async (res) => {
+        if (res.ok) {
+          const token = await res.text();
+          setUserToken(token);
+        }
+      });
+    }
+  }, [session?.accessToken]);
 
   return (
     <Main>
+      {userToken && (
+        <UsageSidebar>
+          Your publicly shareable API token:
+          <Token>
+            {userToken}
+            <Copy
+              onClick={() => {
+                copy(userToken);
+              }}
+            >
+              Copy
+            </Copy>
+          </Token>
+          <br />
+          <span style={{ color: '#89da9b' }}>GitHub Repo Image API:</span>
+          <Code>
+            https://github-icons.com/
+            <span style={{ color: '#3acc5a' }}>[user]</span>/
+            <span style={{ color: '#3acc5a' }}>[repo]</span>?token=
+            <span style={{ color: '#ab8d57' }}>{userToken}</span>
+          </Code>
+          <span style={{ color: '#e18a8a' }}>NPM Package Image API:</span>
+          <Code>
+            https://github-icons.com/
+            <span style={{ color: '#e4e5e4' }}>npm</span>/
+            <span style={{ color: '#ff5a5a' }}>[package]</span>?token=
+            <span style={{ color: '#ab8d57' }}>{userToken}</span>
+          </Code>
+          <br />
+          <ListIcons>
+            List all icons for a repo:
+            <Code>
+              https://github-icons.com/
+              <span style={{ color: '#3acc5a' }}>[user]</span>/
+              <span style={{ color: '#3acc5a' }}>[repo]</span>/
+              <span style={{ color: '#e4e5e4' }}>all</span>?token=
+              <span style={{ color: '#ab8d57' }}>{userToken}</span>
+            </Code>
+            List all icons for a package:
+            <Code>
+              https://github-icons.com/
+              <span style={{ color: '#e4e5e4' }}>npm</span>/
+              <span style={{ color: '#ff5a5a' }}>[package]</span>/
+              <span style={{ color: '#e4e5e4' }}>all</span>?token=
+              <span style={{ color: '#ab8d57' }}>{userToken}</span>
+            </Code>
+          </ListIcons>
+        </UsageSidebar>
+      )}
       <Content>
         <Search
           query={query}
@@ -83,10 +189,10 @@ export default function Home({}: HomeProps) {
 
       {session && (
         <ProfileSidebar>
-          <Organzations>
+          <Organizations>
             Click to show the icons for:
             <UserOrgs />
-          </Organzations>
+          </Organizations>
 
           <Suspense fallback="loading">
             <StyledUserRepos user={session.user.id} />

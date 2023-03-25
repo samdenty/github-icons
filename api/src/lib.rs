@@ -55,7 +55,7 @@ fn generate_token(token: &str) -> String {
 
   let result = hasher.finalize();
 
-  format!("ghi_{}", &format!("{:x}", result)[..36])
+  format!("ghi_{}", &format!("{:x}", result)[..20])
 }
 
 #[event(fetch)]

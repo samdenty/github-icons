@@ -153,8 +153,8 @@ export default function Home({}: HomeProps) {
             <span style={{ color: '#ff5a5a' }}>[package]</span>?token=
             <span style={{ color: '#ab8d57' }}>{userToken}</span>
           </Code>
-          <br />
           <ListIcons>
+            <br />
             List all icons for a repo:
             <Code>
               https://github-icons.com/

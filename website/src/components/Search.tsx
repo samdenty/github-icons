@@ -78,6 +78,9 @@ export default function Search({ onQuery, query, placeholder }: SearchProps) {
         onChange={(e) => {
           onQuery(e.target.value);
         }}
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
       />
       {!session && (
         <SignIn

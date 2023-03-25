@@ -103,12 +103,13 @@ const ListIcons = styled.div`
   }
 `;
 
-const CodeTitle = styled.span`
+const CodeTitle = styled.h5`
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   color: #ffffffc0;
+  margin: 0;
 
   > * {
     height: 20px;

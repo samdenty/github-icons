@@ -124,7 +124,7 @@ export default function Home({}: HomeProps) {
 
   return (
     <Main>
-      {userToken && (
+      {userToken ? (
         <UsageSidebar>
           Your publicly shareable API token:
           <Token>
@@ -172,6 +172,8 @@ export default function Home({}: HomeProps) {
             </Code>
           </ListIcons>
         </UsageSidebar>
+      ) : (
+        <UsageSidebar>loading</UsageSidebar>
       )}
       <Content>
         <Search

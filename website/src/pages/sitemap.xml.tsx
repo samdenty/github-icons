@@ -53,6 +53,8 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
 `);
 
   res.end();
+
+  return { props: {} };
 };
 
 // Default export to prevent next.js errors

@@ -21,6 +21,7 @@ export interface IconButtonProps
 const RepoLink = styled(Link)`
   --size: 80px;
   display: flex;
+  text-decoration: none !important;
   align-items: center;
 
   &:hover {

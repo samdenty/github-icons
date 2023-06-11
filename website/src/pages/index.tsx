@@ -9,6 +9,7 @@ import { UserOrgs } from '../components/UserOrgs';
 import copy from 'copy-to-clipboard';
 import { BsGithub } from 'react-icons/bs';
 import { ImNpm } from 'react-icons/im';
+import Link from 'next/link';
 
 const UserRepos = dynamic(() => import('../components/UserRepos'), {
   ssr: false,
@@ -134,10 +135,13 @@ const CodeTitle = styled.h5`
   }
 `;
 
-const Star = styled.a`
+const Nav = styled.nav`
   position: fixed;
   top: 15px;
   right: 50px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
 `;
 
 interface HomeProps {}
@@ -165,12 +169,16 @@ export default function Home({}: HomeProps) {
 
   return (
     <Main>
-      <Star href="https://github.com/samdenty/github-icons" target="_blank">
-        <img
-          alt="GitHub"
-          src="https://img.shields.io/github/stars/samdenty/github-icons?style=social&label=Star"
-        />
-      </Star>
+      <Nav>
+        <a href="https://github.com/samdenty/github-icons" target="_blank">
+          <img
+            alt="GitHub"
+            src="https://img.shields.io/github/stars/samdenty/github-icons?style=social&label=Star"
+          />
+        </a>
+        <Link href="/popular-packages">Popular Packages</Link>
+      </Nav>
+
       {userToken ? (
         <UsageSidebar>
           Your publicly shareable API token:

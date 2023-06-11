@@ -2,7 +2,7 @@ import { IconType } from '../../lib/useUrl';
 import styled from '@emotion/styled';
 import { Icon } from './Icon';
 
-export interface IconQuery {
+export interface Icon {
   type: IconType;
   slug: string;
 }
@@ -20,14 +20,14 @@ const StyledIconsGrid = styled.div`
 `;
 
 export interface IconsGridProps {
-  icons: IconQuery[];
+  icons: Icon[];
 }
 
 export default function IconsGrid({ icons }: IconsGridProps) {
   return (
     <StyledIconsGrid>
-      {icons.map((iconQuery) => (
-        <Icon key={JSON.stringify(iconQuery)} {...iconQuery} />
+      {icons.map((icon) => (
+        <Icon key={JSON.stringify(icon)} {...icon} />
       ))}
     </StyledIconsGrid>
   );

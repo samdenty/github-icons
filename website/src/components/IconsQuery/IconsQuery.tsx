@@ -3,7 +3,7 @@ import { demoIcons } from '../../demoIcons';
 import { search } from './search';
 import { useSession } from 'next-auth/react';
 import { useDebounce } from 'use-debounce';
-import IconsGrid, { IconQuery } from '../IconsGrid/IconsGrid';
+import IconsGrid, { Icon } from '../IconsGrid/IconsGrid';
 
 export interface IconsQueryProps {
   query: string;
@@ -16,7 +16,7 @@ export default function IconsQuery({ query, strict = false }: IconsQueryProps) {
 
   const { data } = useQuery(
     ['search', query.toLowerCase(), strict, !!session.data?.accessToken],
-    async (): Promise<IconQuery[]> => {
+    async (): Promise<Icon[]> => {
       if (!query) {
         return null!;
       }

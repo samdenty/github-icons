@@ -1,5 +1,5 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { IconQuery } from './IconsQuery';
+import { Icon } from '../IconsGrid/IconsGrid';
 
 interface NPMSResults {
   results: {
@@ -33,7 +33,7 @@ export interface SearchOptions extends GithubSearchOptions {
 export async function search(
   query: string,
   { limit = 60, strict, githubToken }: SearchOptions
-): Promise<IconQuery[]> {
+): Promise<Icon[]> {
   if (query.startsWith('@')) {
     return searchNPM(query, limit);
   }
@@ -54,7 +54,7 @@ export async function search(
     .filter(Boolean);
 }
 
-async function searchNPM(query: string, limit: number): Promise<IconQuery[]> {
+async function searchNPM(query: string, limit: number): Promise<Icon[]> {
   try {
     return await racePromises([
       fetch(
@@ -96,7 +96,7 @@ async function searchGithub(
   query: string,
   limit: number,
   { strict = false, githubToken }: GithubSearchOptions
-): Promise<IconQuery[]> {
+): Promise<Icon[]> {
   const [, user, usersRepoQuery] = /^([^\/]+)\/(.*)/.exec(query) || [];
 
   async function searchGithubAPI() {

@@ -57,7 +57,7 @@ export default function App({
             <title>GitHub / NPM Icons</title>
             <meta
               name="description"
-              content="Chrome Extension, API & Mac App/CLI that adds icons to your repos"
+              content="Website for searching scraped GitHub and NPM icons, along with a JSON / Image API"
             />
             <link rel="icon" href="/favicon.ico" />
           </Head>

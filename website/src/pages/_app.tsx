@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import React from 'react';
+import { Analytics } from '@vercel/analytics/react';
 
 if (typeof window === 'undefined') {
   React.useLayoutEffect = React.useEffect;
@@ -63,6 +64,7 @@ export default function App({
 
           <BackgroundEffect />
           <Component {...pageProps} {...relayProps} />
+          <Analytics />
         </RelayEnvironmentProvider>
       </SessionProvider>
     </QueryClientProvider>

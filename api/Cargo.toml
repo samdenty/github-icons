@@ -8,6 +8,7 @@ version = "0.1.0"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+base64 = "0.21.2"
 console_error_panic_hook = "0.1.1"
 console_log = "0.2.0"
 futures = "0.3.12"

@@ -2,18 +2,25 @@
 #[macro_use]
 extern crate log;
 
+mod mixpanel;
 mod npm;
 mod transform_response;
 
 use console_error_panic_hook::set_once;
 use log::Level;
 use repo_icons::{gh_api_get, Readme, RepoIcons};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use transform_response::*;
 use worker::*;
 use worker_sys::Response as EdgeResponse;
+
+#[derive(Deserialize)]
+struct UserResponse {
+  pub login: String,
+}
 
 fn is_navigate(req: &Request) -> bool {
   // if user navigates to URL directly, then redirect them to www.
@@ -195,6 +202,13 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
     let url = req.url()?;
     let is_all = url.path().ends_with("/all") && !package_name.ends_with("/all");
 
+    mixpanel::track(
+      if is_all { "npm_all_icons" } else { "npm_icon" },
+      &package_name,
+      json!({}),
+    )
+    .await;
+
     let url = match npm::get_redirect_url(url, &package_name, is_all).await {
       Ok(url) => url,
       Err(err) => return Response::error(err.to_string(), 404),
@@ -225,15 +239,23 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
           _ => return Response::error("missing token", 401),
         };
 
-      if github_token.starts_with("ghi_")
-        || gh_api_get!("user")
+      match (
+        github_token.starts_with("ghi_"),
+        gh_api_get!("user")
           .send()
           .await
-          .and_then(|res| res.error_for_status())
-          .is_err()
-      {
-        return Response::error("invalid token", 401);
-      };
+          .and_then(|res| res.error_for_status()),
+      ) {
+        (true, _) | (_, Err(_)) => {
+          return Response::error("invalid token", 401);
+        }
+
+        (_, Ok(response)) => {
+          if let Ok(user) = response.json::<UserResponse>().await {
+            mixpanel::track("login", &user.login, json!({})).await;
+          }
+        }
+      }
 
       let token = generate_token(&github_token);
 
@@ -253,6 +275,8 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       let mut write_to_cache = true;
       let owner = ctx.param("owner").unwrap().trim_start_matches("@");
       let repo = ctx.param("repo").unwrap().as_str();
+
+      mixpanel::track("repo_icon", &format!("{}/{}", owner, repo), json!({})).await;
 
       let result = RepoIcons::load(owner, repo, true).await;
 
@@ -301,6 +325,8 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
       let owner = ctx.param("owner").unwrap().trim_start_matches("@");
       let repo = ctx.param("repo").unwrap().as_str();
 
+      mixpanel::track("repo_all_icons", &format!("{}/{}", owner, repo), json!({})).await;
+
       let result = RepoIcons::load(owner, repo, false).await;
 
       let mut response = from_json_pretty(&result)?;
@@ -313,6 +339,8 @@ async fn request(req: Request, env: Env, ctx: Context) -> Result<Response> {
     .get_async("/:owner/:repo/images", async move |_, ctx| {
       let owner = ctx.param("owner").unwrap().trim_start_matches("@");
       let repo = ctx.param("repo").unwrap().as_str();
+
+      mixpanel::track("repo_images", &format!("{}/{}", owner, repo), json!({})).await;
 
       let images = match Readme::load(owner, repo).await {
         Some(images) => images,

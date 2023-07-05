@@ -3,7 +3,6 @@ compatibility_date = "2022-11-30"
 main = "build/worker/shim.mjs"
 name = "github-icons"
 routes = ["github-icons.com/*"]
-usage_model = "unbound"
 workers_dev = false
 
 [[kv_namespaces]]

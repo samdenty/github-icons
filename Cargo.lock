@@ -41,6 +41,7 @@ dependencies = [
 name = "api"
 version = "0.1.0"
 dependencies = [
+ "base64 0.21.2",
  "console_error_panic_hook",
  "console_log",
  "futures",
@@ -138,6 +139,12 @@ name = "base64"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
+
+[[package]]
+name = "base64"
+version = "0.21.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "604178f6c5c21f02dc555784810edfb88d34ac2c73b2eae109655649ee73ce3d"
 
 [[package]]
 name = "bit-set"
@@ -1112,7 +1119,7 @@ dependencies = [
 name = "git-icons"
 version = "1.1.0"
 dependencies = [
- "base64",
+ "base64 0.13.0",
  "clap",
  "diesel",
  "diesel_migrations",
@@ -2402,7 +2409,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68cc60575865c7831548863cc02356512e3f1dc2f3f82cb837d7fc4cc8f3c97c"
 dependencies = [
  "async-compression",
- "base64",
+ "base64 0.13.0",
  "bytes",
  "cookie",
  "cookie_store",
@@ -2444,7 +2451,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59fdca8934fccbd5aec3e208bdb5a76107ce8690aa51c6c292c31f21541b52b9"
 dependencies = [
  "async-compression",
- "base64",
+ "base64 0.13.0",
  "bytes",
  "cookie",
  "cookie_store",
@@ -2732,7 +2739,7 @@ version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25bf4a5a814902cd1014dbccfa4d4560fb8432c779471e96e035602519f82eef"
 dependencies = [
- "base64",
+ "base64 0.13.0",
  "chrono",
  "hex",
  "indexmap",
@@ -3349,7 +3356,7 @@ version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "585bb2d87c8fd6041a479dea01479dcf9094e61b5f9af221606927e61a2bd939"
 dependencies = [
- "base64",
+ "base64 0.13.0",
  "data-url",
  "flate2",
  "fontdb",
